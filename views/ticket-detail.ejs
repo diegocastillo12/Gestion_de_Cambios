@@ -1,0 +1,445 @@
+<%- include('partials/head') %>
+
+<%
+  // Índice del estado actual en el flujo
+  const flujoEstados = [
+    'Solicitado', 'En Análisis', 'Aprobado por Director',
+    'En Revisión CCB', 'Aprobado CCB', 'En Desarrollo', 'En QA', 'Liberado'
+  ];
+  const currentEstadoIdx = flujoEstados.indexOf(ticket.estado);
+  const isTerminal = ticket.estado === 'Rechazado' || ticket.estado === 'Liberado';
+%>
+
+<div class="app-wrapper">
+  <%- include('partials/sidebar', { user, roles }) %>
+
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Menú">☰</button>
+      <div class="topbar-title" style="display:flex; align-items:center; gap:0.75rem;">
+        <a href="/tickets" class="btn btn-ghost btn-sm" style="color:var(--text-muted);">← Tickets</a>
+        <span style="color:var(--border-default);">/</span>
+        <span class="font-mono" style="color:var(--accent); font-size:0.9rem;"><%= ticket.id %></span>
+      </div>
+      <div class="topbar-actions">
+        <span class="badge <%= estadoMeta[ticket.estado] ? estadoMeta[ticket.estado].badge : 'badge-slate' %>">
+          <%= estadoMeta[ticket.estado] ? estadoMeta[ticket.estado].icon : '' %>
+          <%= ticket.estado %>
+        </span>
+        <span class="badge badge-prioridad-<%= ticket.prioridad.toLowerCase() %>">
+          <%= ticket.prioridad %>
+        </span>
+      </div>
+    </header>
+
+    <div class="page-container">
+
+      <!-- ─── STEPPER DE FLUJO ──────────────────────────────────────────────── -->
+      <div class="card mb-6" style="padding:1.25rem 1.5rem;">
+        <div class="stepper">
+          <% flujoEstados.forEach((estado, idx) => { %>
+            <% if (idx > 0) { %>
+            <div class="step-connector <%= idx <= currentEstadoIdx && !isTerminal ? 'done' : '' %>"></div>
+            <% } %>
+            <div class="step <%= idx < currentEstadoIdx ? 'done' : (idx === currentEstadoIdx && !isTerminal ? 'active' : '') %>">
+              <div class="step-circle">
+                <% if (idx < currentEstadoIdx) { %>✓
+                <% } else { %><%= idx + 1 %><% } %>
+              </div>
+              <div class="step-label"><%= estado %></div>
+            </div>
+          <% }) %>
+          <% if (ticket.estado === 'Rechazado') { %>
+          <div class="step-connector"></div>
+          <div class="step active" style="--step-color: var(--red);">
+            <div class="step-circle" style="background:var(--red-subtle); border-color:var(--red); color:var(--red);">✕</div>
+            <div class="step-label" style="color:var(--red);">Rechazado</div>
+          </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- ─── GRID PRINCIPAL ───────────────────────────────────────────────── -->
+      <div class="grid-sidebar">
+
+        <!-- Columna izquierda: detalle + historial + QA -->
+        <div style="display:flex; flex-direction:column; gap:1.5rem;">
+
+          <!-- INFO GENERAL -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">📄 Información del Cambio</span>
+              <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+                <span class="badge badge-slate" style="font-size:0.7rem;"><%= ticket.tipo %></span>
+                <% if (ticket.etiquetas && ticket.etiquetas.length) {
+                   ticket.etiquetas.forEach(etq => { %>
+                <span class="tag">#<%= etq %></span>
+                <% }) } %>
+              </div>
+            </div>
+
+            <h2 style="font-size:1.2rem; margin-bottom:0.75rem; line-height:1.3;"><%= ticket.titulo %></h2>
+
+            <p style="margin-bottom:1.5rem; font-size:0.875rem; line-height:1.7;"><%= ticket.descripcion %></p>
+
+            <div class="grid-2" style="gap:1rem;">
+              <div>
+                <div class="form-label mb-1">⚡ Impacto</div>
+                <p style="font-size:0.82rem; margin:0;"><%= ticket.impacto || '—' %></p>
+              </div>
+              <div>
+                <div class="form-label mb-1">⚠️ Riesgo</div>
+                <p style="font-size:0.82rem; margin:0;"><%= ticket.riesgo || '—' %></p>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="grid-3" style="gap:0.75rem;">
+              <div>
+                <div class="form-label mb-1">⏱️ Estimación</div>
+                <div style="font-size:0.9rem; font-weight:600; color:var(--text-primary);">
+                  <%= ticket.estimacionHoras || 0 %> horas
+                </div>
+              </div>
+              <div>
+                <div class="form-label mb-1">📅 Creado</div>
+                <div style="font-size:0.82rem; color:var(--text-secondary);">
+                  <%= new Date(ticket.fechaCreacion).toLocaleDateString('es-MX', {day:'2-digit', month:'long', year:'numeric'}) %>
+                </div>
+              </div>
+              <div>
+                <div class="form-label mb-1">🔄 Actualizado</div>
+                <div style="font-size:0.82rem; color:var(--text-secondary);">
+                  <%= new Date(ticket.fechaActualizacion).toLocaleDateString('es-MX', {day:'2-digit', month:'long', year:'numeric'}) %>
+                </div>
+              </div>
+            </div>
+
+            <!-- Rama y MR -->
+            <% if (ticket.rama || ticket.mergeRequest) { %>
+            <div class="divider"></div>
+            <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+              <% if (ticket.rama) { %>
+              <div>
+                <div class="form-label mb-1">🌿 Rama Git</div>
+                <code style="font-size:0.8rem; color:var(--accent); background:var(--accent-subtle); padding:0.2rem 0.6rem; border-radius:var(--radius-sm);">
+                  <%= ticket.rama %>
+                </code>
+              </div>
+              <% } %>
+              <% if (ticket.mergeRequest) { %>
+              <div>
+                <div class="form-label mb-1">🔀 Merge Request</div>
+                <code style="font-size:0.8rem; color:var(--blue); background:var(--blue-subtle); padding:0.2rem 0.6rem; border-radius:var(--radius-sm);">
+                  <%= ticket.mergeRequest %>
+                </code>
+              </div>
+              <% } %>
+            </div>
+            <% } %>
+          </div>
+
+          <!-- RESULTADOS DE QA -->
+          <% if (ticket.qaResultados) { %>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">🧪 Resultados de QA</span>
+              <span class="badge <%= ticket.qaResultados.aprobado ? 'badge-green' : (ticket.qaResultados.aprobado === false ? 'badge-red' : 'badge-slate') %>">
+                <%= ticket.qaResultados.aprobado === true ? '✓ Aprobado' : ticket.qaResultados.aprobado === false ? '✕ Fallido' : 'Pendiente' %>
+              </span>
+            </div>
+
+            <div class="grid-3 mb-4" style="gap:0.75rem;">
+              <div style="text-align:center; padding:0.75rem; background:var(--bg-secondary); border-radius:var(--radius-md);">
+                <div style="font-size:1.6rem; font-weight:800; color:var(--text-primary);"><%= ticket.qaResultados.testsCorridos %></div>
+                <div style="font-size:0.7rem; color:var(--text-muted);">Tests Corridos</div>
+              </div>
+              <div style="text-align:center; padding:0.75rem; background:var(--accent-subtle); border-radius:var(--radius-md); border:1px solid var(--accent-border);">
+                <div style="font-size:1.6rem; font-weight:800; color:var(--accent);"><%= ticket.qaResultados.testsPasados %></div>
+                <div style="font-size:0.7rem; color:var(--text-muted);">Pasados</div>
+              </div>
+              <div style="text-align:center; padding:0.75rem; background:var(--red-subtle); border-radius:var(--radius-md); border:1px solid rgba(248,113,113,0.3);">
+                <div style="font-size:1.6rem; font-weight:800; color:var(--red);"><%= ticket.qaResultados.testsFallidos %></div>
+                <div style="font-size:0.7rem; color:var(--text-muted);">Fallidos</div>
+              </div>
+            </div>
+
+            <!-- Barra de progreso QA -->
+            <div class="qa-bar" style="height:8px; margin-bottom:0.75rem;">
+              <% const pctQA = ticket.qaResultados.testsCorridos > 0 ? Math.round((ticket.qaResultados.testsPasados / ticket.qaResultados.testsCorridos) * 100) : 0; %>
+              <div class="qa-bar-fill" style="width:<%= pctQA %>%; background: <%= ticket.qaResultados.testsFallidos > 0 ? 'linear-gradient(90deg, var(--accent) '+pctQA+'%, var(--red) 100%)' : 'var(--accent)' %>;"></div>
+            </div>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.75rem;"><%= pctQA %>% de tests pasados</div>
+
+            <% if (ticket.qaResultados.notas) { %>
+            <div style="background:var(--bg-secondary); border-radius:var(--radius-md); padding:0.75rem; font-size:0.82rem; color:var(--text-secondary);">
+              📝 <%= ticket.qaResultados.notas %>
+            </div>
+            <% } %>
+          </div>
+          <% } %>
+
+          <!-- HISTORIAL DE CAMBIOS DE ESTADO -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">📜 Historial del Ciclo de Vida</span>
+              <span class="badge badge-slate"><%= ticket.historial.length %> eventos</span>
+            </div>
+            <div class="timeline">
+              <% [...ticket.historial].reverse().forEach((h, idx) => {
+                let dotClass = '';
+                if (h.estado === 'Rechazado')  dotClass = 'dot-rejected';
+                else if (h.estado === 'En QA')  dotClass = 'dot-qa';
+                else if (h.estado === 'En Desarrollo') dotClass = 'dot-dev';
+                else if (h.estado === 'Liberado') dotClass = 'dot-release';
+              %>
+              <div class="timeline-item">
+                <div class="timeline-dot <%= dotClass %>"></div>
+                <div class="timeline-header">
+                  <% const meta = estadoMeta[h.estado]; %>
+                  <span class="badge <%= meta ? meta.badge : 'badge-slate' %>" style="font-size:0.68rem;">
+                    <%= meta ? meta.icon : '' %> <%= h.estado %>
+                  </span>
+                  <span class="timeline-user">👤 <%= h.usuario %></span>
+                  <span class="timeline-date">
+                    <%= new Date(h.fecha).toLocaleDateString('es-MX', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}) %>
+                  </span>
+                </div>
+                <% if (h.comentario) { %>
+                <div class="timeline-comment"><%= h.comentario %></div>
+                <% } %>
+              </div>
+              <% }) %>
+            </div>
+          </div>
+
+        </div><!-- /col-left -->
+
+        <!-- Columna derecha: metadatos + acciones -->
+        <div style="display:flex; flex-direction:column; gap:1.5rem;">
+
+          <!-- ASIGNACIÓN -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">👥 Personas</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:0.85rem;">
+              <div>
+                <div class="form-label mb-1">Solicitante</div>
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                  <div class="sidebar-avatar" style="width:28px; height:28px; font-size:0.6rem; background:linear-gradient(135deg, var(--blue), var(--purple));">
+                    <%= ticket.solicitanteNombre ? ticket.solicitanteNombre.split(' ').map(n=>n[0]).join('').slice(0,2) : 'SL' %>
+                  </div>
+                  <span style="font-size:0.85rem; color:var(--text-secondary);"><%= ticket.solicitanteNombre %></span>
+                </div>
+              </div>
+              <div>
+                <div class="form-label mb-1">Desarrollador Asignado</div>
+                <% if (ticket.asignadoNombre) { %>
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                  <div class="sidebar-avatar" style="width:28px; height:28px; font-size:0.6rem; background:linear-gradient(135deg, var(--accent), var(--teal));">
+                    <%= ticket.asignadoNombre.split(' ').map(n=>n[0]).join('').slice(0,2) %>
+                  </div>
+                  <span style="font-size:0.85rem; color:var(--text-secondary);"><%= ticket.asignadoNombre %></span>
+                </div>
+                <% } else { %>
+                <span style="font-size:0.82rem; color:var(--text-muted);">Sin asignar</span>
+                <% } %>
+              </div>
+            </div>
+          </div>
+
+          <!-- ACCIONES DISPONIBLES (según rol) -->
+          <% if (transicionesDisponibles.length > 0 && !isTerminal) { %>
+          <div class="card" style="border-color: var(--accent-border);">
+            <div class="card-header">
+              <span class="card-title">⚡ Acciones Disponibles</span>
+              <span class="badge badge-green">Tu turno</span>
+            </div>
+            <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:1rem;">
+              Como <strong style="color:var(--accent);"><%= user.rol %></strong>, puedes ejecutar las siguientes transiciones:
+            </p>
+
+            <div style="display:flex; flex-direction:column; gap:0.6rem;">
+              <% transicionesDisponibles.forEach(nuevoEstado => {
+                const meta = estadoMeta[nuevoEstado] || {};
+                const isReject = nuevoEstado === 'Rechazado';
+                const needsAssign = nuevoEstado === 'En Desarrollo';
+                const isQA = nuevoEstado === 'Liberado' || (nuevoEstado === 'En Desarrollo' && ticket.estado === 'En QA');
+                const modalId = 'modal-' + nuevoEstado.replace(/\s+/g, '-').replace(/[^\w-]/g,'');
+              %>
+
+              <!-- Botón disparador del modal -->
+              <button
+                class="btn <%= isReject ? 'btn-danger' : 'btn-secondary' %> w-full"
+                onclick="openModal('<%= modalId %>')"
+                style="justify-content:space-between; padding:0.7rem 1rem;"
+              >
+                <span style="display:flex; align-items:center; gap:0.5rem;">
+                  <span><%= meta.icon || '→' %></span>
+                  <span>Mover a: <strong><%= nuevoEstado %></strong></span>
+                </span>
+                <span style="font-size:0.7rem; color:var(--text-muted);">→</span>
+              </button>
+
+              <!-- Modal de confirmación -->
+              <div id="<%= modalId %>-overlay" class="modal-overlay">
+                <div class="modal">
+                  <div class="modal-header">
+                    <div class="modal-title">
+                      <%= meta.icon || '→' %> Confirmar: <%= nuevoEstado %>
+                    </div>
+                    <button class="modal-close" onclick="closeModal('<%= modalId %>')">✕</button>
+                  </div>
+
+                  <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1.25rem;">
+                    Vas a cambiar el estado de <strong style="color:var(--text-primary);"><%= ticket.id %></strong>
+                    de <span class="badge <%= estadoMeta[ticket.estado] ? estadoMeta[ticket.estado].badge : 'badge-slate' %>" style="font-size:0.68rem;"><%= ticket.estado %></span>
+                    a <span class="badge <%= meta.badge || 'badge-slate' %>" style="font-size:0.68rem;"><%= nuevoEstado %></span>.
+                  </p>
+
+                  <!-- Asignación de desarrollador (solo en "En Desarrollo") -->
+                  <% if (needsAssign) { %>
+                  <div class="form-group">
+                    <label class="form-label" for="asignado-<%= nuevoEstado.replace(/\s+/g, '-') %>">
+                      Asignar Desarrollador
+                    </label>
+                    <select id="asignado-<%= nuevoEstado.replace(/\s+/g, '-') %>" class="form-control">
+                      <option value="">Sin asignar</option>
+                      <% users.filter(u => u.rol === roles.DESARROLLADOR).forEach(dev => { %>
+                      <option value="<%= dev.id %>"><%= dev.nombre %></option>
+                      <% }) %>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="rama-<%= nuevoEstado.replace(/\s+/g, '-') %>">Rama Git</label>
+                    <input type="text" id="rama-<%= nuevoEstado.replace(/\s+/g, '-') %>"
+                      class="form-control" placeholder="feat/nombre-del-cambio"
+                      value="<%= ticket.rama || '' %>" />
+                  </div>
+                  <% } %>
+
+                  <!-- Merge Request (solo en QA) -->
+                  <% if (ticket.estado === 'En Desarrollo') { %>
+                  <div class="form-group">
+                    <label class="form-label" for="merge-<%= nuevoEstado.replace(/\s+/g, '-') %>">Merge Request (opcional)</label>
+                    <input type="text" id="merge-<%= nuevoEstado.replace(/\s+/g, '-') %>"
+                      class="form-control" placeholder="MR-XXX"
+                      value="<%= ticket.mergeRequest || '' %>" />
+                  </div>
+                  <% } %>
+
+                  <!-- Campos de QA (solo al liberar o devolver de QA) -->
+                  <% if (isQA) { %>
+                  <div class="divider"></div>
+                  <div class="form-group">
+                    <label class="form-label">Resultado QA</label>
+                    <select id="qa-aprobado" class="form-control">
+                      <option value="true">✓ Aprobado — Todos los tests pasaron</option>
+                      <option value="false">✕ Fallido — Hay tests fallidos</option>
+                    </select>
+                  </div>
+                  <div class="grid-2" style="gap:0.75rem;">
+                    <div class="form-group" style="margin:0;">
+                      <label class="form-label">Tests corridos</label>
+                      <input type="number" id="qa-tests" class="form-control" placeholder="0" min="0" />
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                      <label class="form-label">Tests fallidos</label>
+                      <input type="number" id="qa-failed" class="form-control" placeholder="0" min="0" />
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Notas de QA</label>
+                    <textarea id="qa-notes" class="form-control" placeholder="Descripción de resultados, defectos encontrados…" rows="3"></textarea>
+                  </div>
+                  <% } %>
+
+                  <!-- Comentario siempre presente -->
+                  <div class="form-group">
+                    <label class="form-label" for="comentario-<%= nuevoEstado.replace(/\s+/g, '-') %>">
+                      Comentario <% if (!isReject) { %><span class="text-muted">(opcional)</span><% } else { %><span class="text-red">*requerido</span><% } %>
+                    </label>
+                    <textarea
+                      id="comentario-<%= nuevoEstado.replace(/\s+/g, '-') %>"
+                      class="form-control"
+                      rows="3"
+                      placeholder="Justificación o notas para esta transición…"
+                    ></textarea>
+                  </div>
+
+                  <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
+                    <button class="btn btn-ghost" onclick="closeModal('<%= modalId %>')">Cancelar</button>
+                    <button
+                      class="btn <%= isReject ? 'btn-danger' : 'btn-primary' %>"
+                      onclick="cambiarEstado('<%= ticket.id %>', '<%= nuevoEstado %>')"
+                    >
+                      <%= meta.icon || '→' %> Confirmar
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <% }) %>
+            </div>
+          </div>
+          <% } else if (!isTerminal) { %>
+          <div class="card" style="text-align:center; padding:1.5rem;">
+            <div style="font-size:2rem; margin-bottom:0.5rem;">🔒</div>
+            <p style="font-size:0.82rem; color:var(--text-muted);">
+              Tu rol (<strong style="color:var(--text-secondary);"><%= user.rol %></strong>) no puede ejecutar acciones en el estado actual.
+            </p>
+          </div>
+          <% } else { %>
+          <div class="card" style="text-align:center; padding:1.5rem; border-color: <%= ticket.estado === 'Liberado' ? 'var(--accent-border)' : 'rgba(248,113,113,0.3)' %>;">
+            <div style="font-size:2rem; margin-bottom:0.5rem;"><%= ticket.estado === 'Liberado' ? '🚀' : '❌' %></div>
+            <p style="font-size:0.85rem; color:<%= ticket.estado === 'Liberado' ? 'var(--accent)' : 'var(--red)' %>; font-weight:600;">
+              Ticket <%= ticket.estado %>
+            </p>
+            <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.4rem;">
+              <%= ticket.estado === 'Liberado' ? 'Cambio desplegado exitosamente en producción.' : 'Este cambio fue rechazado. No puede continuar el flujo.' %>
+            </p>
+          </div>
+          <% } %>
+
+          <!-- RESUMEN DE METADATOS -->
+          <div class="card">
+            <div class="card-header"><span class="card-title">ℹ️ Metadatos</span></div>
+            <div style="display:flex; flex-direction:column; gap:0.6rem; font-size:0.82rem;">
+              <div style="display:flex; justify-content:space-between;">
+                <span style="color:var(--text-muted);">Estado</span>
+                <span class="badge <%= estadoMeta[ticket.estado] ? estadoMeta[ticket.estado].badge : 'badge-slate' %>" style="font-size:0.68rem;">
+                  <%= ticket.estado %>
+                </span>
+              </div>
+              <div style="display:flex; justify-content:space-between;">
+                <span style="color:var(--text-muted);">Prioridad</span>
+                <span class="badge badge-prioridad-<%= ticket.prioridad.toLowerCase() %>" style="font-size:0.68rem;"><%= ticket.prioridad %></span>
+              </div>
+              <div style="display:flex; justify-content:space-between;">
+                <span style="color:var(--text-muted);">Tipo</span>
+                <span style="color:var(--text-secondary); text-align:right; max-width:55%;"><%= ticket.tipo %></span>
+              </div>
+              <div style="display:flex; justify-content:space-between;">
+                <span style="color:var(--text-muted);">Estimación</span>
+                <span style="color:var(--text-secondary);"><%= ticket.estimacionHoras %>h</span>
+              </div>
+              <div style="display:flex; justify-content:space-between;">
+                <span style="color:var(--text-muted);">Historial</span>
+                <span style="color:var(--text-secondary);"><%= ticket.historial.length %> eventos</span>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /col-right -->
+
+      </div><!-- /grid-sidebar -->
+
+    </div><!-- /page-container -->
+
+    <%- include('partials/footer') %>
+  </div>
+</div>

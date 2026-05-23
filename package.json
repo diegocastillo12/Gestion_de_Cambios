@@ -1,0 +1,28 @@
+{
+  "name": "gestio-cambios-g04",
+  "version": "1.0.0",
+  "description": "Sistema de Gestión de Cambios G04 - Software Configuration Management",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "scm",
+    "change-management",
+    "configuration",
+    "nodejs"
+  ],
+  "author": "GestioCambios Team G04",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "mysql2": "^3.22.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

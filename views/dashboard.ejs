@@ -1,0 +1,228 @@
+<%- include('partials/head') %>
+
+<div class="app-wrapper">
+  <%- include('partials/sidebar', { user, roles }) %>
+
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Abrir menú">☰</button>
+      <div class="topbar-title">
+        📊 Dashboard — <span style="color:var(--text-muted); font-weight:400;">Bienvenido, <strong style="color:var(--accent);"><%= user.nombre %></strong></span>
+      </div>
+      <div class="topbar-actions">
+        <% if ([roles.SOLICITANTE, roles.DIRECTOR_PROYECTO, roles.GESTOR_CONFIGURACION].includes(user.rol)) { %>
+        <a href="/tickets/nuevo" class="btn btn-primary btn-sm">
+          <span>➕</span> Nuevo Ticket
+        </a>
+        <% } %>
+        <span class="badge badge-green" style="font-size:0.72rem;">
+          <%= user.rol %>
+        </span>
+      </div>
+    </header>
+
+    <div class="page-container">
+
+      <!-- ─── ESTADÍSTICAS GLOBALES ─────────────────────────────────────────── -->
+      <div class="stats-grid" style="grid-template-columns: repeat(6, 1fr); gap: 0.65rem; margin-bottom: 1rem;">
+
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background: var(--accent);"></div>
+          <div class="stat-value text-accent"><%= stats.total %></div>
+          <div class="stat-label">Total de Tickets</div>
+          <div class="stat-trend text-muted">📋 Todos los cambios registrados</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background: var(--yellow);"></div>
+          <div class="stat-value" style="color:var(--yellow);">
+            <%= (stats.porEstado['En Desarrollo'] || 0) + (stats.porEstado['En Análisis'] || 0) + (stats.porEstado['En Revisión CCB'] || 0) %>
+          </div>
+          <div class="stat-label">En Progreso</div>
+          <div class="stat-trend text-muted">⚙️ Análisis + Desarrollo + CCB</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background: var(--pink);"></div>
+          <div class="stat-value" style="color:var(--pink);"><%= stats.porEstado['En QA'] || 0 %></div>
+          <div class="stat-label">En QA</div>
+          <div class="stat-trend text-muted">🧪 Validación y pruebas</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background: var(--accent);"></div>
+          <div class="stat-value text-accent"><%= stats.porEstado['Liberado'] || 0 %></div>
+          <div class="stat-label">Liberados</div>
+          <div class="stat-trend text-muted">🚀 Desplegados en producción</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background: var(--red);"></div>
+          <div class="stat-value" style="color:var(--red);"><%= stats.porEstado['Rechazado'] || 0 %></div>
+          <div class="stat-label">Rechazados</div>
+          <div class="stat-trend text-muted">❌ Descartados o pausados</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background: var(--purple);"></div>
+          <div class="stat-value" style="color:var(--purple);"><%= stats.porEstado['Solicitado'] || 0 %></div>
+          <div class="stat-label">Pendientes</div>
+          <div class="stat-trend text-muted">📋 Nuevos sin procesar</div>
+        </div>
+
+      </div>
+
+      <!-- ─── DISTRIBUCIÓN POR ESTADO ─────────────────────────────────────── -->
+      <div class="grid-2" style="gap: 0.75rem; margin-bottom: 1rem;">
+
+        <!-- Bandeja de tareas -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🎯 Mi Bandeja de Tareas</span>
+            <span class="badge badge-green"><%= bandeja.length %> pendiente<%= bandeja.length !== 1 ? 's' : '' %></span>
+          </div>
+
+          <% if (bandeja.length === 0) { %>
+          <div style="text-align:center; padding:1rem; color:var(--text-muted);">
+            <div style="font-size:2.5rem; margin-bottom:0.75rem;">✅</div>
+            <p style="font-size:0.85rem;">Sin tareas pendientes para tu rol</p>
+          </div>
+          <% } else { %>
+          <div style="display:flex; flex-direction:column; gap:0.4rem;">
+            <% bandeja.slice(0,6).forEach(t => { %>
+            <a href="/tickets/<%= t.id %>" style="
+              display:flex; align-items:center; gap:0.75rem;
+              padding:0.65rem 0.85rem;
+              background: var(--bg-secondary);
+              border: 1px solid var(--border-subtle);
+              border-radius: var(--radius-md);
+              text-decoration:none;
+              transition: all 0.15s;
+            "
+            onmouseover="this.style.borderColor='var(--accent)'; this.style.background='var(--bg-hover)';"
+            onmouseout="this.style.borderColor='var(--border-subtle)'; this.style.background='var(--bg-secondary)';"
+            >
+              <span style="font-size:1.1rem;"><%= estadoMeta[t.estado] ? estadoMeta[t.estado].icon : '📋' %></span>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:0.8rem; font-weight:600; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                  <%= t.titulo %>
+                </div>
+                <div style="font-size:0.7rem; color:var(--text-muted); margin-top:0.1rem;">
+                  <span class="font-mono"><%= t.id %></span> &nbsp;·&nbsp; <%= t.estado %>
+                </div>
+              </div>
+              <% const pm = estadoMeta[t.prioridad === 'Crítica' ? 'dummy' : t.prioridad]; %>
+              <span class="badge badge-prioridad-<%= t.prioridad.toLowerCase() %>" style="flex-shrink:0;">
+                <%= t.prioridad %>
+              </span>
+            </a>
+            <% }) %>
+            <% if (bandeja.length > 6) { %>
+            <a href="/tickets" style="
+              text-align:center; padding:0.5rem;
+              color:var(--accent); font-size:0.78rem; font-weight:500;
+              text-decoration:none;
+            ">Ver <%= bandeja.length - 6 %> más →</a>
+            <% } %>
+          </div>
+          <% } %>
+        </div>
+
+        <!-- Distribución por estado -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📊 Distribución por Estado</span>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:0.45rem;">
+            <%
+            const estadosOrdenados = [
+              ['Solicitado', 'badge-slate'],
+              ['En Análisis', 'badge-orange'],
+              ['Aprobado por Director', 'badge-blue'],
+              ['En Revisión CCB', 'badge-purple'],
+              ['Aprobado CCB', 'badge-teal'],
+              ['En Desarrollo', 'badge-yellow'],
+              ['En QA', 'badge-pink'],
+              ['Liberado', 'badge-green'],
+              ['Rechazado', 'badge-red'],
+            ];
+            %>
+            <% estadosOrdenados.forEach(([estado, badge]) => {
+              const count = stats.porEstado[estado] || 0;
+              const pct = stats.total > 0 ? Math.round((count / stats.total) * 100) : 0;
+            %>
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
+                <span class="badge <%= badge %>" style="font-size:0.68rem;"><%= estado %></span>
+                <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;"><%= count %></span>
+              </div>
+              <div class="qa-bar">
+                <div class="qa-bar-fill" style="width:<%= pct %>%; background: <%= estadoMeta[estado] ? estadoMeta[estado].color : 'var(--accent)' %>;"></div>
+              </div>
+            </div>
+            <% }) %>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ─── TICKETS RECIENTES ─────────────────────────────────────────────── -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🕐 Tickets Recientes</span>
+          <a href="/tickets" class="btn btn-secondary btn-sm">Ver todos →</a>
+        </div>
+
+        <% const recientes = tickets.sort((a,b) => new Date(b.fechaActualizacion) - new Date(a.fechaActualizacion)).slice(0, 8); %>
+
+        <% if (recientes.length === 0) { %>
+        <div style="text-align:center; padding:2rem; color:var(--text-muted);">
+          <p>No hay tickets disponibles para tu rol.</p>
+        </div>
+        <% } else { %>
+        <div class="table-wrapper" style="border:none; background:transparent;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Título</th>
+                <th>Estado</th>
+                <th>Prioridad</th>
+                <th>Tipo</th>
+                <th>Actualizado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% recientes.forEach(t => { %>
+              <tr class="ticket-row" onclick="window.location='/tickets/<%= t.id %>'">
+                <td><span class="ticket-id"><%= t.id %></span></td>
+                <td class="ticket-title-cell">
+                  <span class="ticket-title-text"><%= t.titulo %></span>
+                </td>
+                <td>
+                  <span class="badge <%= estadoMeta[t.estado] ? estadoMeta[t.estado].badge : 'badge-slate' %>">
+                    <%= estadoMeta[t.estado] ? estadoMeta[t.estado].icon : '' %> <%= t.estado %>
+                  </span>
+                </td>
+                <td>
+                  <span class="badge badge-prioridad-<%= t.prioridad.toLowerCase() %>"><%= t.prioridad %></span>
+                </td>
+                <td style="color:var(--text-muted); font-size:0.8rem;"><%= t.tipo %></td>
+                <td style="color:var(--text-muted); font-size:0.78rem; white-space:nowrap;">
+                  <%= new Date(t.fechaActualizacion).toLocaleDateString('es-MX', {day:'2-digit',month:'short',year:'numeric'}) %>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <% } %>
+      </div>
+
+    </div><!-- /page-container -->
+
+    <%- include('partials/footer') %>
+  </div><!-- /main-content -->
+</div><!-- /app-wrapper -->

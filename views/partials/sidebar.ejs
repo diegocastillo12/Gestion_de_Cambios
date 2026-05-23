@@ -1,0 +1,143 @@
+<%
+  /**
+   * sidebar.ejs — Menú lateral adaptativo según el rol del usuario en sesión
+   * Filtra secciones de navegación basado en db.ROLES
+   */
+  const ROLES = locals.roles || {};
+  const u = locals.user || {};
+  const rol = u.rol || '';
+
+  // Secciones visibles por rol
+  const canViewTickets   = true; // todos
+  const canCreateTicket  = [ROLES.SOLICITANTE, ROLES.DIRECTOR_PROYECTO, ROLES.GESTOR_CONFIGURACION].includes(rol);
+  const canViewAnalysis  = [ROLES.LIDER_TECNICO, ROLES.GESTOR_CONFIGURACION, ROLES.DIRECTOR_PROYECTO].includes(rol);
+  const canViewCCB       = rol === ROLES.CCB;
+  const canViewDev       = [ROLES.DESARROLLADOR, ROLES.LIDER_TECNICO].includes(rol);
+  const canViewQA        = [ROLES.GESTOR_CONFIGURACION, ROLES.LIDER_TECNICO, ROLES.DESARROLLADOR].includes(rol);
+  const isAdmin          = rol === ROLES.GESTOR_CONFIGURACION;
+%>
+
+<!-- Overlay para movil -->
+<div id="sidebar-overlay"></div>
+
+<aside id="sidebar" class="sidebar">
+
+  <!-- Logo -->
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-icon">⚙️</div>
+    <div class="sidebar-logo-text">
+      <span class="sidebar-logo-title">GestioCambios</span>
+      <span class="sidebar-logo-sub">G04 · SCM System</span>
+    </div>
+  </div>
+
+  <!-- Perfil del usuario -->
+  <% if (u && u.nombre) { %>
+  <div class="sidebar-profile">
+    <div class="sidebar-avatar"><%= u.avatar || u.nombre.slice(0,2).toUpperCase() %></div>
+    <div class="sidebar-profile-info">
+      <div class="sidebar-profile-name"><%= u.nombre %></div>
+      <div class="sidebar-profile-role"><%= u.rol %></div>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Navegación -->
+  <nav class="sidebar-nav">
+
+    <!-- GENERAL -->
+    <div class="nav-section">
+      <div class="nav-section-title">General</div>
+
+      <a href="/dashboard" class="nav-item" data-path="/dashboard">
+        <span class="nav-item-icon">📊</span>
+        <span>Dashboard</span>
+      </a>
+
+      <% if (canViewTickets) { %>
+      <a href="/tickets" class="nav-item" data-path="/tickets">
+        <span class="nav-item-icon">🎫</span>
+        <span>Todos los Tickets</span>
+      </a>
+      <% } %>
+
+      <% if (canCreateTicket) { %>
+      <a href="/tickets/nuevo" class="nav-item" data-path="/tickets/nuevo">
+        <span class="nav-item-icon">➕</span>
+        <span>Nuevo Ticket</span>
+      </a>
+      <% } %>
+    </div>
+
+    <!-- POR ESTADO (visible según rol) -->
+    <% if (canViewAnalysis || canViewCCB || canViewDev || canViewQA) { %>
+    <div class="nav-section">
+      <div class="nav-section-title">Mi Bandeja</div>
+
+      <% if (canViewAnalysis) { %>
+      <a href="/tickets?estado=Solicitado" class="nav-item">
+        <span class="nav-item-icon">📋</span>
+        <span>Solicitados</span>
+      </a>
+      <a href="/tickets?estado=En+An%C3%A1lisis" class="nav-item">
+        <span class="nav-item-icon">🔍</span>
+        <span>En Análisis</span>
+      </a>
+      <% } %>
+
+      <% if (rol === ROLES.DIRECTOR_PROYECTO) { %>
+      <a href="/tickets?estado=En+An%C3%A1lisis" class="nav-item">
+        <span class="nav-item-icon">✅</span>
+        <span>Para Aprobación</span>
+      </a>
+      <% } %>
+
+      <% if (canViewCCB) { %>
+      <a href="/tickets?estado=En+Revisi%C3%B3n+CCB" class="nav-item">
+        <span class="nav-item-icon">⚖️</span>
+        <span>Revisión CCB</span>
+      </a>
+      <% } %>
+
+      <% if (canViewDev) { %>
+      <a href="/tickets?estado=En+Desarrollo" class="nav-item">
+        <span class="nav-item-icon">⚙️</span>
+        <span>En Desarrollo</span>
+      </a>
+      <% } %>
+
+      <% if (canViewQA) { %>
+      <a href="/tickets?estado=En+QA" class="nav-item">
+        <span class="nav-item-icon">🧪</span>
+        <span>En QA</span>
+      </a>
+      <% } %>
+    </div>
+    <% } %>
+
+    <!-- ADMIN -->
+    <% if (isAdmin) { %>
+    <div class="nav-section">
+      <div class="nav-section-title">Administración</div>
+      <a href="/tickets?estado=Liberado" class="nav-item">
+        <span class="nav-item-icon">🚀</span>
+        <span>Liberados</span>
+      </a>
+      <a href="/tickets?estado=Rechazado" class="nav-item">
+        <span class="nav-item-icon">❌</span>
+        <span>Rechazados</span>
+      </a>
+    </div>
+    <% } %>
+
+  </nav>
+
+  <!-- Footer sidebar -->
+  <div class="sidebar-footer">
+    <button id="logout-btn" class="nav-item btn-ghost w-full" style="border:none; cursor:pointer; text-align:left;">
+      <span class="nav-item-icon">🚪</span>
+      <span>Cerrar Sesión</span>
+    </button>
+  </div>
+
+</aside>

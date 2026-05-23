@@ -1,0 +1,35 @@
+<%- include('partials/head') %>
+
+<% if (locals.user) { %>
+<div class="app-wrapper">
+  <%- include('partials/sidebar', { user: locals.user, roles: {} }) %>
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-title">Error</div>
+    </header>
+<% } else { %>
+<div style="min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--bg-base);">
+<% } %>
+
+  <div style="text-align:center; padding:3rem 2rem; max-width:480px; margin:auto;">
+    <div style="font-size:5rem; margin-bottom:1rem; line-height:1;">
+      <%= title && title.includes('404') ? '🔍' : title && title.includes('403') ? '🔒' : '⚠️' %>
+    </div>
+    <h1 style="font-size:1.5rem; margin-bottom:0.75rem;"><%= title || 'Error' %></h1>
+    <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:2rem;"><%= message || 'Ocurrió un error inesperado.' %></p>
+    <div style="display:flex; gap:0.75rem; justify-content:center;">
+      <a href="javascript:history.back()" class="btn btn-secondary">← Volver</a>
+      <a href="<%= locals.user ? '/dashboard' : '/login' %>" class="btn btn-primary">
+        <%= locals.user ? '🏠 Dashboard' : '🔐 Iniciar Sesión' %>
+      </a>
+    </div>
+  </div>
+
+<% if (locals.user) { %>
+    <%- include('partials/footer') %>
+  </div>
+</div>
+<% } else { %>
+</div>
+<%- include('partials/footer') %>
+<% } %>

@@ -1,0 +1,111 @@
+<%- include('partials/head') %>
+
+<div class="app-wrapper">
+  <%- include('partials/sidebar', { user, roles }) %>
+
+  <div class="main-content">
+
+    <header class="topbar">
+      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Menú">☰</button>
+      <div class="topbar-title" style="display:flex; align-items:center; gap:0.75rem;">
+        <a href="/tickets" class="btn btn-ghost btn-sm" style="color:var(--text-muted);">← Tickets</a>
+        <span style="color:var(--border-default);">/</span>
+        <span>Nuevo Ticket de Cambio</span>
+      </div>
+    </header>
+
+    <div class="page-container">
+
+      <div style="max-width: 740px; margin: 0 auto;">
+
+        <div style="margin-bottom:1.5rem;">
+          <h2 style="font-size:1.4rem; margin-bottom:0.3rem;">➕ Solicitar Cambio</h2>
+          <p style="font-size:0.85rem;">Completa el formulario para iniciar el proceso de gestión de cambio. El ticket comenzará en estado <span class="badge badge-slate">Solicitado</span>.</p>
+        </div>
+
+        <% if (error) { %>
+        <div class="alert alert-error mb-4"><span>⚠️</span><span><%= error %></span></div>
+        <% } %>
+
+        <div class="card">
+          <form action="/api/tickets" method="POST">
+
+            <div class="form-group">
+              <label class="form-label" for="titulo">Título del Cambio <span style="color:var(--red);">*</span></label>
+              <input type="text" id="titulo" name="titulo" class="form-control"
+                placeholder="Describe brevemente el cambio solicitado" required maxlength="200" />
+              <span class="form-hint">Máximo 200 caracteres. Sé descriptivo y conciso.</span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="descripcion">Descripción Detallada <span style="color:var(--red);">*</span></label>
+              <textarea id="descripcion" name="descripcion" class="form-control" rows="5"
+                placeholder="Describe el problema, la necesidad y el contexto del cambio…" required></textarea>
+            </div>
+
+            <div class="grid-2" style="gap:1rem;">
+              <div class="form-group">
+                <label class="form-label" for="tipo">Tipo de Cambio <span style="color:var(--red);">*</span></label>
+                <select id="tipo" name="tipo" class="form-control" required>
+                  <option value="">Selecciona un tipo…</option>
+                  <% tiposCambio.forEach(t => { %>
+                  <option value="<%= t %>"><%= t %></option>
+                  <% }) %>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="prioridad">Prioridad <span style="color:var(--red);">*</span></label>
+                <select id="prioridad" name="prioridad" class="form-control" required>
+                  <option value="">Selecciona prioridad…</option>
+                  <% prioridades.forEach(p => { %>
+                  <option value="<%= p %>"><%= p %></option>
+                  <% }) %>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="impacto">Análisis de Impacto</label>
+              <textarea id="impacto" name="impacto" class="form-control" rows="2"
+                placeholder="¿A quién o qué afecta este cambio? ¿Cuál es el alcance del impacto?"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="riesgo">Evaluación de Riesgo</label>
+              <textarea id="riesgo" name="riesgo" class="form-control" rows="2"
+                placeholder="¿Cuáles son los riesgos de implementar o no implementar este cambio?"></textarea>
+            </div>
+
+            <div class="grid-2" style="gap:1rem;">
+              <div class="form-group">
+                <label class="form-label" for="estimacionHoras">Estimación (horas)</label>
+                <input type="number" id="estimacionHoras" name="estimacionHoras"
+                  class="form-control" placeholder="0" min="0" max="9999" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="etiquetas">Etiquetas</label>
+                <input type="text" id="etiquetas" name="etiquetas"
+                  class="form-control" placeholder="backend, seguridad, frontend…" />
+                <span class="form-hint">Separadas por comas</span>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
+              <a href="/tickets" class="btn btn-secondary">Cancelar</a>
+              <button type="submit" class="btn btn-primary" id="btn-crear">
+                <span>🚀</span> Crear Ticket de Cambio
+              </button>
+            </div>
+
+          </form>
+        </div>
+
+      </div>
+
+    </div>
+
+    <%- include('partials/footer') %>
+  </div>
+</div>

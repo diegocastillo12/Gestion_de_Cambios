@@ -1,0 +1,119 @@
+<%- include('partials/head') %>
+
+<!-- ═══ LOGIN PAGE ═══════════════════════════════════════════════════════════ -->
+<div class="login-page">
+  <div class="login-bg-grid"></div>
+  <div class="login-bg-glow"></div>
+
+  <div class="login-card animate-fadein">
+
+    <!-- Logo -->
+    <div class="login-logo">
+      <div class="login-logo-icon">⚙️</div>
+      <div class="login-logo-text">
+        <h1>GestioCambios</h1>
+        <p>Sistema SCM · Grupo G04</p>
+      </div>
+    </div>
+
+    <!-- Alerta de error -->
+    <% if (error) { %>
+    <div class="alert alert-error mb-4" role="alert">
+      <span>⚠️</span>
+      <span><%= error %></span>
+    </div>
+    <% } %>
+
+    <!-- Formulario de login -->
+    <form action="/login" method="POST" autocomplete="off">
+
+      <div class="form-group">
+        <label class="form-label" for="correo">Correo Electrónico</label>
+        <input
+          type="email"
+          id="correo"
+          name="correo"
+          class="form-control"
+          placeholder="ej. sergio@upt.pe"
+          required
+          autofocus
+          autocomplete="username"
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Contraseña</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          class="form-control"
+          placeholder="••••••••"
+          required
+          autocomplete="current-password"
+        />
+      </div>
+
+      <button type="submit" class="btn btn-primary w-full" id="login-submit-btn" style="margin-top:0.5rem; padding:0.75rem; font-size:0.9rem; justify-content:center;">
+        <span>🔐</span> Ingresar al Sistema
+      </button>
+    </form>
+
+    <!-- Credenciales de demostración -->
+    <div class="login-roles-hint">
+      <p style="color: var(--text-secondary); font-weight: 600; margin-bottom: 0.75rem;">
+        👥 Credenciales de demostración <span style="color:var(--text-muted);">(contraseña: <code>123</code>)</span>
+      </p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.4rem;">
+        <% const demoUsers = [
+          { correo: 'docente@upt.pe',   label: 'Solicitante',    icon: '👤' },
+          { correo: 'sergio@upt.pe',    label: 'Gestor Config.', icon: '🔧' },
+          { correo: 'diego@upt.pe',     label: 'Líder Técnico',  icon: '🎯' },
+          { correo: 'gregory@upt.pe',   label: 'Desarrollador',  icon: '💻' },
+          { correo: 'cesar@upt.pe',     label: 'Tester / QA',    icon: '🧪' },
+        ]; %>
+        <% demoUsers.forEach(u => { %>
+        <button
+          type="button"
+          onclick="fillLogin('<%= u.correo %>')"
+          style="
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 0.35rem 0.6rem;
+            color: var(--text-secondary);
+            font-size: 0.72rem;
+            font-family: var(--font-sans);
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+          "
+          onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--accent)';"
+          onmouseout="this.style.borderColor='var(--border-subtle)'; this.style.color='var(--text-secondary)';"
+        >
+          <span><%= u.icon %></span>
+          <div>
+            <div style="font-weight:600;"><%= u.label %></div>
+            <code style="font-size:0.65rem; color:var(--text-muted);"><%= u.correo %></code>
+          </div>
+        </button>
+        <% }) %>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function fillLogin(correo) {
+    document.getElementById('correo').value = correo;
+    document.getElementById('password').value = '123';
+    document.getElementById('login-submit-btn').focus();
+  }
+</script>
+
+</body>
+</html>

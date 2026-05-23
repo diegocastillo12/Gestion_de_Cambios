@@ -1,0 +1,137 @@
+<%- include('partials/head') %>
+
+<div class="app-wrapper">
+  <%- include('partials/sidebar', { user, roles }) %>
+
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Menú">☰</button>
+      <div class="topbar-title">🎫 Tickets de Cambio</div>
+      <div class="topbar-actions">
+        <% if ([roles.SOLICITANTE, roles.DIRECTOR_PROYECTO, roles.GESTOR_CONFIGURACION].includes(user.rol)) { %>
+        <a href="/tickets/nuevo" class="btn btn-primary btn-sm">➕ Nuevo Ticket</a>
+        <% } %>
+      </div>
+    </header>
+
+    <div class="page-container">
+
+      <!-- ─── FILTROS ─────────────────────────────────────────────────────── -->
+      <form method="GET" action="/tickets" class="card mb-6" style="padding:1rem 1.25rem;">
+        <div style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:flex-end;">
+          <div style="flex:2; min-width:180px;">
+            <label class="form-label" style="margin-bottom:0.3rem; display:block;">Buscar</label>
+            <input type="text" name="q" id="search-tickets"
+              class="form-control" placeholder="ID, título o descripción…"
+              value="<%= filtros.q || '' %>" style="margin:0;" />
+          </div>
+          <div style="flex:1; min-width:140px;">
+            <label class="form-label" style="margin-bottom:0.3rem; display:block;">Estado</label>
+            <select name="estado" class="form-control" style="margin:0;">
+              <option value="">Todos</option>
+              <% estados.forEach(e => { %>
+              <option value="<%= e %>" <%= filtros.estado === e ? 'selected' : '' %>><%= e %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div style="flex:1; min-width:130px;">
+            <label class="form-label" style="margin-bottom:0.3rem; display:block;">Prioridad</label>
+            <select name="prioridad" class="form-control" style="margin:0;">
+              <option value="">Todas</option>
+              <% prioridades.forEach(p => { %>
+              <option value="<%= p %>" <%= filtros.prioridad === p ? 'selected' : '' %>><%= p %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div style="flex:1; min-width:160px;">
+            <label class="form-label" style="margin-bottom:0.3rem; display:block;">Tipo</label>
+            <select name="tipo" class="form-control" style="margin:0;">
+              <option value="">Todos</option>
+              <% tiposCambio.forEach(t => { %>
+              <option value="<%= t %>" <%= filtros.tipo === t ? 'selected' : '' %>><%= t %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div style="display:flex; gap:0.5rem; align-self:flex-end;">
+            <button type="submit" class="btn btn-primary">🔍 Filtrar</button>
+            <a href="/tickets" class="btn btn-secondary">↩ Limpiar</a>
+          </div>
+        </div>
+      </form>
+
+      <!-- ─── TABLA DE TICKETS ────────────────────────────────────────────── -->
+      <div class="table-wrapper">
+        <% if (tickets.length === 0) { %>
+        <div style="text-align:center; padding:3rem 1rem;">
+          <div style="font-size:3rem; margin-bottom:1rem;">🔍</div>
+          <h3 style="color:var(--text-secondary); font-size:1rem; margin-bottom:0.5rem;">Sin resultados</h3>
+          <p style="font-size:0.85rem;">No se encontraron tickets con los filtros aplicados.</p>
+          <a href="/tickets" class="btn btn-secondary btn-sm" style="margin-top:1rem;">Limpiar filtros</a>
+        </div>
+        <% } else { %>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Título / Etiquetas</th>
+              <th>Estado</th>
+              <th>Prioridad</th>
+              <th>Tipo</th>
+              <th>Solicitante</th>
+              <th>Actualizado</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% tickets.forEach(t => { %>
+            <tr class="ticket-row" onclick="window.location='/tickets/<%= t.id %>'">
+              <td><span class="ticket-id"><%= t.id %></span></td>
+              <td class="ticket-title-cell">
+                <span class="ticket-title-text"><%= t.titulo %></span>
+                <% if (t.etiquetas && t.etiquetas.length) { %>
+                <div class="ticket-tags">
+                  <% t.etiquetas.slice(0,3).forEach(etq => { %>
+                  <span class="tag">#<%= etq %></span>
+                  <% }) %>
+                </div>
+                <% } %>
+              </td>
+              <td>
+                <span class="badge <%= estadoMeta[t.estado] ? estadoMeta[t.estado].badge : 'badge-slate' %>">
+                  <%= estadoMeta[t.estado] ? estadoMeta[t.estado].icon : '' %> <%= t.estado %>
+                </span>
+              </td>
+              <td>
+                <span class="badge badge-prioridad-<%= t.prioridad.toLowerCase() %>">
+                  <%= t.prioridad %>
+                </span>
+              </td>
+              <td style="color:var(--text-muted); font-size:0.78rem; max-width:150px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                <%= t.tipo %>
+              </td>
+              <td style="font-size:0.78rem; color:var(--text-secondary);">
+                <%= t.solicitanteNombre %>
+              </td>
+              <td style="color:var(--text-muted); font-size:0.78rem; white-space:nowrap;">
+                <%= new Date(t.fechaActualizacion).toLocaleDateString('es-MX', {day:'2-digit', month:'short', year:'numeric'}) %>
+              </td>
+              <td onclick="event.stopPropagation();">
+                <a href="/tickets/<%= t.id %>" class="btn btn-ghost btn-sm">Ver →</a>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+        <div style="padding:0.75rem 1rem; border-top:1px solid var(--border-subtle); font-size:0.75rem; color:var(--text-muted);">
+          Mostrando <strong style="color:var(--text-secondary);"><%= tickets.length %></strong> ticket<%= tickets.length !== 1 ? 's' : '' %>
+        </div>
+        <% } %>
+      </div>
+
+    </div>
+
+    <%- include('partials/footer') %>
+  </div>
+</div>
