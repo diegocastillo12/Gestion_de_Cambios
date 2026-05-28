@@ -263,8 +263,6 @@
               <% transicionesDisponibles.forEach(nuevoEstado => {
                 const meta = estadoMeta[nuevoEstado] || {};
                 const isReject = nuevoEstado === 'Rechazado';
-                const needsAssign = nuevoEstado === 'En Desarrollo';
-                const isQA = nuevoEstado === 'Liberado' || (nuevoEstado === 'En Desarrollo' && ticket.estado === 'En QA');
                 const modalId = 'modal-' + nuevoEstado.replace(/\s+/g, '-').replace(/[^\w-]/g,'');
               %>
 
@@ -280,104 +278,6 @@
                 </span>
                 <span style="font-size:0.7rem; color:var(--text-muted);">→</span>
               </button>
-
-              <!-- Modal de confirmación -->
-              <div id="<%= modalId %>-overlay" class="modal-overlay">
-                <div class="modal">
-                  <div class="modal-header">
-                    <div class="modal-title">
-                      <%= meta.icon || '→' %> Confirmar: <%= nuevoEstado %>
-                    </div>
-                    <button class="modal-close" onclick="closeModal('<%= modalId %>')">✕</button>
-                  </div>
-
-                  <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1.25rem;">
-                    Vas a cambiar el estado de <strong style="color:var(--text-primary);"><%= ticket.id %></strong>
-                    de <span class="badge <%= estadoMeta[ticket.estado] ? estadoMeta[ticket.estado].badge : 'badge-slate' %>" style="font-size:0.68rem;"><%= ticket.estado %></span>
-                    a <span class="badge <%= meta.badge || 'badge-slate' %>" style="font-size:0.68rem;"><%= nuevoEstado %></span>.
-                  </p>
-
-                  <!-- Asignación de desarrollador (solo en "En Desarrollo") -->
-                  <% if (needsAssign) { %>
-                  <div class="form-group">
-                    <label class="form-label" for="asignado-<%= nuevoEstado.replace(/\s+/g, '-') %>">
-                      Asignar Desarrollador
-                    </label>
-                    <select id="asignado-<%= nuevoEstado.replace(/\s+/g, '-') %>" class="form-control">
-                      <option value="">Sin asignar</option>
-                      <% users.filter(u => u.rol === roles.DESARROLLADOR).forEach(dev => { %>
-                      <option value="<%= dev.id %>"><%= dev.nombre %></option>
-                      <% }) %>
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label" for="rama-<%= nuevoEstado.replace(/\s+/g, '-') %>">Rama Git</label>
-                    <input type="text" id="rama-<%= nuevoEstado.replace(/\s+/g, '-') %>"
-                      class="form-control" placeholder="feat/nombre-del-cambio"
-                      value="<%= ticket.rama || '' %>" />
-                  </div>
-                  <% } %>
-
-                  <!-- Merge Request (solo en QA) -->
-                  <% if (ticket.estado === 'En Desarrollo') { %>
-                  <div class="form-group">
-                    <label class="form-label" for="merge-<%= nuevoEstado.replace(/\s+/g, '-') %>">Merge Request (opcional)</label>
-                    <input type="text" id="merge-<%= nuevoEstado.replace(/\s+/g, '-') %>"
-                      class="form-control" placeholder="MR-XXX"
-                      value="<%= ticket.mergeRequest || '' %>" />
-                  </div>
-                  <% } %>
-
-                  <!-- Campos de QA (solo al liberar o devolver de QA) -->
-                  <% if (isQA) { %>
-                  <div class="divider"></div>
-                  <div class="form-group">
-                    <label class="form-label">Resultado QA</label>
-                    <select id="qa-aprobado" class="form-control">
-                      <option value="true">✓ Aprobado — Todos los tests pasaron</option>
-                      <option value="false">✕ Fallido — Hay tests fallidos</option>
-                    </select>
-                  </div>
-                  <div class="grid-2" style="gap:0.75rem;">
-                    <div class="form-group" style="margin:0;">
-                      <label class="form-label">Tests corridos</label>
-                      <input type="number" id="qa-tests" class="form-control" placeholder="0" min="0" />
-                    </div>
-                    <div class="form-group" style="margin:0;">
-                      <label class="form-label">Tests fallidos</label>
-                      <input type="number" id="qa-failed" class="form-control" placeholder="0" min="0" />
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Notas de QA</label>
-                    <textarea id="qa-notes" class="form-control" placeholder="Descripción de resultados, defectos encontrados…" rows="3"></textarea>
-                  </div>
-                  <% } %>
-
-                  <!-- Comentario siempre presente -->
-                  <div class="form-group">
-                    <label class="form-label" for="comentario-<%= nuevoEstado.replace(/\s+/g, '-') %>">
-                      Comentario <% if (!isReject) { %><span class="text-muted">(opcional)</span><% } else { %><span class="text-red">*requerido</span><% } %>
-                    </label>
-                    <textarea
-                      id="comentario-<%= nuevoEstado.replace(/\s+/g, '-') %>"
-                      class="form-control"
-                      rows="3"
-                      placeholder="Justificación o notas para esta transición…"
-                    ></textarea>
-                  </div>
-
-                  <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
-                    <button class="btn btn-ghost" onclick="closeModal('<%= modalId %>')">Cancelar</button>
-                    <button
-                      class="btn <%= isReject ? 'btn-danger' : 'btn-primary' %>"
-                      onclick="cambiarEstado('<%= ticket.id %>', '<%= nuevoEstado %>')"
-                    >
-                      <%= meta.icon || '→' %> Confirmar
-                    </button>
-                  </div>
-                </div>
-              </div>
 
               <% }) %>
             </div>
@@ -435,6 +335,114 @@
       </div><!-- /grid-sidebar -->
 
     </div><!-- /page-container -->
+
+    <!-- Modales de Confirmación de Flujo (se renderizan a nivel de body para evitar problemas de stacking context) -->
+    <% if (transicionesDisponibles.length > 0 && !isTerminal) { %>
+      <% transicionesDisponibles.forEach(nuevoEstado => {
+        const meta = estadoMeta[nuevoEstado] || {};
+        const isReject = nuevoEstado === 'Rechazado';
+        const needsAssign = nuevoEstado === 'En Desarrollo';
+        const isQA = nuevoEstado === 'Liberado' || (nuevoEstado === 'En Desarrollo' && ticket.estado === 'En QA');
+        const modalId = 'modal-' + nuevoEstado.replace(/\s+/g, '-').replace(/[^\w-]/g,'');
+      %>
+      <div id="<%= modalId %>-overlay" class="modal-overlay">
+        <div class="modal">
+          <div class="modal-header">
+            <div class="modal-title">
+              <%= meta.icon || '→' %> Confirmar: <%= nuevoEstado %>
+            </div>
+            <button class="modal-close" onclick="closeModal('<%= modalId %>')">✕</button>
+          </div>
+
+          <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1.25rem;">
+            Vas a cambiar el estado de <strong style="color:var(--text-primary);"><%= ticket.id %></strong>
+            de <span class="badge <%= estadoMeta[ticket.estado] ? estadoMeta[ticket.estado].badge : 'badge-slate' %>" style="font-size:0.68rem;"><%= ticket.estado %></span>
+            a <span class="badge <%= meta.badge || 'badge-slate' %>" style="font-size:0.68rem;"><%= nuevoEstado %></span>.
+          </p>
+
+          <!-- Asignación de desarrollador (solo en "En Desarrollo") -->
+          <% if (needsAssign) { %>
+          <div class="form-group">
+            <label class="form-label" for="asignado-<%= nuevoEstado.replace(/\s+/g, '-') %>">
+              Asignar Desarrollador
+            </label>
+            <select id="asignado-<%= nuevoEstado.replace(/\s+/g, '-') %>" class="form-control">
+              <option value="">Sin asignar</option>
+              <% users.filter(u => u.rol === roles.DESARROLLADOR).forEach(dev => { %>
+              <option value="<%= dev.id %>"><%= dev.nombre %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="rama-<%= nuevoEstado.replace(/\s+/g, '-') %>">Rama Git</label>
+            <input type="text" id="rama-<%= nuevoEstado.replace(/\s+/g, '-') %>"
+              class="form-control" placeholder="feat/nombre-del-cambio"
+              value="<%= ticket.rama || '' %>" />
+          </div>
+          <% } %>
+
+          <!-- Merge Request (solo en QA) -->
+          <% if (ticket.estado === 'En Desarrollo') { %>
+          <div class="form-group">
+            <label class="form-label" for="merge-<%= nuevoEstado.replace(/\s+/g, '-') %>">Merge Request (opcional)</label>
+            <input type="text" id="merge-<%= nuevoEstado.replace(/\s+/g, '-') %>"
+              class="form-control" placeholder="MR-XXX"
+              value="<%= ticket.mergeRequest || '' %>" />
+          </div>
+          <% } %>
+
+          <!-- Campos de QA (solo al liberar o devolver de QA) -->
+          <% if (isQA) { %>
+          <div class="divider"></div>
+          <div class="form-group">
+            <label class="form-label">Resultado QA</label>
+            <select id="qa-aprobado" class="form-control">
+              <option value="true">✓ Aprobado — Todos los tests pasaron</option>
+              <option value="false">✕ Fallido — Hay tests fallidos</option>
+            </select>
+          </div>
+          <div class="grid-2" style="gap:0.75rem;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Tests corridos</label>
+              <input type="number" id="qa-tests" class="form-control" placeholder="0" min="0" />
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Tests fallidos</label>
+              <input type="number" id="qa-failed" class="form-control" placeholder="0" min="0" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Notas de QA</label>
+            <textarea id="qa-notes" class="form-control" placeholder="Descripción de resultados, defectos encontrados…" rows="3"></textarea>
+          </div>
+          <% } %>
+
+          <!-- Comentario siempre presente -->
+          <div class="form-group">
+            <label class="form-label" for="comentario-<%= nuevoEstado.replace(/\s+/g, '-') %>">
+              Comentario <% if (!isReject) { %><span class="text-muted">(opcional)</span><% } else { %><span class="text-red">*requerido</span><% } %>
+            </label>
+            <textarea
+              id="comentario-<%= nuevoEstado.replace(/\s+/g, '-') %>"
+              class="form-control"
+              rows="3"
+              placeholder="Justificación o notas para esta transición…"
+            ></textarea>
+          </div>
+
+          <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
+            <button class="btn btn-ghost" onclick="closeModal('<%= modalId %>')">Cancelar</button>
+            <button
+              class="btn <%= isReject ? 'btn-danger' : 'btn-primary' %>"
+              onclick="cambiarEstado('<%= ticket.id %>', '<%= nuevoEstado %>')"
+            >
+              <%= meta.icon || '→' %> Confirmar
+            </button>
+          </div>
+        </div>
+      </div>
+      <% }) %>
+    <% } %>
 
     <%- include('partials/footer') %>
   </div>
