@@ -106,7 +106,7 @@ class WorkflowService {
   filtrarBandeja(tickets, user) {
     const { rol } = user;
     const mapa = {
-      [ROLES.GESTOR_CONFIGURACION]:  ['Solicitado', 'En Análisis', 'Listo para Integración'],
+      [ROLES.GESTOR_CONFIGURACION]:  ['Solicitado', 'En Análisis', 'Aprobado', 'Listo para Integración'],
       [ROLES.DIRECTOR]:              ['Solicitado', 'Pendiente de Aprobación'],
       [ROLES.CCB]:                   ['Pendiente de Aprobación'],
       [ROLES.LIDER_TECNICO]:         ['En Análisis', 'En Desarrollo', 'En Pruebas QA'],
