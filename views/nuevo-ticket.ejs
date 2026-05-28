@@ -28,7 +28,7 @@
         <% } %>
 
         <div class="card">
-          <form action="/api/tickets" method="POST">
+          <form action="/api/tickets" method="POST" onsubmit="crearTicket(event)">
 
             <div class="form-group">
               <label class="form-label" for="titulo">Título del Cambio <span style="color:var(--red);">*</span></label>

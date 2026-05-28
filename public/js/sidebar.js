@@ -126,6 +126,8 @@
   window.crearTicket = async function(event) {
     event.preventDefault();
     const form = event.target;
+    const submitBtn = form.querySelector('[type="submit"]') || document.getElementById('btn-crear');
+    
     const data = {
       titulo:           form.titulo.value.trim(),
       descripcion:      form.descripcion.value.trim(),
@@ -143,6 +145,9 @@
     }
 
     try {
+      if (submitBtn) submitBtn.disabled = true;
+      showToast('Creando solicitud de cambio…', 'info');
+
       const resp = await fetch('/api/tickets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -156,10 +161,12 @@
         setTimeout(() => window.location.href = '/tickets/' + result.ticket.id, 1200);
       } else {
         showToast(result.error || 'Error al crear el ticket.', 'error');
+        if (submitBtn) submitBtn.disabled = false;
       }
     } catch (err) {
       console.error(err);
       showToast('Error de conexión.', 'error');
+      if (submitBtn) submitBtn.disabled = false;
     }
   };
 

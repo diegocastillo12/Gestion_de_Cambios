@@ -173,21 +173,43 @@ exports.crearTicket = asyncH(async (req, res) => {
     });
   }
 
-  // Generar ticket_id único
-  const count = await TicketModel.countAll();
-  const ticket_id = `TK-SC${String(count + 1).padStart(3, '0')}`;
+  // Generar ticket_id único con reintentos para evitar colisiones de concurrencia y huecos por borrado
+  let ticket_id;
+  let count = await TicketModel.countAll();
+  let inserted = false;
+  let attempts = 0;
 
-  // Crear en la base de datos usando el modelo
-  await TicketModel.create({
-    ticketId: ticket_id,
-    titulo,
-    descripcion,
-    justificacion: justificacion_tecnica,
-    tipo,
-    prioridad,
-    estimacionHoras,
-    idSolicitante: user.id,
-  });
+  while (!inserted && attempts < 10) {
+    ticket_id = `TK-SC${String(count + 1 + attempts).padStart(3, '0')}`;
+    try {
+      await TicketModel.create({
+        ticketId: ticket_id,
+        titulo,
+        descripcion,
+        justificacion: justificacion_tecnica,
+        tipo,
+        prioridad,
+        estimacionHoras,
+        idSolicitante: user.id,
+      });
+      inserted = true;
+    } catch (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        attempts++;
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  if (!inserted) {
+    return res.status(500).render('error', {
+      title: 'Error Interno del Servidor',
+      message: 'No se pudo generar un ID de ticket único después de múltiples intentos.',
+      user,
+      roles: ROLES,
+    });
+  }
 
   // Historial inicial
   const newTicket = await TicketModel.findById(ticket_id);
