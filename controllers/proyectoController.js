@@ -160,21 +160,21 @@ exports.reportarAvance = asyncH(async (req, res) => {
 // ─── CRONOGRAMA (CRUD API) ────────────────────────────────────────────────────
 exports.crearActividad = asyncH(async (req, res) => {
   const user = req.session.user;
-  const { idProyecto, idFase, nombre, descripcion, fechaInicio, fechaFin, esReportable, idEntregable } = req.body;
+  const { idProyecto, idFase, nombre, descripcion, fechaInicio, fechaFin, esReportable, idEntregable, porcentaje_avance, estado } = req.body;
 
   if (!idProyecto || !nombre || !fechaInicio || !fechaFin) {
     return res.status(400).json({ success: false, error: 'Campos requeridos faltantes.' });
   }
 
-  const result = await CronogramaModel.create({ idProyecto, idFase, nombre, descripcion, fechaInicio, fechaFin, esReportable, idEntregable });
+  const result = await CronogramaModel.create({ idProyecto, idFase, nombre, descripcion, fechaInicio, fechaFin, esReportable, idEntregable, porcentaje_avance, estado });
   const actividad = await CronogramaModel.findById(result.insertId);
   return res.json({ success: true, actividad });
 });
 
 exports.actualizarActividad = asyncH(async (req, res) => {
   const { id } = req.params;
-  const { idFase, nombre, descripcion, fechaInicio, fechaFin, esReportable, idEntregable, estado } = req.body;
-  await CronogramaModel.update(id, { idFase, nombre, descripcion, fechaInicio, fechaFin, esReportable, idEntregable, estado });
+  const { idFase, nombre, descripcion, fechaInicio, fechaFin, esReportable, idEntregable, estado, porcentaje_avance } = req.body;
+  await CronogramaModel.update(id, { idFase, nombre, descripcion, fechaInicio, fechaFin, esReportable, idEntregable, estado, porcentaje_avance });
   return res.json({ success: true });
 });
 

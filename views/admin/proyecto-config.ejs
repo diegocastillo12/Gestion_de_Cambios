@@ -316,7 +316,7 @@
           <div class="card-header">
             <span class="card-title">📅 Actividades del Cronograma</span>
             <div style="display:flex; gap:0.5rem;">
-              <button class="btn btn-primary btn-sm" onclick="openModal('modal-actividad')">➕ Actividad</button>
+              <button class="btn btn-primary btn-sm" onclick="abrirNuevaActividad()">➕ Actividad</button>
             </div>
           </div>
 
@@ -324,7 +324,7 @@
           <div style="text-align:center; padding:2rem; color:var(--text-muted);">
             <div style="font-size:2.5rem; margin-bottom:0.75rem;">📅</div>
             <p style="font-size:0.85rem;">No hay actividades en el cronograma</p>
-            <button class="btn btn-primary btn-sm" onclick="openModal('modal-actividad')" style="margin-top:0.75rem;">➕ Agregar Primera Actividad</button>
+            <button class="btn btn-primary btn-sm" onclick="abrirNuevaActividad()" style="margin-top:0.75rem;">➕ Agregar Primera Actividad</button>
           </div>
           <% } else { %>
           <div class="table-wrapper" style="border:none; background:transparent;">
@@ -726,6 +726,19 @@
 
   // ─── Actividades ─────────────────────────────────────────────────────────
   let editingActId = null;
+  function abrirNuevaActividad() {
+    editingActId = null;
+    document.getElementById('act-modal-title').textContent = '➕ Nueva Actividad';
+    document.getElementById('act-id').value = '';
+    document.getElementById('act-nombre').value = '';
+    document.getElementById('act-descripcion').value = '';
+    document.getElementById('act-fecha-inicio').value = '';
+    document.getElementById('act-fecha-fin').value = '';
+    document.getElementById('act-estado').value = 'Pendiente';
+    document.getElementById('act-avance').value = 0;
+    document.getElementById('act-reportable').checked = true;
+    openModal('modal-actividad');
+  }
   function editarActividad(a) {
     editingActId = a.id_actividad;
     document.getElementById('act-modal-title').textContent = '✏️ Editar Actividad';

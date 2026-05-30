@@ -79,32 +79,55 @@ class WorkflowService {
    * Filtrar tickets visibles según el rol y pertenencia del usuario
    * @param {Array} tickets 
    * @param {Object} user 
+   * @param {Object} rolesPorProyecto
    * @returns {Array}
    */
-  filtrarPorRol(tickets, user) {
+  filtrarPorRol(tickets, user, rolesPorProyecto = {}) {
     const { rol, id } = user;
-    switch (rol) {
-      case ROLES.SOLICITANTE:
-        return tickets.filter(t => t.id_solicitante === id);
-      case ROLES.DESARROLLADOR:
-        return tickets.filter(t => t.asignadoId === id || t.estado === 'En Desarrollo');
-      case ROLES.TESTER:
-        return tickets.filter(t =>
-          ['En Pruebas QA', 'En Pruebas UAT', 'Listo para Integración'].includes(t.estado)
-        );
-      default:
-        return tickets; // Gestor, Director, CCB, Líder ven todos
+    if (rol === ROLES.ADMINISTRADOR) {
+      return tickets; // Admin ve todos
     }
+
+    return tickets.filter(t => {
+      // Determinar rol efectivo en este proyecto
+      const rolEnProyecto = rolesPorProyecto[t.id_proyecto];
+      
+      // Si el ticket pertenece a un proyecto y el usuario no está en él:
+      if (t.id_proyecto && !rolEnProyecto) {
+        // Solo los roles de gestión global pueden ver proyectos ajenos
+        if (![ROLES.DIRECTOR, ROLES.GESTOR_CONFIGURACION, ROLES.CCB].includes(rol)) {
+          return false;
+        }
+      }
+
+      const rolEfectivo = rolEnProyecto || rol;
+
+      switch (rolEfectivo) {
+        case ROLES.SOLICITANTE:
+          return t.id_solicitante === id;
+        case ROLES.DESARROLLADOR:
+          return t.asignadoId === id || t.estado === 'En Desarrollo';
+        case ROLES.TESTER:
+          return ['En Pruebas QA', 'En Pruebas UAT', 'Listo para Integración'].includes(t.estado);
+        default:
+          return true; // Gestor, Director, CCB, Líder ven todos
+      }
+    });
   }
 
   /**
    * Filtrar tickets que requieren atención activa según el rol del usuario (bandeja de tareas)
    * @param {Array} tickets 
    * @param {Object} user 
+   * @param {Object} rolesPorProyecto
    * @returns {Array}
    */
-  filtrarBandeja(tickets, user) {
+  filtrarBandeja(tickets, user, rolesPorProyecto = {}) {
     const { rol } = user;
+    if (rol === ROLES.ADMINISTRADOR) {
+      return []; // Admin no tiene bandeja de tareas
+    }
+
     const mapa = {
       [ROLES.GESTOR_CONFIGURACION]:  ['Solicitado', 'En Análisis', 'Aprobado', 'Listo para Integración'],
       [ROLES.DIRECTOR]:              ['Solicitado', 'Pendiente de Aprobación'],
@@ -114,8 +137,23 @@ class WorkflowService {
       [ROLES.TESTER]:                ['En Pruebas QA', 'En Pruebas UAT'],
       [ROLES.SOLICITANTE]:           ['En Pruebas UAT'],
     };
-    const estados = mapa[rol] || [];
-    return tickets.filter(t => estados.includes(t.estado));
+
+    return tickets.filter(t => {
+      // Determinar rol efectivo en este proyecto
+      const rolEnProyecto = rolesPorProyecto[t.id_proyecto];
+      
+      // Si el ticket pertenece a un proyecto y el usuario no está en él:
+      if (t.id_proyecto && !rolEnProyecto) {
+        // Solo los roles de gestión global pueden ver proyectos ajenos
+        if (![ROLES.DIRECTOR, ROLES.GESTOR_CONFIGURACION, ROLES.CCB].includes(rol)) {
+          return false;
+        }
+      }
+
+      const rolEfectivo = rolEnProyecto || rol;
+      const estados = mapa[rolEfectivo] || [];
+      return estados.includes(t.estado);
+    });
   }
 
   /**

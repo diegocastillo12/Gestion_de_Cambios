@@ -59,7 +59,23 @@ class ProyectoModel {
 
   /** Proyectos donde el usuario es miembro del equipo */
   async findByMiembro(idUsuario) {
-    const sql = BASE_PROYECTO + `
+    const sql = `
+      SELECT
+        p.id_proyecto,
+        p.nombre,
+        p.descripcion,
+        p.estado,
+        p.fecha_inicio,
+        p.fecha_fin,
+        p.id_admin,
+        p.id_metodologia,
+        p.fecha_creacion,
+        u.nombre_completo AS admin_nombre,
+        m.nombre AS metodologia_nombre,
+        pe.rol_en_proyecto
+      FROM proyectos p
+      LEFT JOIN usuarios u ON p.id_admin = u.id_usuario
+      LEFT JOIN metodologias m ON p.id_metodologia = m.id_metodologia
       JOIN proyecto_equipo pe ON p.id_proyecto = pe.id_proyecto
       WHERE pe.id_usuario = ?
       ORDER BY p.fecha_creacion DESC

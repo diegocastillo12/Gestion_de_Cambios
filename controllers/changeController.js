@@ -8,25 +8,41 @@
 const TicketModel = require('../models/TicketModel');
 const UserModel = require('../models/UserModel');
 const ProyectoModel = require('../models/ProyectoModel');
+const CronogramaModel = require('../models/CronogramaModel');
 const WorkflowService = require('../services/WorkflowService');
 const { ROLES, ESTADOS, TIPOS_CAMBIO, IMPACTOS, ESTADO_META, FLUJO_ESTADOS } = require('../config/constants');
 
 // ─── ASYNC WRAPPER ────────────────────────────────────────────────────────────
 const asyncH = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
+// Helper to get roles by project map for the current user
+async function getRolesPorProyecto(userId) {
+  const rolesMap = {};
+  const miembroProyectos = await ProyectoModel.findByMiembro(userId);
+  miembroProyectos.forEach(p => {
+    rolesMap[p.id_proyecto] = p.rol_en_proyecto;
+  });
+  const clienteProyectos = await ProyectoModel.findByCliente(userId);
+  clienteProyectos.forEach(p => {
+    rolesMap[p.id_proyecto] = ROLES.SOLICITANTE;
+  });
+  return rolesMap;
+}
+
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
 exports.dashboard = asyncH(async (req, res) => {
   const user = req.session.user;
+  const rolesPorProyecto = await getRolesPorProyecto(user.id);
   
   // Obtener todos los tickets de la base de datos usando el modelo
   const tickets = await TicketModel.findAll();
   
   // Filtrar según los permisos del rol
-  const visibles = WorkflowService.filtrarPorRol(tickets, user);
+  const visibles = WorkflowService.filtrarPorRol(tickets, user, rolesPorProyecto);
   
   // Calcular estadísticas y bandeja de tareas
   const stats = WorkflowService.calcularStats(visibles);
-  const bandeja = WorkflowService.filtrarBandeja(visibles, user);
+  const bandeja = WorkflowService.filtrarBandeja(visibles, user, rolesPorProyecto);
 
   res.render('dashboard', {
     user,
@@ -42,12 +58,13 @@ exports.dashboard = asyncH(async (req, res) => {
 // ─── LISTADO DE TICKETS ───────────────────────────────────────────────────────
 exports.listarTickets = asyncH(async (req, res) => {
   const user = req.session.user;
+  const rolesPorProyecto = await getRolesPorProyecto(user.id);
   
   // Buscar con filtros en base de datos (soluciona bug de filtrado en servidor)
   const tickets = await TicketModel.findAll(req.query);
   
   // Filtrar según permisos del rol
-  const visibles = WorkflowService.filtrarPorRol(tickets, user);
+  const visibles = WorkflowService.filtrarPorRol(tickets, user, rolesPorProyecto);
 
   res.render('tickets', {
     user,
@@ -113,8 +130,24 @@ exports.mostrarTicket = asyncH(async (req, res) => {
     comentario: h.comentario,
   }));
 
-  // Transiciones y permisos usando el WorkflowService
-  const transicionesDisponibles = WorkflowService.getTransicionesDisponibles(ticket.estado, user.rol);
+  // Determinar rol efectivo en el proyecto para este usuario
+  let rolEfectivo = user.rol;
+  if (ticket.id_proyecto) {
+    const equipo = await ProyectoModel.getEquipo(ticket.id_proyecto);
+    const clientes = await ProyectoModel.getClientes(ticket.id_proyecto);
+    
+    const miembro = equipo.find(m => m.id_usuario === user.id);
+    const esCliente = clientes.some(c => c.id_usuario === user.id);
+    
+    if (miembro) {
+      rolEfectivo = miembro.rol_en_proyecto;
+    } else if (esCliente) {
+      rolEfectivo = ROLES.SOLICITANTE;
+    }
+  }
+
+  // Transiciones y permisos usando el WorkflowService con el rol efectivo
+  const transicionesDisponibles = WorkflowService.getTransicionesDisponibles(ticket.estado, rolEfectivo);
   const transicionesPermitidas = {};
   transicionesDisponibles.forEach(nuevoEstado => {
     transicionesPermitidas[nuevoEstado] = true;
@@ -157,6 +190,7 @@ exports.mostrarTicket = asyncH(async (req, res) => {
   res.render('ticket-detail', {
     user,
     roles: ROLES,
+    rolEfectivo,
     ticket,
     transicionesPermitidas,
     transicionesDisponibles,
@@ -285,10 +319,26 @@ exports.cambiarEstado = asyncH(async (req, res) => {
     return res.status(404).json({ success: false, ok: false, error: 'Ticket no encontrado.' });
   }
 
-  // Validar transición en el servicio
-  const esValido = WorkflowService.isValidTransition(ticket.estado, nuevoEstado, user.rol);
+  // Determinar rol efectivo en el proyecto para este usuario
+  let rolEfectivo = user.rol;
+  if (ticket.id_proyecto) {
+    const equipo = await ProyectoModel.getEquipo(ticket.id_proyecto);
+    const clientes = await ProyectoModel.getClientes(ticket.id_proyecto);
+    
+    const miembro = equipo.find(m => m.id_usuario === user.id);
+    const esCliente = clientes.some(c => c.id_usuario === user.id);
+    
+    if (miembro) {
+      rolEfectivo = miembro.rol_en_proyecto;
+    } else if (esCliente) {
+      rolEfectivo = ROLES.SOLICITANTE;
+    }
+  }
+
+  // Validar transición en el servicio usando el rol efectivo
+  const esValido = WorkflowService.isValidTransition(ticket.estado, nuevoEstado, rolEfectivo);
   if (!ESTADOS.includes(nuevoEstado) || !esValido) {
-    return res.status(403).json({ success: false, ok: false, error: 'Transición no permitida para tu rol.' });
+    return res.status(403).json({ success: false, ok: false, error: 'Transición no permitida para tu rol en este proyecto.' });
   }
 
   // Actualizar estado del ticket en base de datos
@@ -331,6 +381,9 @@ exports.cambiarEstado = asyncH(async (req, res) => {
     });
   }
 
+  // 4. Sincronizar automáticamente el porcentaje de avance de la actividad vinculada si existe
+  await CronogramaModel.syncAvanceConTicket(ticket.id_sc, nuevoEstado, user.id, ticket.id_proyecto);
+
   // Retornar éxito (tanto success como ok para evitar fallos de interfaz)
   return res.json({ success: true, ok: true, nuevoEstado, ticketId: id });
 });
@@ -338,8 +391,9 @@ exports.cambiarEstado = asyncH(async (req, res) => {
 // ─── API ENDPOINTS ────────────────────────────────────────────────────────────
 exports.apiListar = asyncH(async (req, res) => {
   const user = req.session.user;
+  const rolesPorProyecto = await getRolesPorProyecto(user.id);
   const tickets = await TicketModel.findAll();
-  const visibles = WorkflowService.filtrarPorRol(tickets, user);
+  const visibles = WorkflowService.filtrarPorRol(tickets, user, rolesPorProyecto);
   res.json({ success: true, ok: true, data: visibles });
 });
 

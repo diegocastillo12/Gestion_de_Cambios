@@ -251,7 +251,7 @@
               <span class="badge badge-green">Tu turno</span>
             </div>
             <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:1rem;">
-              Como <strong style="color:var(--accent);"><%= user.rol %></strong>, puedes ejecutar las siguientes transiciones:
+              Como <strong style="color:var(--accent);"><%= rolEfectivo %></strong><%= rolEfectivo !== user.rol ? ' (rol en este proyecto)' : '' %>, puedes ejecutar las siguientes transiciones:
             </p>
 
             <div style="display:flex; flex-direction:column; gap:0.6rem;">
@@ -281,7 +281,7 @@
           <div class="card" style="text-align:center; padding:1.5rem;">
             <div style="font-size:2rem; margin-bottom:0.5rem;">🔒</div>
             <p style="font-size:0.82rem; color:var(--text-muted);">
-              Tu rol (<strong style="color:var(--text-secondary);"><%= user.rol %></strong>) no puede ejecutar acciones en el estado actual.
+              Tu rol (<strong style="color:var(--text-secondary);"><%= rolEfectivo %></strong><%= rolEfectivo !== user.rol ? ' en este proyecto' : '' %>) no puede ejecutar acciones en el estado actual.
             </p>
           </div>
           <% } else { %>
