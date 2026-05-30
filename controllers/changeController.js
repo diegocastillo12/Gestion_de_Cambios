@@ -123,8 +123,35 @@ exports.mostrarTicket = asyncH(async (req, res) => {
   const isTerminal = ['Liberado', 'Rechazado', 'Descartado'].includes(ticket.estado);
 
   // Inyección de usuarios para la asignación en los modales de la vista
-  const desarrolladores = await UserModel.findActiveByRoles([ROLES.DESARROLLADOR, ROLES.LIDER_TECNICO]);
-  const testers = await UserModel.findActiveByRoles([ROLES.TESTER]);
+  let desarrolladores = [];
+  let testers = [];
+
+  if (ticket.id_proyecto) {
+    const equipo = await ProyectoModel.getEquipo(ticket.id_proyecto);
+    desarrolladores = equipo
+      .filter(m => [ROLES.DESARROLLADOR, ROLES.LIDER_TECNICO].includes(m.rol_en_proyecto))
+      .map(m => ({
+        id: m.id_usuario,
+        nombre: m.nombre,
+        rol: m.rol_en_proyecto
+      }));
+    testers = equipo
+      .filter(m => m.rol_en_proyecto === ROLES.TESTER)
+      .map(m => ({
+        id: m.id_usuario,
+        nombre: m.nombre,
+        rol: m.rol_en_proyecto
+      }));
+  }
+
+  // Fallback si no hay equipo en el proyecto (o no hay id_proyecto)
+  if (desarrolladores.length === 0) {
+    desarrolladores = await UserModel.findActiveByRoles([ROLES.DESARROLLADOR, ROLES.LIDER_TECNICO]);
+  }
+  if (testers.length === 0) {
+    testers = await UserModel.findActiveByRoles([ROLES.TESTER]);
+  }
+
   const allUsers = await UserModel.findAll();
 
   res.render('ticket-detail', {

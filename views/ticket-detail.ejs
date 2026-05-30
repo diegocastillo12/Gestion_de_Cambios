@@ -363,7 +363,7 @@
             </label>
             <select id="asignado-<%= nuevoEstado.replace(/\s+/g, '-') %>" class="form-control">
               <option value="">Sin asignar</option>
-              <% users.filter(u => u.rol === roles.DESARROLLADOR).forEach(dev => { %>
+              <% desarrolladores.forEach(dev => { %>
               <option value="<%= dev.id %>"><%= dev.nombre %></option>
               <% }) %>
             </select>

@@ -10,6 +10,7 @@ const { query } = require('../config/db');
 const BASE_QUERY = `
   SELECT
     sc.id_sc,
+    sc.id_proyecto,
     sc.ticket_id          AS id,
     sc.titulo,
     sc.descripcion,
