@@ -98,13 +98,14 @@ class TicketModel {
    * @returns {Promise<Object>}
    */
   async create(ticketData) {
-    const { ticketId, titulo, descripcion, justificacion, tipo, prioridad, estimacionHoras, idSolicitante } = ticketData;
+    const { ticketId, titulo, descripcion, justificacion, tipo, prioridad, estimacionHoras, idSolicitante, idProyecto } = ticketData;
     const sql = `
       INSERT INTO solicitudes_cambio
-        (ticket_id, titulo, descripcion, justificacion_tecnica, tipo_cambio, impacto, estado_actual, horas_hombre_estimadas, id_solicitante)
-      VALUES (?, ?, ?, ?, ?, ?, 'Solicitado', ?, ?)
+        (id_proyecto, ticket_id, titulo, descripcion, justificacion_tecnica, tipo_cambio, impacto, estado_actual, horas_hombre_estimadas, id_solicitante)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'Solicitado', ?, ?)
     `;
     return query(sql, [
+      idProyecto || null,
       ticketId,
       titulo,
       descripcion,

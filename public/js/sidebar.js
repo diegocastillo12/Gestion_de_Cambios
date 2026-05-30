@@ -166,6 +166,7 @@
       riesgo:           form.riesgo ? form.riesgo.value.trim() : '',
       estimacionHoras:  form.estimacionHoras ? form.estimacionHoras.value : 0,
       etiquetas:        form.etiquetas ? form.etiquetas.value : '',
+      id_proyecto:      form.id_proyecto ? form.id_proyecto.value : null
     };
 
     if (!data.titulo || !data.descripcion || !data.tipo || !data.prioridad) {

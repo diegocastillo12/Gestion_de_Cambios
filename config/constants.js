@@ -13,7 +13,24 @@ const ROLES = {
   CCB:                  'Comité de Control (CCB)',
   DESARROLLADOR:        'Desarrollador Asignado',
   TESTER:               'Equipo QA / Tester',
+  ADMINISTRADOR:        'Administrador',
 };
+
+const ROLES_PROYECTO = [
+  'Solicitante',
+  'Director',
+  'Gestor de Configuración',
+  'Líder Técnico',
+  'Comité de Control (CCB)',
+  'Desarrollador Asignado',
+  'Equipo QA / Tester',
+];
+
+const ESTADOS_PROYECTO = ['Activo', 'Pausado', 'Cerrado', 'Archivado'];
+
+const ESTADOS_ACTIVIDAD = ['Pendiente', 'En Progreso', 'Completado', 'Bloqueado'];
+
+const TIPOS_ECM = ['Documento', 'Diagrama', 'Codigo', 'Prueba', 'Otro'];
 
 const ESTADOS = [
   'Solicitado',
@@ -62,8 +79,12 @@ const FLUJO_ESTADOS = [
 
 module.exports = {
   ROLES,
+  ROLES_PROYECTO,
   ESTADOS,
+  ESTADOS_PROYECTO,
+  ESTADOS_ACTIVIDAD,
   TIPOS_CAMBIO,
+  TIPOS_ECM,
   IMPACTOS,
   ESTADO_META,
   FLUJO_ESTADOS,

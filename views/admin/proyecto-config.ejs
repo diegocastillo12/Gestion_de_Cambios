@@ -1,0 +1,713 @@
+<%- include('../partials/head') %>
+
+<style>
+  /* ─── TABS ───────────────────────────────────────────────────────────────── */
+  .tabs-nav {
+    display: flex;
+    gap: 0.25rem;
+    border-bottom: 1px solid var(--border-subtle);
+    margin-bottom: 1rem;
+    overflow-x: auto;
+  }
+  .tab-btn {
+    padding: 0.6rem 1.1rem;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+    font-family: var(--font-sans);
+  }
+  .tab-btn:hover { color: var(--text-primary); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ─── PROGRESS ───────────────────────────────────────────────────────────── */
+  .prog-bar-lg {
+    height: 10px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin-top: 0.4rem;
+  }
+  .prog-bar-fill {
+    height: 100%;
+    border-radius: var(--radius-full);
+    transition: width 1s ease;
+    background: var(--accent);
+  }
+
+  /* ─── ACCORDION ──────────────────────────────────────────────────────────── */
+  .accordion-item { border: 1px solid var(--border-subtle); border-radius: var(--radius-md); margin-bottom: 0.4rem; overflow: hidden; }
+  .accordion-header { display: flex; align-items: center; justify-content: space-between; padding: 0.65rem 0.9rem; cursor: pointer; background: var(--bg-tertiary); transition: background var(--transition-fast); }
+  .accordion-header:hover { background: var(--bg-hover); }
+  .accordion-body { padding: 0.75rem 0.9rem; background: var(--bg-secondary); display: none; }
+  .accordion-body.open { display: block; }
+
+  /* ─── MEMBER CARD ─────────────────────────────────────────────────────────── */
+  .member-item {
+    display: flex; align-items: center; gap: 0.65rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-tertiary);
+    transition: all var(--transition-fast);
+  }
+  .member-item:hover { border-color: var(--border-default); background: var(--bg-hover); }
+
+  /* ─── ACTIVITY ROW ──────────────────────────────────────────────────────── */
+  .activity-row td { vertical-align: middle; }
+</style>
+
+<div class="app-wrapper">
+  <%- include('../partials/sidebar', { user, roles }) %>
+
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Abrir menú">☰</button>
+      <div class="topbar-title">
+        ⚙️ Configurar: <span style="color:var(--accent);"><%= proyecto.nombre %></span>
+      </div>
+      <div class="topbar-actions">
+        <span class="badge
+          <% if (proyecto.estado === 'Activo') { %>badge-blue<% } else if (proyecto.estado === 'Cerrado') { %>badge-green<% } else if (proyecto.estado === 'Pausado') { %>badge-yellow<% } else { %>badge-slate<% } %>
+        "><%= proyecto.estado %></span>
+        <a href="/admin/proyectos" class="btn btn-ghost btn-sm">← Volver</a>
+        <a href="/admin/proyectos/<%= proyecto.id_proyecto %>/editar" class="btn btn-secondary btn-sm">✏️ Editar</a>
+      </div>
+    </header>
+
+    <div class="page-container">
+
+      <!-- ─── RESUMEN CRONOGRAMA STATS ────────────────────────────────────── -->
+      <div class="stats-grid" style="grid-template-columns:repeat(5,1fr); gap:0.6rem; margin-bottom:1rem;">
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background:var(--accent);"></div>
+          <div class="stat-value text-accent"><%= resumenCronograma.promedio %>%</div>
+          <div class="stat-label">Avance Global</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background:var(--blue);"></div>
+          <div class="stat-value" style="color:var(--blue);"><%= resumenCronograma.total %></div>
+          <div class="stat-label">Actividades</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background:var(--teal);"></div>
+          <div class="stat-value" style="color:var(--teal);"><%= resumenCronograma.completadas %></div>
+          <div class="stat-label">Completadas</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background:var(--yellow);"></div>
+          <div class="stat-value" style="color:var(--yellow);"><%= resumenCronograma.en_progreso %></div>
+          <div class="stat-label">En Progreso</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background:var(--red);"></div>
+          <div class="stat-value" style="color:var(--red);"><%= resumenCronograma.bloqueadas %></div>
+          <div class="stat-label">Bloqueadas</div>
+        </div>
+      </div>
+
+      <!-- ─── TABS ─────────────────────────────────────────────────────────── -->
+      <div class="tabs-nav">
+        <button id="btn-tab-info" class="tab-btn active" onclick="switchTab('tab-info', this)">📋 Información General</button>
+        <button id="btn-tab-equipo" class="tab-btn" onclick="switchTab('tab-equipo', this)">👥 Equipo</button>
+        <button id="btn-tab-cronograma" class="tab-btn" onclick="switchTab('tab-cronograma', this)">📅 Cronograma</button>
+        <button id="btn-tab-metodologia" class="tab-btn" onclick="switchTab('tab-metodologia', this)">📐 Metodología</button>
+      </div>
+
+      <!-- ════════════════════ TAB: INFORMACIÓN GENERAL ════════════════════ -->
+      <div id="tab-info" class="tab-panel active">
+        <div class="grid-2" style="gap:0.75rem;">
+
+          <!-- Info del proyecto -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">📋 Datos del Proyecto</span>
+              <a href="/admin/proyectos/<%= proyecto.id_proyecto %>/editar" class="btn btn-ghost btn-sm">✏️ Editar</a>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:0.75rem;">
+              <div>
+                <div style="font-size:0.72rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.2rem;">Nombre</div>
+                <div style="font-size:0.9rem; font-weight:600; color:var(--text-primary);"><%= proyecto.nombre %></div>
+              </div>
+              <% if (proyecto.descripcion) { %>
+              <div>
+                <div style="font-size:0.72rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.2rem;">Descripción</div>
+                <div style="font-size:0.83rem; color:var(--text-secondary); line-height:1.6;"><%= proyecto.descripcion %></div>
+              </div>
+              <% } %>
+              <div class="grid-2" style="gap:0.65rem;">
+                <div>
+                  <div style="font-size:0.72rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.2rem;">Estado</div>
+                  <span class="badge
+                    <% if (proyecto.estado === 'Activo') { %>badge-blue<% } else if (proyecto.estado === 'Cerrado') { %>badge-green<% } else if (proyecto.estado === 'Pausado') { %>badge-yellow<% } else { %>badge-slate<% } %>
+                  "><%= proyecto.estado %></span>
+                </div>
+                <div>
+                  <div style="font-size:0.72rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.2rem;">Metodología</div>
+                  <div style="font-size:0.83rem; color:var(--text-secondary);"><%= proyecto.metodologia_nombre || 'Sin asignar' %></div>
+                </div>
+                <% if (proyecto.fecha_inicio) { %>
+                <div>
+                  <div style="font-size:0.72rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.2rem;">Fecha Inicio</div>
+                  <div style="font-size:0.83rem; color:var(--text-secondary);">📅 <%= new Date(proyecto.fecha_inicio).toLocaleDateString('es-MX', {day:'2-digit',month:'long',year:'numeric'}) %></div>
+                </div>
+                <% } %>
+                <% if (proyecto.fecha_fin) { %>
+                <div>
+                  <div style="font-size:0.72rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.2rem;">Fecha Fin</div>
+                  <div style="font-size:0.83rem; color:var(--text-secondary);">🏁 <%= new Date(proyecto.fecha_fin).toLocaleDateString('es-MX', {day:'2-digit',month:'long',year:'numeric'}) %></div>
+                </div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Avance global -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">📊 Avance del Proyecto</span>
+              <span style="font-size:1.5rem; font-weight:800; color:var(--accent);"><%= resumenCronograma.promedio %>%</span>
+            </div>
+            <div class="prog-bar-lg" style="margin-bottom:1rem;">
+              <div class="prog-bar-fill" style="width:<%= resumenCronograma.promedio %>%; background: <%= resumenCronograma.promedio >= 80 ? 'var(--accent)' : resumenCronograma.promedio >= 50 ? 'var(--blue)' : 'var(--orange)' %>;"></div>
+            </div>
+            <!-- Distribución por estado de actividad -->
+            <div style="display:flex; flex-direction:column; gap:0.45rem; font-size:0.8rem;">
+              <% const actDist = [
+                { label: 'Completadas', count: resumenCronograma.completadas, color: 'var(--accent)', icon: '✅' },
+                { label: 'En Progreso', count: resumenCronograma.en_progreso, color: 'var(--blue)', icon: '⚙️' },
+                { label: 'Pendientes', count: resumenCronograma.pendientes, color: 'var(--yellow)', icon: '⏳' },
+                { label: 'Bloqueadas', count: resumenCronograma.bloqueadas, color: 'var(--red)', icon: '🚫' },
+              ]; %>
+              <% actDist.forEach(d => { %>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="color:var(--text-secondary);"><%= d.icon %> <%= d.label %></span>
+                <span style="font-weight:700; color:<%= d.color %>;"><%= d.count %></span>
+              </div>
+              <% }) %>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Tickets asociados -->
+        <% if (ticketsProyecto && ticketsProyecto.length > 0) { %>
+        <div class="card" style="margin-top:0.75rem;">
+          <div class="card-header">
+            <span class="card-title">🎫 Tickets del Proyecto</span>
+            <span class="badge badge-blue"><%= ticketsProyecto.length %> tickets</span>
+          </div>
+          <div class="table-wrapper" style="border:none; background:transparent;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Título</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% ticketsProyecto.slice(0,10).forEach(t => { %>
+                <tr onclick="window.open('/tickets/<%= t.ticket_id %>','_blank')" style="cursor:pointer;">
+                  <td><span class="ticket-id"><%= t.ticket_id %></span></td>
+                  <td style="max-width:400px;"><span class="ticket-title-text"><%= t.titulo %></span></td>
+                  <td><span class="badge badge-slate" style="font-size:0.68rem;"><%= t.estado_actual %></span></td>
+                </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <% } %>
+      </div>
+
+      <!-- ════════════════════ TAB: EQUIPO ════════════════════════════════ -->
+      <div id="tab-equipo" class="tab-panel">
+        <div class="grid-2" style="gap:0.75rem;">
+
+          <!-- Equipo actual -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">👥 Miembros del Equipo</span>
+              <button class="btn btn-primary btn-sm" onclick="openModal('modal-agregar-miembro')">➕ Agregar</button>
+            </div>
+
+            <% if (equipo.length === 0) { %>
+            <div style="text-align:center; padding:1.5rem; color:var(--text-muted);">
+              <div style="font-size:2rem; margin-bottom:0.5rem;">👥</div>
+              <p style="font-size:0.85rem;">No hay miembros en el equipo aún</p>
+            </div>
+            <% } else { %>
+            <div style="display:flex; flex-direction:column; gap:0.4rem;" id="equipo-list">
+              <% equipo.forEach((m, idx) => {
+                const initials = m.nombre ? m.nombre.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : '?';
+                const medals = ['🥇','🥈','🥉'];
+                const medal = idx < 3 ? medals[idx] : '';
+              %>
+              <div class="member-item">
+                <div style="width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,var(--purple),var(--blue)); display:flex; align-items:center; justify-content:center; font-size:0.68rem; font-weight:700; color:white; flex-shrink:0;">
+                  <%= initials %>
+                </div>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-size:0.82rem; font-weight:600; color:var(--text-primary);">
+                    <%= medal %> <%= m.nombre %>
+                  </div>
+                  <div style="font-size:0.7rem; color:var(--text-muted);"><%= m.correo %></div>
+                </div>
+                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.25rem;">
+                  <span class="badge badge-blue" style="font-size:0.62rem;"><%= m.rol_en_proyecto %></span>
+                  <span class="badge badge-slate" style="font-size:0.58rem;"><%= m.rol_global %></span>
+                </div>
+                <button class="btn btn-danger btn-sm btn-icon" onclick="removerMiembro(<%= m.id %>, '<%= m.nombre.replace(/'/g, "\\'") %>')" title="Remover del equipo" style="margin-left:0.25rem;">✕</button>
+              </div>
+              <% }) %>
+            </div>
+            <% } %>
+          </div>
+
+          <!-- Clientes del proyecto -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">🤝 Clientes / Stakeholders</span>
+              <button class="btn btn-secondary btn-sm" onclick="openModal('modal-agregar-cliente')">➕ Agregar</button>
+            </div>
+            <% if (clientes.length === 0) { %>
+            <div style="text-align:center; padding:1.5rem; color:var(--text-muted);">
+              <div style="font-size:2rem; margin-bottom:0.5rem;">🤝</div>
+              <p style="font-size:0.85rem;">No hay clientes asociados</p>
+            </div>
+            <% } else { %>
+            <div style="display:flex; flex-direction:column; gap:0.4rem;">
+              <% clientes.forEach(c => {
+                const initials = c.nombre ? c.nombre.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : '?';
+              %>
+              <div class="member-item">
+                <div style="width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,var(--orange),var(--yellow)); display:flex; align-items:center; justify-content:center; font-size:0.68rem; font-weight:700; color:white; flex-shrink:0;">
+                  <%= initials %>
+                </div>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-size:0.82rem; font-weight:600; color:var(--text-primary);"><%= c.nombre %></div>
+                  <div style="font-size:0.7rem; color:var(--text-muted);"><%= c.correo %></div>
+                </div>
+                <button class="btn btn-danger btn-sm btn-icon" onclick="removerCliente(<%= c.id %>, '<%= c.nombre.replace(/'/g, "\\'") %>')" title="Remover" style="margin-left:0.25rem;">✕</button>
+              </div>
+              <% }) %>
+            </div>
+            <% } %>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ════════════════════ TAB: CRONOGRAMA ════════════════════════════ -->
+      <div id="tab-cronograma" class="tab-panel">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📅 Actividades del Cronograma</span>
+            <div style="display:flex; gap:0.5rem;">
+              <button class="btn btn-primary btn-sm" onclick="openModal('modal-actividad')">➕ Actividad</button>
+            </div>
+          </div>
+
+          <% if (cronograma.length === 0) { %>
+          <div style="text-align:center; padding:2rem; color:var(--text-muted);">
+            <div style="font-size:2.5rem; margin-bottom:0.75rem;">📅</div>
+            <p style="font-size:0.85rem;">No hay actividades en el cronograma</p>
+            <button class="btn btn-primary btn-sm" onclick="openModal('modal-actividad')" style="margin-top:0.75rem;">➕ Agregar Primera Actividad</button>
+          </div>
+          <% } else { %>
+          <div class="table-wrapper" style="border:none; background:transparent;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Actividad</th>
+                  <th>Fase</th>
+                  <th>Fechas</th>
+                  <th>Estado</th>
+                  <th>Avance</th>
+                  <th style="text-align:right;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% cronograma.forEach(a => {
+                  let estBadge = 'badge-slate';
+                  if (a.estado === 'Completada') estBadge = 'badge-green';
+                  else if (a.estado === 'En Progreso') estBadge = 'badge-blue';
+                  else if (a.estado === 'Bloqueada') estBadge = 'badge-red';
+                  else if (a.estado === 'Pendiente') estBadge = 'badge-yellow';
+                %>
+                <tr class="activity-row">
+                  <td>
+                    <div style="font-size:0.83rem; font-weight:600; color:var(--text-primary);">
+                      <%= a.nombre %>
+                      <% if (a.es_reportable) { %><span class="badge badge-teal" style="font-size:0.58rem; margin-left:0.3rem;">Reportable</span><% } %>
+                    </div>
+                    <% if (a.descripcion) { %>
+                    <div style="font-size:0.7rem; color:var(--text-muted); margin-top:0.1rem; max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><%= a.descripcion %></div>
+                    <% } %>
+                  </td>
+                  <td style="font-size:0.78rem; color:var(--text-secondary);"><%= a.fase_nombre || '—' %></td>
+                  <td style="font-size:0.75rem; color:var(--text-muted); white-space:nowrap;">
+                    <% if (a.fecha_inicio) { %><div>📅 <%= new Date(a.fecha_inicio).toLocaleDateString('es-MX', {day:'2-digit',month:'short'}) %></div><% } %>
+                    <% if (a.fecha_fin) { %><div>🏁 <%= new Date(a.fecha_fin).toLocaleDateString('es-MX', {day:'2-digit',month:'short'}) %></div><% } %>
+                  </td>
+                  <td><span class="badge <%= estBadge %>" style="font-size:0.65rem;"><%= a.estado %></span></td>
+                  <td style="min-width:100px;">
+                    <div style="display:flex; align-items:center; gap:0.4rem;">
+                      <div class="qa-bar" style="flex:1;">
+                        <div class="qa-bar-fill" style="width:<%= a.porcentaje_avance || 0 %>%;"></div>
+                      </div>
+                      <span style="font-size:0.72rem; font-weight:700; color:var(--accent); min-width:30px;"><%= a.porcentaje_avance || 0 %>%</span>
+                    </div>
+                  </td>
+                  <td style="text-align:right;">
+                    <div style="display:flex; gap:0.35rem; justify-content:flex-end;">
+                      <button class="btn btn-ghost btn-sm" onclick='editarActividad(<%= JSON.stringify(a) %>)' title="Editar">✏️</button>
+                      <button class="btn btn-danger btn-sm" onclick="eliminarActividad(<%= a.id_actividad %>)" title="Eliminar">🗑️</button>
+                    </div>
+                  </td>
+                </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- ════════════════════ TAB: METODOLOGÍA ═══════════════════════════ -->
+      <div id="tab-metodologia" class="tab-panel">
+        <% if (!arbolMetodologia) { %>
+        <div class="card" style="text-align:center; padding:2.5rem;">
+          <div style="font-size:3rem; margin-bottom:1rem;">📐</div>
+          <h3 style="margin-bottom:0.5rem;">Sin metodología asignada</h3>
+          <p style="color:var(--text-muted); margin-bottom:1.25rem;">Este proyecto no tiene una metodología de trabajo asignada.</p>
+          <a href="/admin/proyectos/<%= proyecto.id_proyecto %>/editar" class="btn btn-primary">Asignar Metodología</a>
+        </div>
+        <% } else { %>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📐 <%= arbolMetodologia.nombre %></span>
+          </div>
+          <% arbolMetodologia.etapas.forEach((etapa, ei) => { %>
+          <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+              <span style="font-size:0.85rem; font-weight:600;">
+                <span style="color:var(--accent);">Etapa <%= ei+1 %>:</span> <%= etapa.nombre %>
+              </span>
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <span class="badge badge-blue" style="font-size:0.65rem;"><%= etapa.fases ? etapa.fases.length : 0 %> fases</span>
+                <span style="color:var(--text-muted); transition:transform 0.2s;" class="accordion-arrow">▼</span>
+              </div>
+            </div>
+            <div class="accordion-body">
+              <% if (etapa.fases && etapa.fases.length > 0) { %>
+              <% etapa.fases.forEach((fase, fi) => { %>
+              <div style="margin-bottom:0.75rem; padding:0.65rem 0.8rem; background:var(--bg-primary); border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
+                <div style="font-size:0.82rem; font-weight:600; color:var(--text-primary); margin-bottom:0.4rem;">
+                  <span style="color:var(--purple);">Fase <%= fi+1 %>:</span> <%= fase.nombre %>
+                </div>
+                <% if (fase.ecm && fase.ecm.length > 0) { %>
+                <div style="display:flex; flex-wrap:wrap; gap:0.3rem; margin-top:0.3rem;">
+                  <% fase.ecm.forEach(ecm => { %>
+                  <span style="font-size:0.68rem; padding:0.15rem 0.55rem; background:var(--bg-tertiary); border:1px solid var(--border-subtle); border-radius:var(--radius-full); color:var(--text-muted);">
+                    📄 <%= ecm.nombre %> <span style="color:var(--teal);">(<%= ecm.tipo %>)</span>
+                  </span>
+                  <% }) %>
+                </div>
+                <% } %>
+              </div>
+              <% }) %>
+              <% } else { %>
+              <p style="font-size:0.82rem; color:var(--text-muted);">Sin fases definidas</p>
+              <% } %>
+            </div>
+          </div>
+          <% }) %>
+        </div>
+        <% } %>
+      </div>
+
+    </div><!-- /page-container -->
+
+    <%- include('../partials/footer') %>
+  </div><!-- /main-content -->
+</div><!-- /app-wrapper -->
+
+<!-- ═══ MODAL AGREGAR MIEMBRO ════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-agregar-miembro">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">➕ Agregar Miembro al Equipo</span>
+      <button class="modal-close" onclick="closeModal('modal-agregar-miembro')">✕</button>
+    </div>
+    <form onsubmit="agregarMiembro(event)">
+      <div class="form-group">
+        <label class="form-label">Usuario *</label>
+        <select name="id_usuario" class="form-control" required>
+          <option value="">— Seleccionar usuario —</option>
+          <% todosUsuarios.forEach(u => { %>
+          <option value="<%= u.id %>"><%= u.nombre %> (<%= u.correo %>)</option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Rol en el Proyecto *</label>
+        <select name="rol_en_proyecto" class="form-control" required>
+          <option value="">— Seleccionar rol —</option>
+          <% rolesProyecto.forEach(r => { %>
+          <option value="<%= r %>"><%= r %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div id="error-miembro" style="display:none;" class="alert alert-error"></div>
+      <div style="display:flex; gap:0.75rem; justify-content:flex-end; margin-top:1rem;">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-agregar-miembro')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Agregar Miembro</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ MODAL AGREGAR CLIENTE ═════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-agregar-cliente">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">🤝 Agregar Cliente</span>
+      <button class="modal-close" onclick="closeModal('modal-agregar-cliente')">✕</button>
+    </div>
+    <form onsubmit="agregarCliente(event)">
+      <div class="form-group">
+        <label class="form-label">Usuario / Cliente *</label>
+        <select name="id_usuario" class="form-control" required>
+          <option value="">— Seleccionar usuario —</option>
+          <% todosUsuarios.forEach(u => { %>
+            <% if (u.rol === 'Solicitante') { %>
+            <option value="<%= u.id %>"><%= u.nombre %> (<%= u.correo %>)</option>
+            <% } %>
+          <% }) %>
+        </select>
+      </div>
+      <div id="error-cliente" style="display:none;" class="alert alert-error"></div>
+      <div style="display:flex; gap:0.75rem; justify-content:flex-end; margin-top:1rem;">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-agregar-cliente')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Agregar Cliente</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ MODAL ACTIVIDAD ═══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-actividad">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-header">
+      <span class="modal-title" id="act-modal-title">➕ Nueva Actividad</span>
+      <button class="modal-close" onclick="closeModal('modal-actividad')">✕</button>
+    </div>
+    <form onsubmit="guardarActividad(event)">
+      <input type="hidden" name="id_actividad" id="act-id">
+      <div class="grid-2" style="gap:0.65rem;">
+        <div class="form-group" style="grid-column:1/-1;">
+          <label class="form-label">Nombre *</label>
+          <input type="text" name="nombre" id="act-nombre" class="form-control" required placeholder="Nombre de la actividad">
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label class="form-label">Descripción</label>
+          <textarea name="descripcion" id="act-descripcion" class="form-control" rows="2" placeholder="Descripción opcional"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha Inicio</label>
+          <input type="date" name="fecha_inicio" id="act-fecha-inicio" class="form-control" onclick="this.showPicker()" onfocus="this.showPicker()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha Fin</label>
+          <input type="date" name="fecha_fin" id="act-fecha-fin" class="form-control" onclick="this.showPicker()" onfocus="this.showPicker()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estado</label>
+          <select name="estado" id="act-estado" class="form-control">
+            <option value="Pendiente">Pendiente</option>
+            <option value="En Progreso">En Progreso</option>
+            <option value="Completada">Completada</option>
+            <option value="Bloqueada">Bloqueada</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">% Avance</label>
+          <input type="number" name="porcentaje_avance" id="act-avance" class="form-control" min="0" max="100" value="0">
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+            <input type="checkbox" name="es_reportable" id="act-reportable" style="width:16px;height:16px;">
+            <span class="form-label" style="margin:0;">Actividad reportable</span>
+          </label>
+        </div>
+      </div>
+      <div id="error-actividad" style="display:none;" class="alert alert-error"></div>
+      <div style="display:flex; gap:0.75rem; justify-content:flex-end; margin-top:1rem;">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-actividad')">Cancelar</button>
+        <button type="submit" class="btn btn-primary" id="btn-guardar-act">Guardar Actividad</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const PROYECTO_ID = <%= proyecto.id_proyecto %>;
+
+  // ─── Tabs ───────────────────────────────────────────────────────────────────
+  function switchTab(panelId, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(panelId).classList.add('active');
+    btn.classList.add('active');
+    
+    // Guardar pestaña activa
+    localStorage.setItem('activeTab_' + PROYECTO_ID, panelId);
+  }
+
+  // Restaurar pestaña activa al cargar la página
+  document.addEventListener('DOMContentLoaded', () => {
+    const activeTab = localStorage.getItem('activeTab_' + PROYECTO_ID);
+    if (activeTab) {
+      const btn = document.getElementById('btn-' + activeTab);
+      if (btn) {
+        switchTab(activeTab, btn);
+      }
+    }
+  });
+
+  // ─── Accordion ─────────────────────────────────────────────────────────────
+  function toggleAccordion(header) {
+    const body = header.nextElementSibling;
+    const arrow = header.querySelector('.accordion-arrow');
+    body.classList.toggle('open');
+    arrow.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+  }
+
+  // ─── Modales ────────────────────────────────────────────────────────────────
+  function openModal(id) {
+    document.getElementById(id).classList.add('open');
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    const errEl = document.getElementById('error-' + id.replace('modal-','').replace('-',''));
+    if (errEl) { errEl.style.display='none'; errEl.textContent=''; }
+  }
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+  });
+
+  // ─── Miembro ─────────────────────────────────────────────────────────────
+  async function agregarMiembro(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('[type=submit]');
+    const errEl = document.getElementById('error-miembro');
+    btn.textContent = 'Agregando...'; btn.disabled = true; errEl.style.display = 'none';
+    const fd = new FormData(e.target);
+    const body = Object.fromEntries(fd.entries());
+    try {
+      const res = await fetch(`/api/admin/proyectos/${PROYECTO_ID}/equipo`, {
+        method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al agregar');
+      location.reload();
+    } catch(err) {
+      errEl.textContent = err.message; errEl.style.display = 'flex';
+      btn.textContent = 'Agregar Miembro'; btn.disabled = false;
+    }
+  }
+  async function removerMiembro(id, nombre) {
+    if (!confirm(`¿Remover a ${nombre} del equipo?`)) return;
+    try {
+      const res = await fetch(`/api/admin/proyectos/${PROYECTO_ID}/equipo/${id}`, { method: 'DELETE' });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
+      location.reload();
+    } catch(err) { alert('Error: ' + err.message); }
+  }
+
+  // ─── Cliente ─────────────────────────────────────────────────────────────
+  async function agregarCliente(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('[type=submit]');
+    const errEl = document.getElementById('error-cliente');
+    btn.textContent = 'Agregando...'; btn.disabled = true; errEl.style.display = 'none';
+    const fd = new FormData(e.target);
+    const body = Object.fromEntries(fd.entries());
+    try {
+      const res = await fetch(`/api/admin/proyectos/${PROYECTO_ID}/clientes`, {
+        method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al agregar');
+      location.reload();
+    } catch(err) {
+      errEl.textContent = err.message; errEl.style.display = 'flex';
+      btn.textContent = 'Agregar Cliente'; btn.disabled = false;
+    }
+  }
+  async function removerCliente(id, nombre) {
+    if (!confirm(`¿Remover a ${nombre} de clientes?`)) return;
+    try {
+      const res = await fetch(`/api/admin/proyectos/${PROYECTO_ID}/clientes/${id}`, { method: 'DELETE' });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
+      location.reload();
+    } catch(err) { alert('Error: ' + err.message); }
+  }
+
+  // ─── Actividades ─────────────────────────────────────────────────────────
+  let editingActId = null;
+  function editarActividad(a) {
+    editingActId = a.id_actividad;
+    document.getElementById('act-modal-title').textContent = '✏️ Editar Actividad';
+    document.getElementById('act-id').value = a.id_actividad;
+    document.getElementById('act-nombre').value = a.nombre;
+    document.getElementById('act-descripcion').value = a.descripcion || '';
+    document.getElementById('act-fecha-inicio').value = a.fecha_inicio ? a.fecha_inicio.substring(0,10) : '';
+    document.getElementById('act-fecha-fin').value = a.fecha_fin ? a.fecha_fin.substring(0,10) : '';
+    document.getElementById('act-estado').value = a.estado || 'Pendiente';
+    document.getElementById('act-avance').value = a.porcentaje_avance || 0;
+    document.getElementById('act-reportable').checked = !!a.es_reportable;
+    openModal('modal-actividad');
+  }
+  async function guardarActividad(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-guardar-act');
+    const errEl = document.getElementById('error-actividad');
+    btn.textContent = 'Guardando...'; btn.disabled = true; errEl.style.display = 'none';
+    const fd = new FormData(e.target);
+    const body = Object.fromEntries(fd.entries());
+    body.es_reportable = document.getElementById('act-reportable').checked ? 1 : 0;
+    const id = body.id_actividad;
+    const url = id ? `/api/admin/proyectos/${PROYECTO_ID}/cronograma/${id}` : `/api/admin/proyectos/${PROYECTO_ID}/cronograma`;
+    const method = id ? 'PUT' : 'POST';
+    try {
+      const res = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al guardar');
+      location.reload();
+    } catch(err) {
+      errEl.textContent = err.message; errEl.style.display = 'flex';
+      btn.textContent = 'Guardar Actividad'; btn.disabled = false;
+    }
+  }
+  async function eliminarActividad(id) {
+    if (!confirm('¿Eliminar esta actividad?')) return;
+    try {
+      const res = await fetch(`/api/admin/proyectos/${PROYECTO_ID}/cronograma/${id}`, { method: 'DELETE' });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
+      location.reload();
+    } catch(err) { alert('Error: ' + err.message); }
+  }
+</script>

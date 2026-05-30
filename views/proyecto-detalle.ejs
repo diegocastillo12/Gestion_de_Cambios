@@ -1,0 +1,575 @@
+<%- include('partials/head') %>
+
+<style>
+/* ─── PROYECTO DETALLE ────────────────────────────────────────────────────── */
+.proyecto-hero {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.proyecto-hero-info h1 {
+  font-size: 1.5rem; font-weight: 700; margin-bottom: 0.35rem;
+}
+.proyecto-hero-info p {
+  color: var(--text-muted); font-size: 0.9rem; max-width: 600px; line-height: 1.6;
+}
+.proyecto-hero-stats {
+  display: flex; gap: 1.5rem; flex-wrap: wrap; flex-shrink: 0;
+}
+.hero-stat {
+  text-align: center;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 0.75rem 1.25rem;
+  min-width: 90px;
+}
+.hero-stat-val { font-size: 1.75rem; font-weight: 800; color: var(--accent); }
+.hero-stat-lbl { font-size: 0.73rem; color: var(--text-muted); margin-top: 0.15rem; }
+
+/* Barra de avance general */
+.avance-general {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;
+}
+.avance-label { font-size: 0.9rem; color: var(--text-muted); flex-shrink: 0; }
+.avance-bar-outer {
+  flex: 1; min-width: 200px; background: var(--bg-secondary);
+  border-radius: 99px; height: 12px; overflow: hidden;
+}
+.avance-bar-inner {
+  height: 100%; border-radius: 99px;
+  background: linear-gradient(90deg, var(--accent), #7c3aed);
+  transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+}
+.avance-pct { font-size: 1.2rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+
+/* Tabs */
+.tabs { display: flex; gap: 0.25rem; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
+.tab-btn {
+  padding: 0.65rem 1.1rem; border: none; background: none;
+  color: var(--text-muted); cursor: pointer; border-radius: 8px 8px 0 0;
+  font-size: 0.9rem; font-weight: 500; transition: all 0.2s;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.tab-btn:hover  { color: var(--text-primary); background: var(--bg-secondary); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(99,102,241,0.06); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* Cronograma tabla */
+.cronograma-table { width: 100%; border-collapse: collapse; }
+.cronograma-table th, .cronograma-table td {
+  padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border);
+  font-size: 0.875rem;
+}
+.cronograma-table th { color: var(--text-muted); font-weight: 500; text-transform: uppercase; font-size: 0.75rem; }
+.cronograma-table tr:hover td { background: var(--bg-hover, rgba(99,102,241,0.04)); }
+
+/* Progress cells */
+.progress-mini-outer {
+  background: var(--bg-secondary); border-radius: 99px; height: 6px;
+  min-width: 80px; overflow: hidden; display: inline-block; width: 100px;
+}
+.progress-mini-inner {
+  height: 100%; border-radius: 99px;
+  background: linear-gradient(90deg, var(--accent), #7c3aed);
+}
+
+/* Equipo grid */
+.equipo-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem;
+}
+.miembro-card {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: 12px; padding: 1.25rem; text-align: center;
+}
+.miembro-avatar {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #7c3aed);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; font-weight: 700; color: white;
+  margin: 0 auto 0.75rem;
+}
+.miembro-nombre { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem; }
+.miembro-rol { font-size: 0.78rem; color: var(--text-muted); }
+
+/* Ranking */
+.ranking-item {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0.75rem 1rem; border-radius: 10px;
+  background: var(--bg-secondary); margin-bottom: 0.5rem;
+  transition: background 0.2s;
+}
+.ranking-item:hover { background: var(--border); }
+.ranking-pos { font-size: 1.25rem; width: 2rem; text-align: center; flex-shrink: 0; }
+.ranking-info { flex: 1; }
+.ranking-nombre { font-weight: 600; font-size: 0.9rem; }
+.ranking-rol { font-size: 0.78rem; color: var(--text-muted); }
+.ranking-pct { font-weight: 700; color: var(--accent); font-size: 1.05rem; flex-shrink: 0; }
+
+/* Reporte button */
+.btn-reporte {
+  background: linear-gradient(135deg, var(--accent), #7c3aed);
+  color: white; border: none; border-radius: 8px;
+  padding: 0.45rem 1rem; font-size: 0.82rem; font-weight: 600;
+  cursor: pointer; transition: opacity 0.2s;
+}
+.btn-reporte:hover { opacity: 0.85; }
+
+/* Modal */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.65); backdrop-filter: blur(4px);
+  align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: 16px; padding: 2rem; max-width: 480px; width: 90%;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.4);
+  animation: slideUp 0.2s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+.modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.25rem; }
+.modal-close {
+  float: right; background: none; border: none; cursor: pointer;
+  color: var(--text-muted); font-size: 1.25rem; line-height: 1;
+}
+
+/* Árbol metodología */
+.metodologia-tree { padding: 0; }
+.etapa-item {
+  background: var(--bg-secondary); border-radius: 10px;
+  margin-bottom: 0.75rem; overflow: hidden;
+}
+.etapa-header {
+  padding: 0.85rem 1.1rem; font-weight: 600; font-size: 0.9rem;
+  cursor: pointer; display: flex; align-items: center; gap: 0.5rem;
+  user-select: none;
+}
+.etapa-header:hover { background: var(--border); }
+.etapa-body { padding: 0.5rem 1.1rem 0.85rem 2.5rem; border-top: 1px solid var(--border); display: none; }
+.etapa-body.open { display: block; }
+.fase-item { margin-bottom: 0.6rem; }
+.fase-nombre { font-size: 0.85rem; font-weight: 500; color: var(--text-primary); margin-bottom: 0.3rem; }
+.ecm-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.ecm-chip {
+  background: rgba(99,102,241,0.12); color: var(--accent);
+  border-radius: 99px; padding: 0.2rem 0.6rem; font-size: 0.72rem; font-weight: 500;
+}
+</style>
+
+<div class="layout">
+  <%- include('partials/sidebar') %>
+
+  <main class="main-content">
+
+    <!-- Hero del proyecto -->
+    <div class="proyecto-hero">
+      <div class="proyecto-hero-info">
+        <h1>📁 <%= proyecto.nombre %></h1>
+        <p><%= proyecto.descripcion || 'Sin descripción adicional.' %></p>
+        <div style="margin-top:0.75rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <% const estadoClass2 = {Activo:'badge-teal',Pausado:'badge-orange',Cerrado:'badge-slate',Archivado:'badge-slate'}[proyecto.estado] || 'badge-slate'; %>
+          <span class="badge <%= estadoClass2 %>"><%= proyecto.estado %></span>
+          <% if(proyecto.metodologia_nombre) { %><span class="badge badge-blue">📐 <%= proyecto.metodologia_nombre %></span><% } %>
+          <% if(proyecto.fecha_inicio) { %><span class="badge badge-slate">📅 <%= new Date(proyecto.fecha_inicio).toLocaleDateString('es-PE') %></span><% } %>
+          <% if(proyecto.fecha_fin) { %><span class="badge badge-slate">🏁 <%= new Date(proyecto.fecha_fin).toLocaleDateString('es-PE') %></span><% } %>
+        </div>
+      </div>
+      <div class="proyecto-hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-val"><%= resumen.total || 0 %></div>
+          <div class="hero-stat-lbl">Actividades</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-val"><%= resumen.completadas || 0 %></div>
+          <div class="hero-stat-lbl">Completadas</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-val"><%= tickets.length %></div>
+          <div class="hero-stat-lbl">Tickets</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-val"><%= equipo.length %></div>
+          <div class="hero-stat-lbl">Equipo</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra de avance general -->
+    <div class="avance-general">
+      <span class="avance-label">📊 Avance General del Proyecto:</span>
+      <div class="avance-bar-outer">
+        <div class="avance-bar-inner" style="width:<%= promedioAvance %>%"></div>
+      </div>
+      <span class="avance-pct"><%= promedioAvance %>%</span>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button id="btn-tab-cronograma" class="tab-btn active" onclick="switchTab('cronograma', this)">📅 Cronograma</button>
+      <button id="btn-tab-equipo" class="tab-btn" onclick="switchTab('equipo', this)">👥 Equipo</button>
+      <button id="btn-tab-metodologia" class="tab-btn" onclick="switchTab('metodologia', this)">📐 Metodología</button>
+      <button id="btn-tab-tickets" class="tab-btn" onclick="switchTab('tickets', this)">🎫 Tickets</button>
+      <button id="btn-tab-ranking" class="tab-btn" onclick="switchTab('ranking', this)">🏆 Ranking</button>
+    </div>
+
+    <!-- TAB: CRONOGRAMA -->
+    <div id="tab-cronograma" class="tab-panel active">
+      <div class="card" style="overflow:auto;">
+        <div class="section-header" style="margin-bottom:1rem;">
+          <h2 class="section-title" style="font-size:1rem;">Actividades del Cronograma</h2>
+        </div>
+        <% if(cronograma && cronograma.length > 0) { %>
+        <table class="cronograma-table">
+          <thead>
+            <tr>
+              <th>Actividad</th>
+              <th>Fase</th>
+              <th>Inicio</th>
+              <th>Fin</th>
+              <th>Avance</th>
+              <th>Estado</th>
+              <th>Entregable</th>
+              <% if(['Desarrollador Asignado','Líder Técnico','Gestor de Configuración'].includes(miRolEnProyecto)){ %><th>Acción</th><% } %>
+            </tr>
+          </thead>
+          <tbody>
+          <% cronograma.forEach(act => {
+            const estadoColores = {
+              Pendiente: 'badge-slate', 'En Progreso': 'badge-orange',
+              Completado: 'badge-teal', Bloqueado: 'badge-red'
+            };
+          %>
+            <tr>
+              <td>
+                <div style="font-weight:500;"><%= act.nombre %></div>
+                <% if(act.descripcion) { %><div style="font-size:0.78rem;color:var(--text-muted);"><%= act.descripcion %></div><% } %>
+              </td>
+              <td style="color:var(--text-muted);font-size:0.8rem;"><%= act.fase_nombre || '—' %></td>
+              <td style="font-size:0.82rem;"><%= act.fecha_inicio ? new Date(act.fecha_inicio).toLocaleDateString('es-PE') : '—' %></td>
+              <td style="font-size:0.82rem;"><%= act.fecha_fin ? new Date(act.fecha_fin).toLocaleDateString('es-PE') : '—' %></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                  <div class="progress-mini-outer"><div class="progress-mini-inner" style="width:<%= act.porcentaje_avance %>%"></div></div>
+                  <span style="font-size:0.8rem;font-weight:600;"><%= parseFloat(act.porcentaje_avance||0).toFixed(0) %>%</span>
+                </div>
+              </td>
+              <td><span class="badge <%= estadoColores[act.estado] || 'badge-slate' %>"><%= act.estado %></span></td>
+              <td style="font-size:0.8rem;">
+                <% if(act.entregable_ticket_id) { %>
+                  <a href="/tickets/<%= act.entregable_ticket_id %>" style="color:var(--accent);text-decoration:none;font-weight:500;">
+                    <%= act.entregable_ticket_id %>
+                  </a>
+                <% } else { %>—<% } %>
+              </td>
+              <% if(['Desarrollador Asignado','Líder Técnico','Gestor de Configuración'].includes(miRolEnProyecto)){ %>
+              <td>
+                <% if(act.es_reportable) { %>
+                <button class="btn-reporte" onclick="abrirModalReporte(<%= act.id_actividad %>, '<%= act.nombre.replace(/'/g, "\\'") %>', <%= act.porcentaje_avance %>)">
+                  📝 Reportar
+                </button>
+                <% } else { %>
+                <span style="font-size:0.75rem;color:var(--text-muted);">No reportable</span>
+                <% } %>
+              </td>
+              <% } %>
+            </tr>
+          <% }); %>
+          </tbody>
+        </table>
+        <% } else { %>
+        <div style="text-align:center;padding:3rem;color:var(--text-muted);">
+          <div style="font-size:2.5rem;margin-bottom:0.75rem;">📅</div>
+          <p>No hay actividades en el cronograma.</p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- TAB: EQUIPO -->
+    <div id="tab-equipo" class="tab-panel">
+      <div class="card">
+        <h2 class="section-title" style="font-size:1rem;margin-bottom:1.25rem;">👥 Equipo del Proyecto</h2>
+        <% if(equipo && equipo.length > 0) { %>
+        <div class="equipo-grid">
+          <% equipo.forEach(m => { %>
+          <div class="miembro-card">
+            <div class="miembro-avatar"><%= m.nombre.slice(0,2).toUpperCase() %></div>
+            <div class="miembro-nombre"><%= m.nombre %></div>
+            <div class="miembro-rol"><%= m.rol_en_proyecto %></div>
+            <div style="font-size:0.72rem;color:var(--text-muted);margin-top:0.3rem;"><%= m.correo %></div>
+          </div>
+          <% }); %>
+        </div>
+        <% } else { %>
+        <p style="color:var(--text-muted);">No hay miembros asignados.</p>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- TAB: METODOLOGÍA -->
+    <div id="tab-metodologia" class="tab-panel">
+      <div class="card">
+        <h2 class="section-title" style="font-size:1rem;margin-bottom:1.25rem;">📐 Metodología del Proyecto</h2>
+        <% if(arbolMetodologia) { %>
+        <div style="margin-bottom:1rem;">
+          <strong style="font-size:1.1rem;"><%= arbolMetodologia.nombre %></strong>
+          <% if(arbolMetodologia.descripcion) { %>
+          <p style="color:var(--text-muted);font-size:0.85rem;margin-top:0.35rem;"><%= arbolMetodologia.descripcion %></p>
+          <% } %>
+        </div>
+        <div class="metodologia-tree">
+          <% (arbolMetodologia.etapas || []).forEach((etapa, ei) => { %>
+          <div class="etapa-item">
+            <div class="etapa-header" onclick="toggleEtapa(this)">
+              <span>▶</span>
+              <span>Etapa <%= ei+1 %>: <%= etapa.nombre %></span>
+              <span style="margin-left:auto;font-size:0.75rem;color:var(--text-muted);"><%= (etapa.fases||[]).length %> fases</span>
+            </div>
+            <div class="etapa-body">
+              <% (etapa.fases || []).forEach(fase => { %>
+              <div class="fase-item">
+                <div class="fase-nombre">🗂 <%= fase.nombre %></div>
+                <div class="ecm-chips">
+                  <% (fase.ecm || []).forEach(ecm => { %>
+                  <span class="ecm-chip" title="<%= ecm.tipo %>"><%= ecm.nombre %></span>
+                  <% }); %>
+                  <% if(!fase.ecm || !fase.ecm.length) { %><span style="font-size:0.75rem;color:var(--text-muted);">Sin elementos</span><% } %>
+                </div>
+              </div>
+              <% }); %>
+            </div>
+          </div>
+          <% }); %>
+        </div>
+        <% } else { %>
+        <div style="text-align:center;padding:3rem;color:var(--text-muted);">
+          <div style="font-size:2.5rem;margin-bottom:0.75rem;">📐</div>
+          <p>No hay metodología configurada para este proyecto.</p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- TAB: TICKETS -->
+    <div id="tab-tickets" class="tab-panel">
+      <div class="card" style="overflow:auto;">
+        <div class="section-header" style="margin-bottom:1rem;">
+          <h2 class="section-title" style="font-size:1rem;">🎫 Solicitudes de Cambio del Proyecto</h2>
+          <% if(['Solicitante','Gestor de Configuración'].includes(miRolEnProyecto) || ['Solicitante','Gestor de Configuración'].includes(user.rol)){ %>
+          <a href="/tickets/nuevo?id_proyecto=<%= proyecto.id_proyecto %>" class="btn btn-primary" style="font-size:0.82rem;padding:0.4rem 1rem;">➕ Nueva Solicitud</a>
+          <% } %>
+        </div>
+        <% if(tickets && tickets.length > 0) { %>
+        <table class="cronograma-table">
+          <thead><tr><th>ID</th><th>Título</th><th>Estado</th><th>Solicitante</th><th>Fecha</th><th></th></tr></thead>
+          <tbody>
+          <% tickets.forEach(t => {
+            const estadoMeta2 = {
+              'Solicitado':'badge-slate','En Análisis':'badge-orange',
+              'Pendiente de Aprobación':'badge-blue','Aprobado':'badge-teal',
+              'En Desarrollo':'badge-yellow','En Pruebas QA':'badge-pink',
+              'En Pruebas UAT':'badge-purple','Listo para Integración':'badge-blue',
+              'Liberado':'badge-green','Rechazado':'badge-red','Descartado':'badge-slate'
+            };
+          %>
+          <tr>
+            <td><code style="font-size:0.78rem;"><%= t.id %></code></td>
+            <td><%= t.titulo %></td>
+            <td><span class="badge <%= estadoMeta2[t.estado]||'badge-slate' %>"><%= t.estado %></span></td>
+            <td style="font-size:0.82rem;"><%= t.solicitanteNombre || '—' %></td>
+            <td style="font-size:0.78rem;color:var(--text-muted);"><%= t.fechaCreacion ? new Date(t.fechaCreacion).toLocaleDateString('es-PE') : '—' %></td>
+            <td><a href="/tickets/<%= t.id %>" class="btn btn-ghost" style="font-size:0.78rem;padding:0.3rem 0.75rem;">Ver</a></td>
+          </tr>
+          <% }); %>
+          </tbody>
+        </table>
+        <% } else { %>
+        <div style="text-align:center;padding:3rem;color:var(--text-muted);">
+          <div style="font-size:2.5rem;margin-bottom:0.75rem;">🎫</div>
+          <p>No hay tickets en este proyecto.</p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- TAB: RANKING -->
+    <div id="tab-ranking" class="tab-panel">
+      <div class="card">
+        <h2 class="section-title" style="font-size:1rem;margin-bottom:1.25rem;">🏆 Ranking de Avance del Equipo</h2>
+        <% if(ranking && ranking.length > 0) { %>
+        <% const medallas = ['🥇','🥈','🥉']; %>
+        <% ranking.forEach((m, i) => { %>
+        <div class="ranking-item">
+          <div class="ranking-pos"><%= medallas[i] || (i+1) %></div>
+          <div class="ranking-info">
+            <div class="ranking-nombre"><%= m.nombre %></div>
+            <div class="ranking-rol"><%= m.rol %> · <%= m.total_reportes %> reportes</div>
+          </div>
+          <div style="flex:1;margin:0 1rem;">
+            <div class="progress-mini-outer" style="width:100%;display:block;">
+              <div class="progress-mini-inner" style="width:<%= m.promedio_avance || 0 %>%;height:8px;"></div>
+            </div>
+          </div>
+          <div class="ranking-pct"><%= parseFloat(m.promedio_avance||0).toFixed(1) %>%</div>
+        </div>
+        <% }); %>
+        <% } else { %>
+        <div style="text-align:center;padding:3rem;color:var(--text-muted);">
+          <div style="font-size:2.5rem;margin-bottom:0.75rem;">🏆</div>
+          <p>No hay reportes de avance aún.</p>
+        </div>
+        <% } %>
+
+        <!-- Últimos reportes -->
+        <% if(reportes && reportes.length > 0) { %>
+        <h3 style="font-size:0.9rem;font-weight:600;margin:1.5rem 0 0.75rem;color:var(--text-muted);">📋 Últimos Reportes de Avance</h3>
+        <% reportes.slice(0,8).forEach(r => { %>
+        <div style="display:flex;gap:1rem;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--border);">
+          <div style="flex:1;">
+            <span style="font-weight:500;font-size:0.85rem;"><%= r.reportado_por %></span>
+            <span style="color:var(--text-muted);font-size:0.78rem;"> en <em><%= r.actividad_nombre %></em></span>
+          </div>
+          <span style="font-weight:700;color:var(--accent);">+<%= r.porcentaje %>%</span>
+          <span style="font-size:0.75rem;color:var(--text-muted);">
+            <%= new Date(r.fecha_reporte).toLocaleDateString('es-PE', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) %>
+          </span>
+          <% if(!r.visto_por_cliente && user.rol === 'Solicitante') { %>
+          <span class="badge badge-orange" style="font-size:0.65rem;">Nuevo</span>
+          <% } %>
+        </div>
+        <% }); %>
+        <% } %>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Modal: Reportar Avance -->
+<div class="modal-overlay" id="modalReporte">
+  <div class="modal-box">
+    <button class="modal-close" onclick="cerrarModal('modalReporte')">✕</button>
+    <div class="modal-title">📝 Reportar Avance</div>
+    <p id="modal-actividad-nombre" style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1.25rem;"></p>
+
+    <div class="form-group">
+      <label class="form-label">Porcentaje de Avance (%)</label>
+      <input type="range" id="avance-slider" min="0" max="100" step="1" value="0"
+        oninput="document.getElementById('avance-val').textContent = this.value + '%'"
+        style="width:100%;margin-bottom:0.5rem;accent-color:var(--accent);">
+      <div style="text-align:center;font-size:1.5rem;font-weight:700;color:var(--accent);" id="avance-val">0%</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Comentario (opcional)</label>
+      <textarea id="reporte-comentario" class="form-input" rows="3" style="resize:vertical;" placeholder="Describe el avance realizado..."></textarea>
+    </div>
+
+    <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1.25rem;">
+      <button class="btn btn-ghost" onclick="cerrarModal('modalReporte')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-enviar-reporte" onclick="enviarReporte()">Enviar Reporte</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let actividadActual = null;
+
+const PROYECTO_ID = <%= proyecto.id_proyecto %>;
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+  
+  // Guardar pestaña activa
+  localStorage.setItem('activeTab_' + PROYECTO_ID, name);
+}
+
+// Restaurar pestaña activa al cargar la página
+document.addEventListener('DOMContentLoaded', () => {
+  const activeTab = localStorage.getItem('activeTab_' + PROYECTO_ID);
+  if (activeTab) {
+    const btn = document.getElementById('btn-tab-' + activeTab);
+    if (btn) {
+      switchTab(activeTab, btn);
+    }
+  }
+});
+
+function toggleEtapa(header) {
+  const body = header.nextElementSibling;
+  const arrow = header.querySelector('span:first-child');
+  const isOpen = body.classList.toggle('open');
+  arrow.textContent = isOpen ? '▼' : '▶';
+}
+
+function abrirModalReporte(idActividad, nombre, avanceActual) {
+  actividadActual = idActividad;
+  document.getElementById('modal-actividad-nombre').textContent = nombre;
+  document.getElementById('avance-slider').value = avanceActual || 0;
+  document.getElementById('avance-val').textContent = (avanceActual || 0) + '%';
+  document.getElementById('reporte-comentario').value = '';
+  document.getElementById('modalReporte').classList.add('open');
+}
+
+function cerrarModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+async function enviarReporte() {
+  const btn = document.getElementById('btn-enviar-reporte');
+  const porcentaje = document.getElementById('avance-slider').value;
+  const comentario = document.getElementById('reporte-comentario').value.trim();
+
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  try {
+    const resp = await fetch('/api/reportes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idActividad: actividadActual, porcentaje, comentario })
+    });
+    const data = await resp.json();
+
+    if (data.success) {
+      cerrarModal('modalReporte');
+      // Actualizar la barra de progreso de la actividad en la tabla sin recargar
+      location.reload();
+    } else {
+      alert('Error: ' + (data.error || 'No se pudo enviar el reporte.'));
+    }
+  } catch(e) {
+    alert('Error de conexión.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Enviar Reporte';
+  }
+}
+
+// Cerrar modal con click fuera
+document.getElementById('modalReporte').addEventListener('click', function(e) {
+  if (e.target === this) cerrarModal('modalReporte');
+});
+</script>
+
+<%- include('partials/footer') %>

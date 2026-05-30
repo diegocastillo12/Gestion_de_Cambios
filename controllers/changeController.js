@@ -7,6 +7,7 @@
 
 const TicketModel = require('../models/TicketModel');
 const UserModel = require('../models/UserModel');
+const ProyectoModel = require('../models/ProyectoModel');
 const WorkflowService = require('../services/WorkflowService');
 const { ROLES, ESTADOS, TIPOS_CAMBIO, IMPACTOS, ESTADO_META, FLUJO_ESTADOS } = require('../config/constants');
 
@@ -144,11 +145,23 @@ exports.mostrarTicket = asyncH(async (req, res) => {
 
 // ─── NUEVO TICKET (FORM) ──────────────────────────────────────────────────────
 exports.mostrarNuevoTicket = asyncH(async (req, res) => {
+  const { id_proyecto } = req.query;
+  const user = req.session.user;
+
+  let proyectos = [];
+  if (user.rol === ROLES.SOLICITANTE) {
+    proyectos = await ProyectoModel.findByCliente(user.id);
+  } else {
+    proyectos = await ProyectoModel.findByMiembro(user.id);
+  }
+
   res.render('nuevo-ticket', {
-    user: req.session.user,
+    user,
     roles: ROLES,
     tiposCambio: TIPOS_CAMBIO,
     prioridades: IMPACTOS,
+    id_proyecto: id_proyecto || null,
+    proyectos,
     error: null,
     title: 'Nueva Solicitud de Cambio',
   });
@@ -157,7 +170,7 @@ exports.mostrarNuevoTicket = asyncH(async (req, res) => {
 // ─── CREAR TICKET ─────────────────────────────────────────────────────────────
 exports.crearTicket = asyncH(async (req, res) => {
   const user = req.session.user;
-  const { titulo, descripcion, justificacion_tecnica, tipo, prioridad, estimacionHoras } = req.body;
+  const { titulo, descripcion, justificacion_tecnica, tipo, prioridad, estimacionHoras, id_proyecto } = req.body;
 
   if (!titulo || !descripcion || !tipo) {
     if (req.originalUrl.startsWith('/api') || req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {
@@ -191,6 +204,7 @@ exports.crearTicket = asyncH(async (req, res) => {
         prioridad,
         estimacionHoras,
         idSolicitante: user.id,
+        idProyecto: id_proyecto || null,
       });
       inserted = true;
     } catch (err) {

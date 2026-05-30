@@ -1,0 +1,190 @@
+<%- include('partials/head') %>
+
+<style>
+.reporte-hero {
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+  border-radius: 16px; padding: 2rem; margin-bottom: 2rem;
+  display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;
+}
+.reporte-hero h1 { font-size: 1.4rem; font-weight: 700; color: white; }
+.reporte-hero p  { color: rgba(255,255,255,0.7); font-size: 0.88rem; margin-top: 0.25rem; }
+
+.informe-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;
+}
+@media (max-width: 900px) { .informe-grid { grid-template-columns: 1fr; } }
+
+.ranking-table { width: 100%; border-collapse: collapse; }
+.ranking-table th, .ranking-table td {
+  padding: 0.75rem 1rem; border-bottom: 1px solid var(--border);
+  font-size: 0.875rem; text-align: left;
+}
+.ranking-table th { color: var(--text-muted); font-weight: 500; font-size: 0.75rem; text-transform: uppercase; }
+.rank-pos { font-size: 1.25rem; text-align: center; }
+
+.informe-row {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0.6rem 0; border-bottom: 1px solid var(--border);
+}
+.informe-nombre { flex: 1; font-weight: 500; font-size: 0.875rem; }
+.informe-meta   { font-size: 0.78rem; color: var(--text-muted); }
+.informe-pct    { font-weight: 700; color: var(--accent); width: 3rem; text-align: right; }
+
+.log-entry {
+  display: flex; gap: 1rem; padding: 0.85rem 0;
+  border-bottom: 1px solid var(--border); align-items: flex-start;
+}
+.log-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #7c3aed);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; font-weight: 700; color: white; flex-shrink: 0;
+}
+.log-content { flex: 1; }
+.log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem; }
+.log-nombre { font-weight: 600; font-size: 0.875rem; }
+.log-fecha  { font-size: 0.75rem; color: var(--text-muted); }
+.log-actividad { font-size: 0.8rem; color: var(--text-muted); }
+.log-pct { font-weight: 700; font-size: 1rem; color: var(--accent); flex-shrink: 0; }
+
+.progress-mini-outer { background: var(--bg-secondary); border-radius: 99px; height: 6px; overflow: hidden; }
+.progress-mini-inner { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), #7c3aed); }
+
+.promedio-big {
+  font-size: 3.5rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--accent), #7c3aed);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  line-height: 1;
+}
+</style>
+
+<div class="layout">
+  <%- include('partials/sidebar') %>
+
+  <main class="main-content">
+
+    <div class="reporte-hero">
+      <div>
+        <h1>📊 Reportes de Avance</h1>
+        <p>Proyecto: <strong><%= proyecto.nombre %></strong></p>
+      </div>
+      <div style="text-align:right;">
+        <div class="promedio-big"><%= promedio %>%</div>
+        <div style="color:rgba(255,255,255,0.6);font-size:0.8rem;margin-top:0.25rem;">Avance promedio</div>
+      </div>
+    </div>
+
+    <div class="informe-grid">
+
+      <!-- Ranking -->
+      <div class="card">
+        <h2 style="font-size:1rem;font-weight:700;margin-bottom:1.25rem;">🏆 Ranking del Equipo</h2>
+        <% if(ranking && ranking.length > 0) { %>
+        <% const medallas = ['🥇','🥈','🥉']; %>
+        <table class="ranking-table">
+          <thead><tr><th>#</th><th>Miembro</th><th>Rol</th><th>Reportes</th><th>Promedio</th></tr></thead>
+          <tbody>
+          <% ranking.forEach((m, i) => { %>
+          <tr>
+            <td class="rank-pos"><%= medallas[i] || (i+1) %></td>
+            <td>
+              <div style="font-weight:600;"><%= m.nombre %></div>
+              <% if(m.ultimo_reporte) { %>
+              <div style="font-size:0.72rem;color:var(--text-muted);">
+                Último: <%= new Date(m.ultimo_reporte).toLocaleDateString('es-PE') %>
+              </div>
+              <% } %>
+            </td>
+            <td style="color:var(--text-muted);font-size:0.82rem;"><%= m.rol %></td>
+            <td style="text-align:center;"><%= m.total_reportes %></td>
+            <td>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <div class="progress-mini-outer" style="min-width:60px;flex:1;">
+                  <div class="progress-mini-inner" style="width:<%= Math.min(100,m.promedio_avance||0) %>%;"></div>
+                </div>
+                <span style="font-weight:700;color:var(--accent);font-size:0.85rem;">
+                  <%= parseFloat(m.promedio_avance||0).toFixed(1) %>%
+                </span>
+              </div>
+            </td>
+          </tr>
+          <% }); %>
+          </tbody>
+        </table>
+        <% } else { %>
+        <div style="text-align:center;padding:2rem;color:var(--text-muted);">
+          <div style="font-size:2rem;margin-bottom:0.5rem;">🏆</div>
+          <p>Sin reportes registrados.</p>
+        </div>
+        <% } %>
+      </div>
+
+      <!-- Informe por actividad -->
+      <div class="card">
+        <h2 style="font-size:1rem;font-weight:700;margin-bottom:1.25rem;">📋 Informe por Actividad</h2>
+        <% if(informe && informe.length > 0) { %>
+        <% informe.forEach(act => { %>
+        <div class="informe-row">
+          <div style="flex:1;">
+            <div class="informe-nombre"><%= act.actividad %></div>
+            <% if(act.reportado_por) { %>
+            <div class="informe-meta">Último: <%= act.reportado_por %> · <%= act.fecha_ultimo_reporte ? new Date(act.fecha_ultimo_reporte).toLocaleDateString('es-PE') : '' %></div>
+            <% } else { %><div class="informe-meta">Sin reportes</div><% } %>
+            <% if(act.ultimo_comentario) { %>
+            <div class="informe-meta" style="font-style:italic;">"<%= act.ultimo_comentario %>"</div>
+            <% } %>
+          </div>
+          <div style="min-width:120px;text-align:right;">
+            <div class="informe-pct"><%= parseFloat(act.porcentaje_avance||0).toFixed(0) %>%</div>
+            <div class="progress-mini-outer" style="width:100%;margin-top:0.3rem;">
+              <div class="progress-mini-inner" style="width:<%= act.porcentaje_avance||0 %>%;height:8px;"></div>
+            </div>
+          </div>
+        </div>
+        <% }); %>
+        <% } else { %>
+        <div style="text-align:center;padding:2rem;color:var(--text-muted);">
+          <div style="font-size:2rem;margin-bottom:0.5rem;">📋</div>
+          <p>Sin actividades.</p>
+        </div>
+        <% } %>
+      </div>
+
+    </div>
+
+    <!-- Log de reportes -->
+    <div class="card">
+      <h2 style="font-size:1rem;font-weight:700;margin-bottom:1.25rem;">📝 Historial de Reportes</h2>
+      <% if(reportes && reportes.length > 0) { %>
+      <% reportes.forEach(r => { %>
+      <div class="log-entry">
+        <div class="log-avatar"><%= r.reportado_por.slice(0,2).toUpperCase() %></div>
+        <div class="log-content">
+          <div class="log-header">
+            <span class="log-nombre"><%= r.reportado_por %></span>
+            <span class="log-fecha">
+              <%= new Date(r.fecha_reporte).toLocaleDateString('es-PE', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) %>
+            </span>
+          </div>
+          <div class="log-actividad">📅 <%= r.actividad_nombre %></div>
+          <% if(r.comentario) { %><div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.25rem;">"<%= r.comentario %>"</div><% } %>
+        </div>
+        <div class="log-pct"><%= r.porcentaje %>%</div>
+      </div>
+      <% }); %>
+      <% } else { %>
+      <div style="text-align:center;padding:3rem;color:var(--text-muted);">
+        <div style="font-size:2.5rem;margin-bottom:0.75rem;">📊</div>
+        <p>No hay reportes de avance registrados.</p>
+      </div>
+      <% } %>
+    </div>
+
+    <div style="margin-top:1rem;">
+      <a href="/proyectos/<%= proyecto.id_proyecto %>" class="btn btn-ghost">← Volver al proyecto</a>
+    </div>
+
+  </main>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,359 @@
+<%- include('../partials/head') %>
+
+<style>
+  .user-avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--purple), var(--blue));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 700; color: white;
+    flex-shrink: 0;
+  }
+  .search-input {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    padding: 0.45rem 0.85rem 0.45rem 2.25rem;
+    font-size: 0.84rem;
+    font-family: var(--font-sans);
+    outline: none;
+    width: 260px;
+    transition: border-color var(--transition-fast);
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .search-wrapper { position: relative; }
+  .search-icon { position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); font-size: 0.85rem; color: var(--text-muted); pointer-events: none; }
+</style>
+
+<div class="app-wrapper">
+  <%- include('../partials/sidebar', { user, roles }) %>
+
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Abrir menú">☰</button>
+      <div class="topbar-title">👥 Gestión de Usuarios</div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary btn-sm" onclick="openModal('modal-crear')">➕ Nuevo Usuario</button>
+        <span class="badge badge-purple" style="font-size:0.72rem;"><%= user.rol %></span>
+      </div>
+    </header>
+
+    <div class="page-container">
+
+      <!-- Mensaje flash -->
+      <% if (mensaje) { %>
+      <div class="alert alert-success animate-fadein" id="flash-msg">
+        ✅ <%= mensaje %>
+      </div>
+      <% } %>
+
+      <!-- Stats rápidas -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr); gap:0.65rem; margin-bottom:1rem;">
+        <% const rolCounts = {}; usuarios.forEach(u => { rolCounts[u.rol] = (rolCounts[u.rol] || 0) + 1; }); %>
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background:var(--accent);"></div>
+          <div class="stat-value text-accent"><%= usuarios.length %></div>
+          <div class="stat-label">Total Usuarios</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background:var(--purple);"></div>
+          <div class="stat-value" style="color:var(--purple);"><%= rolCounts['Administrador'] || 0 %></div>
+          <div class="stat-label">Administradores</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background:var(--blue);"></div>
+          <div class="stat-value" style="color:var(--blue);"><%= rolCounts['Director de Proyecto'] || 0 %></div>
+          <div class="stat-label">Directores</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background:var(--teal);"></div>
+          <div class="stat-value" style="color:var(--teal);"><%= rolCounts['Desarrollador'] || 0 %></div>
+          <div class="stat-label">Desarrolladores</div>
+        </div>
+      </div>
+
+      <!-- Tabla de usuarios -->
+      <div class="card">
+        <div class="card-header" style="flex-wrap:wrap; gap:0.75rem;">
+          <span class="card-title">🧑‍💻 Usuarios del Sistema</span>
+          <div style="display:flex; gap:0.65rem; align-items:center;">
+            <div class="search-wrapper">
+              <span class="search-icon">🔍</span>
+              <input type="text" class="search-input" id="search-usuarios" placeholder="Buscar usuarios..." oninput="filtrarUsuarios()">
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrapper" style="border:none; background:transparent;">
+          <table class="data-table" id="tabla-usuarios">
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Correo</th>
+                <th>Rol</th>
+                <th style="text-align:right;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% usuarios.forEach(u => {
+                const initials = u.nombre ? u.nombre.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : '?';
+                let rolBadge = 'badge-slate';
+                if (u.rol === 'Administrador') rolBadge = 'badge-purple';
+                else if (u.rol === 'Director de Proyecto') rolBadge = 'badge-blue';
+                else if (u.rol === 'Gestor de Configuración') rolBadge = 'badge-orange';
+                else if (u.rol === 'Desarrollador') rolBadge = 'badge-teal';
+                else if (u.rol === 'Analista QA') rolBadge = 'badge-pink';
+                else if (u.rol === 'Solicitante') rolBadge = 'badge-yellow';
+              %>
+              <tr class="usuario-row" data-nombre="<%= u.nombre.toLowerCase() %>" data-correo="<%= u.correo.toLowerCase() %>" data-rol="<%= u.rol.toLowerCase() %>">
+                <td>
+                  <div style="display:flex; align-items:center; gap:0.65rem;">
+                    <div class="user-avatar"><%= initials %></div>
+                    <div>
+                      <div style="font-size:0.84rem; font-weight:600; color:var(--text-primary);"><%= u.nombre %></div>
+                      <div style="font-size:0.7rem; color:var(--text-muted);">ID: <%= u.id %></div>
+                    </div>
+                  </div>
+                </td>
+                <td style="color:var(--text-secondary); font-size:0.83rem;"><%= u.correo %></td>
+                <td><span class="badge <%= rolBadge %>"><%= u.rol %></span></td>
+                <td style="text-align:right;">
+                  <div style="display:flex; gap:0.4rem; justify-content:flex-end;">
+                    <button class="btn btn-ghost btn-sm" onclick='openEditModal(<%= JSON.stringify(u) %>)' title="Editar">✏️</button>
+                    <% if (u.id !== user.id) { %>
+                    <button class="btn btn-danger btn-sm" onclick="confirmarEliminar(<%= u.id %>, '<%= u.nombre.replace(/'/g, "\\'") %>')" title="Eliminar">🗑️</button>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <% if (usuarios.length === 0) { %>
+        <div style="text-align:center; padding:2rem; color:var(--text-muted);">
+          <div style="font-size:2.5rem; margin-bottom:0.75rem;">👤</div>
+          <p style="font-size:0.85rem;">No hay usuarios registrados aún.</p>
+        </div>
+        <% } %>
+      </div>
+
+    </div><!-- /page-container -->
+
+    <%- include('../partials/footer') %>
+  </div><!-- /main-content -->
+</div><!-- /app-wrapper -->
+
+<!-- ═══ MODAL CREAR USUARIO ══════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-crear">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">➕ Nuevo Usuario</span>
+      <button class="modal-close" onclick="closeModal('modal-crear')">✕</button>
+    </div>
+    <form id="form-crear" onsubmit="crearUsuario(event)">
+      <div class="form-group">
+        <label class="form-label">Nombre completo *</label>
+        <input type="text" name="nombre" class="form-control" required placeholder="Ej: Juan Pérez">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Correo electrónico *</label>
+        <input type="email" name="correo" class="form-control" required placeholder="correo@ejemplo.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contraseña *</label>
+        <input type="password" name="password" class="form-control" required placeholder="Mínimo 6 caracteres" minlength="6">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Rol *</label>
+        <select name="id_rol" class="form-control" required>
+          <option value="">— Seleccionar rol —</option>
+          <% rolesDisponibles.forEach(r => { %>
+          <option value="<%= r.id_rol %>"><%= r.nombre_rol %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div id="error-crear" style="display:none;" class="alert alert-error"></div>
+      <div style="display:flex; gap:0.75rem; justify-content:flex-end; margin-top:1rem;">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-crear')">Cancelar</button>
+        <button type="submit" class="btn btn-primary" id="btn-crear">Crear Usuario</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ MODAL EDITAR USUARIO ═════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-editar">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">✏️ Editar Usuario</span>
+      <button class="modal-close" onclick="closeModal('modal-editar')">✕</button>
+    </div>
+    <form id="form-editar" onsubmit="editarUsuario(event)">
+      <input type="hidden" name="id" id="edit-id">
+      <div class="form-group">
+        <label class="form-label">Nombre completo *</label>
+        <input type="text" name="nombre" id="edit-nombre" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Correo electrónico *</label>
+        <input type="email" name="correo" id="edit-correo" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nueva contraseña <span style="color:var(--text-muted); font-weight:400;">(dejar vacío para no cambiar)</span></label>
+        <input type="password" name="password" class="form-control" placeholder="Nueva contraseña..." minlength="6">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Rol *</label>
+        <select name="id_rol" id="edit-rol" class="form-control" required>
+          <% rolesDisponibles.forEach(r => { %>
+          <option value="<%= r.id_rol %>"><%= r.nombre_rol %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div id="error-editar" style="display:none;" class="alert alert-error"></div>
+      <div style="display:flex; gap:0.75rem; justify-content:flex-end; margin-top:1rem;">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-editar')">Cancelar</button>
+        <button type="submit" class="btn btn-primary" id="btn-editar">Guardar Cambios</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ MODAL CONFIRMAR ELIMINACIÓN ══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-eliminar">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <span class="modal-title" style="color:var(--red);">🗑️ Eliminar Usuario</span>
+      <button class="modal-close" onclick="closeModal('modal-eliminar')">✕</button>
+    </div>
+    <p style="color:var(--text-secondary); margin-bottom:1rem;">
+      ¿Estás seguro de que deseas eliminar a <strong id="eliminar-nombre" style="color:var(--text-primary);"></strong>? Esta acción no se puede deshacer.
+    </p>
+    <div id="error-eliminar" style="display:none;" class="alert alert-error"></div>
+    <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeModal('modal-eliminar')">Cancelar</button>
+      <button class="btn btn-danger" id="btn-confirmar-eliminar">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ─── Modales ───────────────────────────────────────────────────────────────
+  function openModal(id) {
+    document.getElementById(id).classList.add('open');
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    const errEl = document.getElementById('error-' + id.replace('modal-',''));
+    if (errEl) { errEl.style.display='none'; errEl.textContent=''; }
+  }
+
+  // ─── Buscar usuarios ───────────────────────────────────────────────────────
+  function filtrarUsuarios() {
+    const q = document.getElementById('search-usuarios').value.toLowerCase();
+    document.querySelectorAll('.usuario-row').forEach(row => {
+      const match = row.dataset.nombre.includes(q) || row.dataset.correo.includes(q) || row.dataset.rol.includes(q);
+      row.style.display = match ? '' : 'none';
+    });
+  }
+
+  // ─── Crear usuario ─────────────────────────────────────────────────────────
+  async function crearUsuario(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-crear');
+    const errEl = document.getElementById('error-crear');
+    btn.textContent = 'Creando...'; btn.disabled = true;
+    errEl.style.display = 'none';
+    const fd = new FormData(e.target);
+    const body = Object.fromEntries(fd.entries());
+    try {
+      const res = await fetch('/api/admin/usuarios', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al crear usuario');
+      location.reload();
+    } catch(err) {
+      errEl.textContent = err.message; errEl.style.display = 'flex';
+      btn.textContent = 'Crear Usuario'; btn.disabled = false;
+    }
+  }
+
+  // ─── Abrir modal editar ────────────────────────────────────────────────────
+  const rolesDisponibles = <%- JSON.stringify(rolesDisponibles) %>;
+  function openEditModal(u) {
+    document.getElementById('edit-id').value = u.id;
+    document.getElementById('edit-nombre').value = u.nombre;
+    document.getElementById('edit-correo').value = u.correo;
+    // Set rol by nombre_rol match
+    const sel = document.getElementById('edit-rol');
+    const rolMatch = rolesDisponibles.find(r => r.nombre_rol === u.rol);
+    if (rolMatch) sel.value = rolMatch.id_rol;
+    openModal('modal-editar');
+  }
+
+  // ─── Editar usuario ────────────────────────────────────────────────────────
+  async function editarUsuario(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-editar');
+    const errEl = document.getElementById('error-editar');
+    btn.textContent = 'Guardando...'; btn.disabled = true;
+    errEl.style.display = 'none';
+    const fd = new FormData(e.target);
+    const body = Object.fromEntries(fd.entries());
+    const id = body.id;
+    if (!body.password) delete body.password;
+    try {
+      const res = await fetch(`/api/admin/usuarios/${id}`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al actualizar');
+      location.reload();
+    } catch(err) {
+      errEl.textContent = err.message; errEl.style.display = 'flex';
+      btn.textContent = 'Guardar Cambios'; btn.disabled = false;
+    }
+  }
+
+  // ─── Eliminar usuario ──────────────────────────────────────────────────────
+  let eliminarId = null;
+  function confirmarEliminar(id, nombre) {
+    eliminarId = id;
+    document.getElementById('eliminar-nombre').textContent = nombre;
+    openModal('modal-eliminar');
+  }
+  document.getElementById('btn-confirmar-eliminar').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-confirmar-eliminar');
+    const errEl = document.getElementById('error-eliminar');
+    btn.textContent = 'Eliminando...'; btn.disabled = true;
+    errEl.style.display = 'none';
+    try {
+      const res = await fetch(`/api/admin/usuarios/${eliminarId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al eliminar');
+      location.reload();
+    } catch(err) {
+      errEl.textContent = err.message; errEl.style.display = 'flex';
+      btn.textContent = 'Eliminar'; btn.disabled = false;
+    }
+  });
+
+  // Auto-hide flash message
+  const flash = document.getElementById('flash-msg');
+  if (flash) setTimeout(() => { flash.style.opacity='0'; flash.style.transition='opacity 0.5s'; setTimeout(() => flash.remove(), 500); }, 3000);
+
+  // Close modal on backdrop click
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+  });
+</script>

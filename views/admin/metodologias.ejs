@@ -1,0 +1,470 @@
+<%- include('../partials/head') %>
+
+<style>
+  /* ─── ACCORDION METODOLOGÍAS ─────────────────────────────────────────────── */
+  .met-tree { display: flex; flex-direction: column; gap: 0.5rem; }
+
+  .etapa-block {
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .etapa-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: var(--bg-tertiary);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    user-select: none;
+  }
+  .etapa-header:hover { background: var(--bg-hover); }
+  .etapa-body { background: var(--bg-secondary); display: none; padding: 0.75rem 1rem; }
+  .etapa-body.open { display: block; }
+
+  .fase-block {
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: 0.5rem;
+    overflow: hidden;
+  }
+  .fase-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.55rem 0.85rem;
+    background: var(--bg-primary);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+  }
+  .fase-header:hover { background: var(--bg-hover); }
+  .fase-body { display: none; padding: 0.65rem 0.85rem; background: var(--bg-secondary); }
+  .fase-body.open { display: block; }
+
+  .ecm-chip {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.2rem 0.65rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-full);
+    font-size: 0.72rem; color: var(--text-muted);
+    transition: all var(--transition-fast);
+  }
+  .ecm-chip:hover { border-color: var(--border-default); }
+
+  .arrow-icon { transition: transform 0.2s; color: var(--text-muted); font-size: 0.75rem; }
+  .rotated { transform: rotate(180deg); }
+</style>
+
+<div class="app-wrapper">
+  <%- include('../partials/sidebar', { user, roles }) %>
+
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Abrir menú">☰</button>
+      <div class="topbar-title">📐 Metodologías de Trabajo</div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary btn-sm" onclick="openModal('modal-metodologia')">➕ Nueva Metodología</button>
+        <span class="badge badge-purple" style="font-size:0.72rem;"><%= user.rol %></span>
+      </div>
+    </header>
+
+    <div class="page-container">
+
+      <!-- Stats -->
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr); gap:0.65rem; margin-bottom:1rem;">
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background:var(--accent);"></div>
+          <div class="stat-value text-accent"><%= metodologias.length %></div>
+          <div class="stat-label">Metodologías</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background:var(--blue);"></div>
+          <div class="stat-value" style="color:var(--blue);"><%= metodologias.reduce((s,m) => s + (m.etapas ? m.etapas.length : 0), 0) %></div>
+          <div class="stat-label">Total Etapas</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background:var(--purple);"></div>
+          <div class="stat-value" style="color:var(--purple);"><%= metodologias.reduce((s,m) => s + (m.etapas ? m.etapas.reduce((ss,e) => ss + (e.fases ? e.fases.length : 0), 0) : 0), 0) %></div>
+          <div class="stat-label">Total Fases</div>
+        </div>
+      </div>
+
+      <!-- Si no hay metodologías -->
+      <% if (metodologias.length === 0) { %>
+      <div class="card" style="text-align:center; padding:3rem;">
+        <div style="font-size:3rem; margin-bottom:1rem;">📐</div>
+        <h3 style="margin-bottom:0.5rem;">No hay metodologías registradas</h3>
+        <p style="color:var(--text-muted); margin-bottom:1.25rem;">Crea la primera metodología para comenzar a estructurar tus proyectos.</p>
+        <button class="btn btn-primary" onclick="openModal('modal-metodologia')">➕ Crear Primera Metodología</button>
+      </div>
+      <% } else { %>
+
+      <!-- Árbol de metodologías -->
+      <% metodologias.forEach((met, mi) => { %>
+      <div class="card" style="margin-bottom:0.75rem;">
+
+        <!-- Header metodología -->
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.85rem;">
+          <div>
+            <h3 style="font-size:1rem; font-weight:700; color:var(--text-primary); margin-bottom:0.2rem;">
+              📐 <%= met.nombre %>
+            </h3>
+            <% if (met.descripcion) { %>
+            <p style="font-size:0.78rem; color:var(--text-muted); margin:0;"><%= met.descripcion %></p>
+            <% } %>
+            <div style="display:flex; gap:0.5rem; margin-top:0.4rem;">
+              <span class="badge badge-blue"><%= met.etapas ? met.etapas.length : 0 %> etapas</span>
+              <span class="badge badge-purple"><%= met.etapas ? met.etapas.reduce((s,e) => s + (e.fases ? e.fases.length : 0), 0) : 0 %> fases</span>
+            </div>
+          </div>
+          <div style="display:flex; gap:0.4rem; flex-shrink:0;">
+            <button class="btn btn-secondary btn-sm" onclick='openEditMet(<%= JSON.stringify(met) %>)'>✏️ Editar</button>
+            <button class="btn btn-ghost btn-sm" onclick="openModal('modal-etapa'); document.getElementById('etapa-met-id').value='<%= met.id_metodologia %>'">+ Etapa</button>
+            <button class="btn btn-danger btn-sm" onclick="eliminarMetodologia(<%= met.id_metodologia %>, '<%= met.nombre.replace(/'/g, "\\'") %>')">🗑️</button>
+          </div>
+        </div>
+
+        <!-- Árbol accordion -->
+        <div class="met-tree">
+          <% if (!met.etapas || met.etapas.length === 0) { %>
+          <div style="padding:0.75rem; text-align:center; color:var(--text-muted); font-size:0.82rem; border:1px dashed var(--border-subtle); border-radius:var(--radius-md);">
+            Sin etapas — <button class="btn btn-ghost btn-sm" onclick="openModal('modal-etapa'); document.getElementById('etapa-met-id').value='<%= met.id_metodologia %>'">➕ Agregar etapa</button>
+          </div>
+          <% } else { %>
+          <% met.etapas.forEach((etapa, ei) => { %>
+          <div class="etapa-block">
+            <div class="etapa-header" onclick="toggleBlock(this)">
+              <div style="display:flex; align-items:center; gap:0.65rem;">
+                <span style="width:24px; height:24px; border-radius:50%; background:var(--accent-subtle); border:1px solid var(--accent-border); display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:700; color:var(--accent); flex-shrink:0;"><%= ei+1 %></span>
+                <span style="font-size:0.85rem; font-weight:600; color:var(--text-primary);"><%= etapa.nombre %></span>
+              </div>
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <span class="badge badge-slate" style="font-size:0.62rem;"><%= etapa.fases ? etapa.fases.length : 0 %> fases</span>
+                <div style="display:flex; gap:0.3rem;" onclick="event.stopPropagation()">
+                  <button class="btn btn-ghost btn-sm" onclick="openModal('modal-fase'); document.getElementById('fase-etapa-id').value='<%= etapa.id_etapa %>'">+ Fase</button>
+                  <button class="btn btn-ghost btn-sm" onclick='openEditEtapa(<%= JSON.stringify(etapa) %>)'>✏️</button>
+                  <button class="btn btn-danger btn-sm" onclick="eliminarEtapa(<%= etapa.id_etapa %>)">🗑️</button>
+                </div>
+                <span class="arrow-icon">▼</span>
+              </div>
+            </div>
+            <div class="etapa-body">
+              <% if (!etapa.fases || etapa.fases.length === 0) { %>
+              <div style="padding:0.5rem; text-align:center; color:var(--text-muted); font-size:0.78rem;">
+                Sin fases — <button class="btn btn-ghost btn-sm" onclick="openModal('modal-fase'); document.getElementById('fase-etapa-id').value='<%= etapa.id_etapa %>'">➕ Agregar fase</button>
+              </div>
+              <% } else { %>
+              <% etapa.fases.forEach((fase, fi) => { %>
+              <div class="fase-block">
+                <div class="fase-header" onclick="toggleBlock(this)">
+                  <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <span style="font-size:0.78rem; color:var(--purple); font-weight:600;">Fase <%= fi+1 %>:</span>
+                    <span style="font-size:0.82rem; font-weight:600; color:var(--text-primary);"><%= fase.nombre %></span>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:0.35rem;" onclick="event.stopPropagation()">
+                    <span class="badge badge-slate" style="font-size:0.6rem;"><%= fase.ecm ? fase.ecm.length : 0 %> ECM</span>
+                    <button class="btn btn-ghost btn-sm" onclick="openModal('modal-ecm'); document.getElementById('ecm-fase-id').value='<%= fase.id_fase %>'">+ ECM</button>
+                    <button class="btn btn-ghost btn-sm" onclick='openEditFase(<%= JSON.stringify(fase) %>)'>✏️</button>
+                    <button class="btn btn-danger btn-sm" onclick="eliminarFase(<%= fase.id_fase %>)">🗑️</button>
+                    <span class="arrow-icon">▼</span>
+                  </div>
+                </div>
+                <div class="fase-body">
+                  <% if (!fase.ecm || fase.ecm.length === 0) { %>
+                  <div style="padding:0.4rem; color:var(--text-muted); font-size:0.75rem;">
+                    Sin elementos de configuración — <button class="btn btn-ghost btn-sm" onclick="openModal('modal-ecm'); document.getElementById('ecm-fase-id').value='<%= fase.id_fase %>'">➕ Agregar ECM</button>
+                  </div>
+                  <% } else { %>
+                  <div style="display:flex; flex-wrap:wrap; gap:0.35rem; align-items:center;">
+                    <% fase.ecm.forEach(ecm => { %>
+                    <div class="ecm-chip">
+                      <span>📄 <%= ecm.nombre %></span>
+                      <span style="color:var(--teal);">(<%= ecm.tipo %>)</span>
+                      <button style="background:none;border:none;color:var(--red);cursor:pointer;font-size:0.75rem;padding:0;margin-left:0.2rem;" onclick="eliminarEcm(<%= ecm.id_ecm %>)" title="Eliminar">✕</button>
+                    </div>
+                    <% }) %>
+                    <button class="btn btn-ghost btn-sm" onclick="openModal('modal-ecm'); document.getElementById('ecm-fase-id').value='<%= fase.id_fase %>'">+ ECM</button>
+                  </div>
+                  <% } %>
+                </div>
+              </div>
+              <% }) %>
+              <% } %>
+            </div>
+          </div>
+          <% }) %>
+          <% } %>
+        </div>
+      </div>
+      <% }) %>
+      <% } %>
+
+    </div><!-- /page-container -->
+
+    <%- include('../partials/footer') %>
+  </div><!-- /main-content -->
+</div><!-- /app-wrapper -->
+
+<!-- ═══ MODAL CREAR/EDITAR METODOLOGÍA ═══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-metodologia">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="met-modal-title">➕ Nueva Metodología</span>
+      <button class="modal-close" onclick="closeModal('modal-metodologia')">✕</button>
+    </div>
+    <form onsubmit="guardarMetodologia(event)">
+      <input type="hidden" name="id_metodologia" id="met-id">
+      <div class="form-group">
+        <label class="form-label">Nombre *</label>
+        <input type="text" name="nombre" id="met-nombre" class="form-control" required placeholder="Ej: Scrum, ITIL, RUP...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descripción</label>
+        <textarea name="descripcion" id="met-descripcion" class="form-control" rows="3" placeholder="Descripción de la metodología..."></textarea>
+      </div>
+      <div id="error-metodologia" style="display:none;" class="alert alert-error"></div>
+      <div style="display:flex; gap:0.75rem; justify-content:flex-end; margin-top:1rem;">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-metodologia')">Cancelar</button>
+        <button type="submit" class="btn btn-primary" id="btn-met">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ MODAL ETAPA ═══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-etapa">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-header">
+      <span class="modal-title" id="etapa-modal-title">➕ Nueva Etapa</span>
+      <button class="modal-close" onclick="closeModal('modal-etapa')">✕</button>
+    </div>
+    <form onsubmit="guardarEtapa(event)">
+      <input type="hidden" name="id_metodologia" id="etapa-met-id">
+      <input type="hidden" name="id_etapa" id="etapa-id">
+      <div class="form-group">
+        <label class="form-label">Nombre de la Etapa *</label>
+        <input type="text" name="nombre" id="etapa-nombre" class="form-control" required placeholder="Ej: Iniciación, Planificación, Ejecución...">
+      </div>
+      <div id="error-etapa" style="display:none;" class="alert alert-error"></div>
+      <div style="display:flex; gap:0.75rem; justify-content:flex-end; margin-top:1rem;">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-etapa')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ MODAL FASE ════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-fase">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-header">
+      <span class="modal-title" id="fase-modal-title">➕ Nueva Fase</span>
+      <button class="modal-close" onclick="closeModal('modal-fase')">✕</button>
+    </div>
+    <form onsubmit="guardarFase(event)">
+      <input type="hidden" name="id_etapa" id="fase-etapa-id">
+      <input type="hidden" name="id_fase" id="fase-id">
+      <div class="form-group">
+        <label class="form-label">Nombre de la Fase *</label>
+        <input type="text" name="nombre" id="fase-nombre" class="form-control" required placeholder="Ej: Análisis, Diseño, Desarrollo...">
+      </div>
+      <div id="error-fase" style="display:none;" class="alert alert-error"></div>
+      <div style="display:flex; gap:0.75rem; justify-content:flex-end; margin-top:1rem;">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-fase')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ MODAL ECM ════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-ecm">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-header">
+      <span class="modal-title">➕ Nuevo Elemento de Configuración</span>
+      <button class="modal-close" onclick="closeModal('modal-ecm')">✕</button>
+    </div>
+    <form onsubmit="guardarEcm(event)">
+      <input type="hidden" name="id_fase" id="ecm-fase-id">
+      <div class="form-group">
+        <label class="form-label">Nombre del ECM *</label>
+        <input type="text" name="nombre" id="ecm-nombre" class="form-control" required placeholder="Ej: Documento de Requisitos, Plan de Pruebas...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipo *</label>
+        <select name="tipo" class="form-control" required>
+          <option value="">— Seleccionar tipo —</option>
+          <% tiposEcm.forEach(t => { %>
+          <option value="<%= t %>"><%= t %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div id="error-ecm" style="display:none;" class="alert alert-error"></div>
+      <div style="display:flex; gap:0.75rem; justify-content:flex-end; margin-top:1rem;">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-ecm')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Agregar ECM</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // ─── Accordion ─────────────────────────────────────────────────────────────
+  function toggleBlock(header) {
+    const body = header.nextElementSibling;
+    const arrow = header.querySelector('.arrow-icon');
+    body.classList.toggle('open');
+    if (arrow) arrow.classList.toggle('rotated');
+  }
+
+  // ─── Modales ────────────────────────────────────────────────────────────────
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    // reset form
+    const form = document.querySelector(`#${id} form`);
+    if (form) { form.reset(); }
+    // clear hidden ids
+    const hiddenInputs = document.querySelectorAll(`#${id} input[type=hidden]`);
+    hiddenInputs.forEach(h => h.value = '');
+  }
+  document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
+
+  // ─── Metodología ────────────────────────────────────────────────────────────
+  function openEditMet(met) {
+    document.getElementById('met-modal-title').textContent = '✏️ Editar Metodología';
+    document.getElementById('met-id').value = met.id_metodologia;
+    document.getElementById('met-nombre').value = met.nombre;
+    document.getElementById('met-descripcion').value = met.descripcion || '';
+    openModal('modal-metodologia');
+  }
+  async function guardarMetodologia(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-met');
+    const errEl = document.getElementById('error-metodologia');
+    btn.textContent = 'Guardando...'; btn.disabled = true; errEl.style.display = 'none';
+    const fd = new FormData(e.target);
+    const body = Object.fromEntries(fd.entries());
+    const id = body.id_metodologia;
+    const url = id ? `/api/admin/metodologias/${id}` : '/api/admin/metodologias';
+    const method = id ? 'PUT' : 'POST';
+    try {
+      const res = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al guardar');
+      location.reload();
+    } catch(err) {
+      errEl.textContent = err.message; errEl.style.display = 'flex';
+      btn.textContent = 'Guardar'; btn.disabled = false;
+    }
+  }
+  async function eliminarMetodologia(id, nombre) {
+    if (!confirm(`¿Eliminar la metodología "${nombre}"? Se perderán todas sus etapas y fases.`)) return;
+    try {
+      const res = await fetch(`/api/admin/metodologias/${id}`, { method: 'DELETE' });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
+      location.reload();
+    } catch(err) { alert('Error: ' + err.message); }
+  }
+
+  // ─── Etapa ──────────────────────────────────────────────────────────────────
+  function openEditEtapa(etapa) {
+    document.getElementById('etapa-modal-title').textContent = '✏️ Editar Etapa';
+    document.getElementById('etapa-id').value = etapa.id_etapa;
+    document.getElementById('etapa-nombre').value = etapa.nombre;
+    openModal('modal-etapa');
+  }
+  async function guardarEtapa(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('[type=submit]');
+    const errEl = document.getElementById('error-etapa');
+    btn.textContent = 'Guardando...'; btn.disabled = true; errEl.style.display = 'none';
+    const fd = new FormData(e.target);
+    const body = Object.fromEntries(fd.entries());
+    const id = body.id_etapa;
+    const url = id ? `/api/admin/metodologias/etapas/${id}` : `/api/admin/metodologias/${body.id_metodologia}/etapas`;
+    const method = id ? 'PUT' : 'POST';
+    try {
+      const res = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error');
+      location.reload();
+    } catch(err) {
+      errEl.textContent = err.message; errEl.style.display = 'flex';
+      btn.textContent = 'Guardar'; btn.disabled = false;
+    }
+  }
+  async function eliminarEtapa(id) {
+    if (!confirm('¿Eliminar esta etapa y todas sus fases?')) return;
+    try {
+      const res = await fetch(`/api/admin/metodologias/etapas/${id}`, { method: 'DELETE' });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
+      location.reload();
+    } catch(err) { alert('Error: ' + err.message); }
+  }
+
+  // ─── Fase ───────────────────────────────────────────────────────────────────
+  function openEditFase(fase) {
+    document.getElementById('fase-modal-title').textContent = '✏️ Editar Fase';
+    document.getElementById('fase-id').value = fase.id_fase;
+    document.getElementById('fase-nombre').value = fase.nombre;
+    openModal('modal-fase');
+  }
+  async function guardarFase(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('[type=submit]');
+    const errEl = document.getElementById('error-fase');
+    btn.textContent = 'Guardando...'; btn.disabled = true; errEl.style.display = 'none';
+    const fd = new FormData(e.target);
+    const body = Object.fromEntries(fd.entries());
+    const id = body.id_fase;
+    const url = id ? `/api/admin/metodologias/fases/${id}` : `/api/admin/metodologias/etapas/${body.id_etapa}/fases`;
+    const method = id ? 'PUT' : 'POST';
+    try {
+      const res = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error');
+      location.reload();
+    } catch(err) {
+      errEl.textContent = err.message; errEl.style.display = 'flex';
+      btn.textContent = 'Guardar'; btn.disabled = false;
+    }
+  }
+  async function eliminarFase(id) {
+    if (!confirm('¿Eliminar esta fase y todos sus ECM?')) return;
+    try {
+      const res = await fetch(`/api/admin/metodologias/fases/${id}`, { method: 'DELETE' });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
+      location.reload();
+    } catch(err) { alert('Error: ' + err.message); }
+  }
+
+  // ─── ECM ────────────────────────────────────────────────────────────────────
+  async function guardarEcm(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('[type=submit]');
+    const errEl = document.getElementById('error-ecm');
+    btn.textContent = 'Agregando...'; btn.disabled = true; errEl.style.display = 'none';
+    const fd = new FormData(e.target);
+    const body = Object.fromEntries(fd.entries());
+    try {
+      const res = await fetch(`/api/admin/metodologias/fases/${body.id_fase}/ecm`, {
+        method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error');
+      location.reload();
+    } catch(err) {
+      errEl.textContent = err.message; errEl.style.display = 'flex';
+      btn.textContent = 'Agregar ECM'; btn.disabled = false;
+    }
+  }
+  async function eliminarEcm(id) {
+    if (!confirm('¿Eliminar este elemento de configuración?')) return;
+    try {
+      const res = await fetch(`/api/admin/metodologias/ecm/${id}`, { method: 'DELETE' });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
+      location.reload();
+    } catch(err) { alert('Error: ' + err.message); }
+  }
+</script>

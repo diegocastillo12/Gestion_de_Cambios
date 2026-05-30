@@ -1,20 +1,22 @@
 <%
   /**
    * sidebar.ejs — Menú lateral adaptativo según el rol del usuario en sesión
-   * Filtra secciones de navegación basado en db.ROLES
+   * Soporta: Administrador, Solicitante, y todos los roles del equipo técnico
    */
   const ROLES = locals.roles || {};
   const u = locals.user || {};
   const rol = u.rol || '';
+  const path = locals.currentPath || '';
 
-  // Secciones visibles por rol
-  const canViewTickets   = true; // todos
-  const canCreateTicket  = [ROLES.SOLICITANTE, ROLES.DIRECTOR, ROLES.GESTOR_CONFIGURACION].includes(rol);
+  const isAdministrador  = rol === ROLES.ADMINISTRADOR;
+  const isSolicitante    = rol === ROLES.SOLICITANTE;
+  const isEquipo         = !isAdministrador && !isSolicitante;
+
+  const canCreateTicket  = [ROLES.SOLICITANTE, ROLES.DIRECTOR, ROLES.GESTOR_CONFIGURACION, ROLES.LIDER_TECNICO].includes(rol);
   const canViewAnalysis  = [ROLES.LIDER_TECNICO, ROLES.GESTOR_CONFIGURACION, ROLES.DIRECTOR].includes(rol);
   const canViewCCB       = rol === ROLES.CCB;
   const canViewDev       = [ROLES.DESARROLLADOR, ROLES.LIDER_TECNICO].includes(rol);
-  const canViewQA        = [ROLES.GESTOR_CONFIGURACION, ROLES.LIDER_TECNICO, ROLES.DESARROLLADOR].includes(rol);
-  const isAdmin          = rol === ROLES.GESTOR_CONFIGURACION;
+  const canViewQA        = [ROLES.TESTER, ROLES.LIDER_TECNICO].includes(rol);
 %>
 
 <!-- Overlay para movil -->
@@ -34,7 +36,7 @@
   <!-- Perfil del usuario -->
   <% if (u && u.nombre) { %>
   <div class="sidebar-profile">
-    <div class="sidebar-avatar"><%= u.avatar || u.nombre.slice(0,2).toUpperCase() %></div>
+    <div class="sidebar-avatar"><%= u.nombre.slice(0,2).toUpperCase() %></div>
     <div class="sidebar-profile-info">
       <div class="sidebar-profile-name"><%= u.nombre %></div>
       <div class="sidebar-profile-role"><%= u.rol %></div>
@@ -45,32 +47,82 @@
   <!-- Navegación -->
   <nav class="sidebar-nav">
 
-    <!-- GENERAL -->
+    <!-- ═══ ADMINISTRADOR ═══ -->
+    <% if (isAdministrador) { %>
     <div class="nav-section">
-      <div class="nav-section-title">General</div>
-
-      <a href="/dashboard" class="nav-item" data-path="/dashboard">
-        <span class="nav-item-icon">📊</span>
-        <span>Dashboard</span>
+      <div class="nav-section-title">Panel Admin</div>
+      <a href="/admin" class="nav-item<%= path === '/admin' ? ' active' : '' %>">
+        <span class="nav-item-icon">🏠</span>
+        <span>Inicio</span>
       </a>
-
-      <% if (canViewTickets) { %>
-      <a href="/tickets" class="nav-item" data-path="/tickets">
+      <a href="/admin/proyectos" class="nav-item<%= path.startsWith('/admin/proyectos') ? ' active' : '' %>">
+        <span class="nav-item-icon">📁</span>
+        <span>Proyectos</span>
+      </a>
+      <a href="/admin/usuarios" class="nav-item<%= path === '/admin/usuarios' ? ' active' : '' %>">
+        <span class="nav-item-icon">👥</span>
+        <span>Usuarios</span>
+      </a>
+      <a href="/admin/metodologias" class="nav-item<%= path === '/admin/metodologias' ? ' active' : '' %>">
+        <span class="nav-item-icon">📐</span>
+        <span>Metodologías</span>
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Tickets</div>
+      <a href="/tickets" class="nav-item<%= path === '/tickets' ? ' active' : '' %>">
         <span class="nav-item-icon">🎫</span>
         <span>Todos los Tickets</span>
       </a>
-      <% } %>
+      <a href="/dashboard" class="nav-item<%= path === '/dashboard' ? ' active' : '' %>">
+        <span class="nav-item-icon">📊</span>
+        <span>Dashboard SCM</span>
+      </a>
+    </div>
+    <% } %>
 
+    <!-- ═══ SOLICITANTE ═══ -->
+    <% if (isSolicitante) { %>
+    <div class="nav-section">
+      <div class="nav-section-title">Mis Proyectos</div>
+      <a href="/cartera" class="nav-item<%= path === '/cartera' ? ' active' : '' %>">
+        <span class="nav-item-icon">💼</span>
+        <span>Mi Cartera</span>
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Solicitudes</div>
+      <a href="/tickets" class="nav-item<%= path === '/tickets' ? ' active' : '' %>">
+        <span class="nav-item-icon">🎫</span>
+        <span>Mis Tickets</span>
+      </a>
+      <a href="/tickets/nuevo" class="nav-item<%= path === '/tickets/nuevo' ? ' active' : '' %>">
+        <span class="nav-item-icon">➕</span>
+        <span>Nueva Solicitud</span>
+      </a>
+    </div>
+    <% } %>
+
+    <!-- ═══ EQUIPO TÉCNICO ═══ -->
+    <% if (isEquipo) { %>
+    <div class="nav-section">
+      <div class="nav-section-title">General</div>
+      <a href="/dashboard" class="nav-item<%= path === '/dashboard' ? ' active' : '' %>">
+        <span class="nav-item-icon">📊</span>
+        <span>Dashboard</span>
+      </a>
+      <a href="/cartera" class="nav-item<%= path === '/cartera' ? ' active' : '' %>">
+        <span class="nav-item-icon">💼</span>
+        <span>Mis Proyectos</span>
+      </a>
       <% if (canCreateTicket) { %>
-      <a href="/tickets/nuevo" class="nav-item" data-path="/tickets/nuevo">
+      <a href="/tickets/nuevo" class="nav-item<%= path === '/tickets/nuevo' ? ' active' : '' %>">
         <span class="nav-item-icon">➕</span>
         <span>Nuevo Ticket</span>
       </a>
       <% } %>
     </div>
 
-    <!-- POR ESTADO (visible según rol) -->
-    <% if (canViewAnalysis || canViewCCB || canViewDev || canViewQA) { %>
     <div class="nav-section">
       <div class="nav-section-title">Mi Bandeja</div>
 
@@ -85,23 +137,16 @@
       </a>
       <% } %>
 
-      <% if (rol === ROLES.DIRECTOR) { %>
+      <% if (rol === ROLES.DIRECTOR || canViewCCB) { %>
       <a href="/tickets?estado=Pendiente+de+Aprobaci%C3%B3n" class="nav-item">
         <span class="nav-item-icon">✅</span>
         <span>Para Aprobación</span>
       </a>
       <% } %>
 
-      <% if (canViewCCB) { %>
-      <a href="/tickets?estado=Pendiente+de+Aprobaci%C3%B3n" class="nav-item">
-        <span class="nav-item-icon">⚖️</span>
-        <span>Revisión CCB</span>
-      </a>
-      <% } %>
-
       <% if (canViewDev) { %>
       <a href="/tickets?estado=En+Desarrollo" class="nav-item">
-        <span class="nav-item-icon">⚙️</span>
+        <span class="nav-item-icon">💻</span>
         <span>En Desarrollo</span>
       </a>
       <% } %>
@@ -112,20 +157,10 @@
         <span>En Pruebas QA</span>
       </a>
       <% } %>
-    </div>
-    <% } %>
 
-    <!-- ADMIN -->
-    <% if (isAdmin) { %>
-    <div class="nav-section">
-      <div class="nav-section-title">Administración</div>
-      <a href="/tickets?estado=Liberado" class="nav-item">
-        <span class="nav-item-icon">🚀</span>
-        <span>Liberados</span>
-      </a>
-      <a href="/tickets?estado=Rechazado" class="nav-item">
-        <span class="nav-item-icon">❌</span>
-        <span>Rechazados</span>
+      <a href="/tickets" class="nav-item">
+        <span class="nav-item-icon">🎫</span>
+        <span>Todos los Tickets</span>
       </a>
     </div>
     <% } %>

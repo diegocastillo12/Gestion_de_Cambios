@@ -1,0 +1,215 @@
+<%- include('../partials/head') %>
+
+<style>
+  .filter-bar {
+    display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap;
+  }
+  .filter-select {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    padding: 0.42rem 0.85rem;
+    font-size: 0.82rem;
+    font-family: var(--font-sans);
+    outline: none;
+    cursor: pointer;
+    transition: border-color var(--transition-fast);
+  }
+  .filter-select:focus { border-color: var(--accent); }
+  .proyecto-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.1rem;
+    transition: all var(--transition-fast);
+    display: flex; flex-direction: column; gap: 0.6rem;
+  }
+  .proyecto-card:hover { border-color: var(--border-default); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+</style>
+
+<div class="app-wrapper">
+  <%- include('../partials/sidebar', { user, roles }) %>
+
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Abrir menú">☰</button>
+      <div class="topbar-title">📁 Gestión de Proyectos</div>
+      <div class="topbar-actions">
+        <a href="/admin/proyectos/nuevo" class="btn btn-primary btn-sm">➕ Nuevo Proyecto</a>
+        <span class="badge badge-purple" style="font-size:0.72rem;"><%= user.rol %></span>
+      </div>
+    </header>
+
+    <div class="page-container">
+
+      <!-- Stats rápidas -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr); gap:0.65rem; margin-bottom:1rem;">
+        <%
+          const totProyectos = proyectos.length;
+          const activos = proyectos.filter(p => p.estado === 'Activo').length;
+          const cerrados = proyectos.filter(p => p.estado === 'Cerrado').length;
+          const pausados = proyectos.filter(p => p.estado === 'Pausado').length;
+        %>
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background:var(--accent);"></div>
+          <div class="stat-value text-accent"><%= totProyectos %></div>
+          <div class="stat-label">Total Proyectos</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background:var(--blue);"></div>
+          <div class="stat-value" style="color:var(--blue);"><%= activos %></div>
+          <div class="stat-label">Activos</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background:var(--teal);"></div>
+          <div class="stat-value" style="color:var(--teal);"><%= cerrados %></div>
+          <div class="stat-label">Cerrados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background:var(--yellow);"></div>
+          <div class="stat-value" style="color:var(--yellow);"><%= pausados %></div>
+          <div class="stat-label">Pausados</div>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="card" style="margin-bottom:1rem; padding:0.75rem 1rem;">
+        <div class="filter-bar">
+          <span style="font-size:0.82rem; font-weight:600; color:var(--text-secondary);">🔍 Filtrar:</span>
+          <form method="GET" action="/admin/proyectos" style="display:flex; gap:0.65rem; align-items:center; flex-wrap:wrap;">
+            <input type="text" name="busqueda" class="filter-select" placeholder="Buscar proyecto..." value="<%= filtros.busqueda || '' %>" style="width:200px;">
+            <select name="estado" class="filter-select">
+              <option value="">Todos los estados</option>
+              <% estadosProyecto.forEach(e => { %>
+              <option value="<%= e %>" <%= filtros.estado === e ? 'selected' : '' %>><%= e %></option>
+              <% }) %>
+            </select>
+            <select name="metodologia" class="filter-select">
+              <option value="">Todas las metodologías</option>
+              <% metodologias.forEach(m => { %>
+              <option value="<%= m.id_metodologia %>" <%= String(filtros.metodologia) === String(m.id_metodologia) ? 'selected' : '' %>><%= m.nombre %></option>
+              <% }) %>
+            </select>
+            <button type="submit" class="btn btn-secondary btn-sm">Filtrar</button>
+            <a href="/admin/proyectos" class="btn btn-ghost btn-sm">Limpiar</a>
+          </form>
+        </div>
+      </div>
+
+      <!-- Proyectos -->
+      <% if (proyectos.length === 0) { %>
+      <div class="card" style="text-align:center; padding:3rem;">
+        <div style="font-size:3rem; margin-bottom:1rem;">📭</div>
+        <h3 style="margin-bottom:0.5rem;">No se encontraron proyectos</h3>
+        <p style="color:var(--text-muted); margin-bottom:1.25rem;">Intenta cambiar los filtros o crea un nuevo proyecto.</p>
+        <a href="/admin/proyectos/nuevo" class="btn btn-primary">➕ Crear Primer Proyecto</a>
+      </div>
+      <% } else { %>
+      <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(340px,1fr)); gap:0.75rem;">
+        <% proyectos.forEach(p => {
+          let badgeClass = 'badge-slate';
+          let accentColor = 'var(--slate)';
+          if (p.estado === 'Activo') { badgeClass = 'badge-blue'; accentColor = 'var(--blue)'; }
+          else if (p.estado === 'Cerrado') { badgeClass = 'badge-green'; accentColor = 'var(--accent)'; }
+          else if (p.estado === 'Pausado') { badgeClass = 'badge-yellow'; accentColor = 'var(--yellow)'; }
+          else if (p.estado === 'Cancelado') { badgeClass = 'badge-red'; accentColor = 'var(--red)'; }
+        %>
+        <div class="proyecto-card" style="border-left: 3px solid <%= accentColor %>;">
+          <!-- Header -->
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.5rem;">
+            <div style="flex:1; min-width:0;">
+              <h4 style="font-size:0.9rem; font-weight:700; color:var(--text-primary); margin-bottom:0.2rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                <%= p.nombre %>
+              </h4>
+              <div style="font-size:0.72rem; color:var(--text-muted);">
+                ID: <span class="font-mono"><%= p.id_proyecto %></span>
+                <% if (p.metodologia_nombre) { %> · 📐 <%= p.metodologia_nombre %><% } %>
+              </div>
+            </div>
+            <span class="badge <%= badgeClass %>" style="flex-shrink:0;"><%= p.estado %></span>
+          </div>
+
+          <!-- Descripción -->
+          <% if (p.descripcion) { %>
+          <p style="font-size:0.78rem; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; margin:0;">
+            <%= p.descripcion %>
+          </p>
+          <% } %>
+
+          <!-- Fechas -->
+          <div style="display:flex; gap:1rem; font-size:0.72rem; color:var(--text-muted);">
+            <% if (p.fecha_inicio) { %>
+            <span>📅 Inicio: <strong style="color:var(--text-secondary);"><%= new Date(p.fecha_inicio).toLocaleDateString('es-MX', {day:'2-digit',month:'short',year:'numeric'}) %></strong></span>
+            <% } %>
+            <% if (p.fecha_fin) { %>
+            <span>🏁 Fin: <strong style="color:var(--text-secondary);"><%= new Date(p.fecha_fin).toLocaleDateString('es-MX', {day:'2-digit',month:'short',year:'numeric'}) %></strong></span>
+            <% } %>
+          </div>
+
+          <!-- Acciones -->
+          <div style="display:flex; gap:0.5rem; align-items:center; padding-top:0.4rem; border-top:1px solid var(--border-subtle);">
+            <a href="/admin/proyectos/<%= p.id_proyecto %>/config" class="btn btn-secondary btn-sm" style="flex:1; justify-content:center;">⚙️ Configurar</a>
+            <a href="/admin/proyectos/<%= p.id_proyecto %>/editar" class="btn btn-ghost btn-sm">✏️</a>
+            <button class="btn btn-danger btn-sm" onclick="confirmarEliminar(<%= p.id_proyecto %>, '<%= p.nombre.replace(/'/g, "\\'") %>')">🗑️</button>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+      <% } %>
+
+    </div><!-- /page-container -->
+
+    <%- include('../partials/footer') %>
+  </div><!-- /main-content -->
+</div><!-- /app-wrapper -->
+
+<!-- ═══ MODAL CONFIRMAR ELIMINACIÓN ══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-eliminar">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <span class="modal-title" style="color:var(--red);">🗑️ Eliminar Proyecto</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <p style="color:var(--text-secondary); margin-bottom:1rem;">
+      ¿Eliminar el proyecto <strong id="proj-nombre-del" style="color:var(--text-primary);"></strong>? Esta acción es permanente y eliminará todos los datos asociados.
+    </p>
+    <div id="error-del" style="display:none;" class="alert alert-error"></div>
+    <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-danger" id="btn-del">Eliminar Proyecto</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function closeModal() {
+    document.getElementById('modal-eliminar').classList.remove('open');
+  }
+  let delId = null;
+  function confirmarEliminar(id, nombre) {
+    delId = id;
+    document.getElementById('proj-nombre-del').textContent = nombre;
+    document.getElementById('error-del').style.display = 'none';
+    document.getElementById('modal-eliminar').classList.add('open');
+  }
+  document.getElementById('btn-del').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-del');
+    const errEl = document.getElementById('error-del');
+    btn.textContent = 'Eliminando...'; btn.disabled = true;
+    try {
+      const res = await fetch(`/api/admin/proyectos/${delId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al eliminar');
+      location.reload();
+    } catch(err) {
+      errEl.textContent = err.message; errEl.style.display = 'flex';
+      btn.textContent = 'Eliminar Proyecto'; btn.disabled = false;
+    }
+  });
+  document.getElementById('modal-eliminar').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+</script>

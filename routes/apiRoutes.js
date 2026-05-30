@@ -1,6 +1,7 @@
 /**
- * apiRoutes.js — Endpoints REST para operaciones POST/PUT del flujo de cambio
- * GestioCambios G04
+ * apiRoutes.js — Endpoints REST para GestioCambios G04
+ * Incluye rutas de tickets, proyectos, cronograma, reportes y metodologías
+ * Los endpoints /api/admin/* y /api/* apuntan a los mismos controladores
  */
 
 'use strict';
@@ -9,15 +10,109 @@ const express = require('express');
 const router  = express.Router();
 const auth    = require('../controllers/authController');
 const change  = require('../controllers/changeController');
+const admin   = require('../controllers/adminController');
+const proy    = require('../controllers/proyectoController');
+const { ROLES } = require('../config/constants');
+
+const requireAdmin = auth.requireRole(ROLES.ADMINISTRADOR);
 
 // ─── TICKETS ──────────────────────────────────────────────────────────────────
-// POST /api/tickets             → Crear nuevo ticket
-router.post('/tickets', auth.requireAuth, change.crearTicket);
+router.post('/tickets',                auth.requireAuth, change.crearTicket);
+router.put('/tickets/:id/estado',      auth.requireAuth, change.cambiarEstado);
+router.get('/tickets',                 auth.requireAuth, change.apiListar);
+router.get('/tickets/:id',             auth.requireAuth, change.apiDetalle);
 
-// PUT  /api/tickets/:id/estado  → Cambiar estado (transición del flujo)
-router.put('/tickets/:id/estado', auth.requireAuth, change.cambiarEstado);
+// ─── PROYECTOS (ambos prefijos funcionan) ─────────────────────────────────────
+const crearProyecto     = [auth.requireAuth, requireAdmin, admin.crearProyecto];
+const actualizarProy    = [auth.requireAuth, requireAdmin, admin.actualizarProyecto];
+const eliminarProy      = [auth.requireAuth, requireAdmin, admin.eliminarProyecto];
+const asignarMiembro    = [auth.requireAuth, requireAdmin, admin.asignarMiembro];
+const quitarMiembro     = [auth.requireAuth, requireAdmin, admin.quitarMiembro];
+const asignarCliente    = [auth.requireAuth, requireAdmin, admin.asignarCliente];
+const quitarCliente     = [auth.requireAuth, requireAdmin, admin.quitarCliente];
 
-// GET  /api/tickets             → Lista de tickets (API)
-router.get('/tickets', auth.requireAuth, change.apiListar);
+// Con prefijo /api/proyectos/... (rutas originales)
+router.post('/proyectos',                        ...crearProyecto);
+router.put('/proyectos/:id',                     ...actualizarProy);
+router.delete('/proyectos/:id',                  ...eliminarProy);
+router.post('/proyectos/:id/equipo',             ...asignarMiembro);
+router.delete('/proyectos/:id/equipo/:uid',      ...quitarMiembro);
+router.post('/proyectos/:id/clientes',           ...asignarCliente);
+router.delete('/proyectos/:id/clientes/:uid',    ...quitarCliente);
+
+// Con prefijo /api/admin/proyectos/... (lo que usan las vistas del admin)
+router.post('/admin/proyectos',                      ...crearProyecto);
+router.put('/admin/proyectos/:id',                   ...actualizarProy);
+router.delete('/admin/proyectos/:id',                ...eliminarProy);
+router.post('/admin/proyectos/:id/equipo',           ...asignarMiembro);
+router.delete('/admin/proyectos/:id/equipo/:uid',    ...quitarMiembro);
+router.post('/admin/proyectos/:id/clientes',         ...asignarCliente);
+router.delete('/admin/proyectos/:id/clientes/:uid',  ...quitarCliente);
+
+// Cronograma del proyecto (usado por proyecto-config.ejs como /api/admin/proyectos/:id/cronograma)
+router.post('/admin/proyectos/:id/cronograma', auth.requireAuth, requireAdmin, async (req, res, next) => {
+  req.body.idProyecto = req.params.id;
+  return proy.crearActividad(req, res, next);
+});
+router.put('/admin/proyectos/:id/cronograma/:aid',    auth.requireAuth, requireAdmin, (req, res, next) => {
+  req.params.id = req.params.aid; return proy.actualizarActividad(req, res, next);
+});
+router.delete('/admin/proyectos/:id/cronograma/:aid', auth.requireAuth, requireAdmin, (req, res, next) => {
+  req.params.id = req.params.aid; return proy.eliminarActividad(req, res, next);
+});
+
+// Avance
+router.get('/proyectos/:id/avance', auth.requireAuth, async (req, res) => {
+  try {
+    const ReporteModel = require('../models/ReporteModel');
+    const promedio = await ReporteModel.getPromedioProyecto(req.params.id);
+    const ranking  = await ReporteModel.getRanking(req.params.id);
+    res.json({ success: true, promedio, ranking });
+  } catch(e) { res.status(500).json({ success: false, error: e.message }); }
+});
+
+// ─── CRONOGRAMA / ACTIVIDADES (prefijo estándar) ──────────────────────────────
+router.post('/actividades',            auth.requireAuth, proy.crearActividad);
+router.put('/actividades/:id',         auth.requireAuth, proy.actualizarActividad);
+router.delete('/actividades/:id',      auth.requireAuth, proy.eliminarActividad);
+
+// ─── REPORTES DE AVANCE ───────────────────────────────────────────────────────
+router.post('/reportes',               auth.requireAuth, proy.reportarAvance);
+
+// ─── USUARIOS (ambos prefijos) ────────────────────────────────────────────────
+router.post('/usuarios',               auth.requireAuth, requireAdmin, admin.crearUsuario);
+router.put('/usuarios/:id',            auth.requireAuth, requireAdmin, admin.editarUsuario);
+router.delete('/usuarios/:id',         auth.requireAuth, requireAdmin, admin.eliminarUsuario);
+// Con prefijo /api/admin/usuarios/...
+router.post('/admin/usuarios',         auth.requireAuth, requireAdmin, admin.crearUsuario);
+router.put('/admin/usuarios/:id',      auth.requireAuth, requireAdmin, admin.editarUsuario);
+router.delete('/admin/usuarios/:id',   auth.requireAuth, requireAdmin, admin.eliminarUsuario);
+
+// ─── METODOLOGÍAS (ambos prefijos) ────────────────────────────────────────────
+router.post('/metodologias',           auth.requireAuth, requireAdmin, admin.crearMetodologia);
+router.put('/metodologias/:id',        auth.requireAuth, requireAdmin, admin.actualizarMetodologia);
+router.delete('/metodologias/:id',     auth.requireAuth, requireAdmin, admin.eliminarMetodologia);
+
+router.post('/admin/metodologias',     auth.requireAuth, requireAdmin, admin.crearMetodologia);
+router.put('/admin/metodologias/:id',  auth.requireAuth, requireAdmin, admin.actualizarMetodologia);
+router.delete('/admin/metodologias/:id', auth.requireAuth, requireAdmin, admin.eliminarMetodologia);
+
+// Etapas
+router.post('/metodologias/:id/etapas',              auth.requireAuth, requireAdmin, admin.crearEtapa);
+router.delete('/etapas/:id',                         auth.requireAuth, requireAdmin, admin.eliminarEtapa);
+router.post('/admin/metodologias/:id/etapas',        auth.requireAuth, requireAdmin, admin.crearEtapa);
+router.delete('/admin/metodologias/etapas/:id',      auth.requireAuth, requireAdmin, admin.eliminarEtapa);
+
+// Fases
+router.post('/etapas/:id/fases',                     auth.requireAuth, requireAdmin, admin.crearFase);
+router.delete('/fases/:id',                          auth.requireAuth, requireAdmin, admin.eliminarFase);
+router.post('/admin/metodologias/etapas/:id/fases',  auth.requireAuth, requireAdmin, admin.crearFase);
+router.delete('/admin/metodologias/fases/:id',       auth.requireAuth, requireAdmin, admin.eliminarFase);
+
+// ECM
+router.post('/fases/:id/ecm',                        auth.requireAuth, requireAdmin, admin.crearECM);
+router.delete('/ecm/:id',                            auth.requireAuth, requireAdmin, admin.eliminarECM);
+router.post('/admin/metodologias/fases/:id/ecm',     auth.requireAuth, requireAdmin, admin.crearECM);
+router.delete('/admin/metodologias/ecm/:id',         auth.requireAuth, requireAdmin, admin.eliminarECM);
 
 module.exports = router;

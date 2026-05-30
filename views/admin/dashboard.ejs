@@ -1,0 +1,222 @@
+<%- include('../partials/head') %>
+
+<div class="app-wrapper">
+  <%- include('../partials/sidebar', { user, roles }) %>
+
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Abrir menú">☰</button>
+      <div class="topbar-title">
+        🛡️ Panel de Administración — <span style="color:var(--text-muted); font-weight:400;">Bienvenido, <strong style="color:var(--accent);"><%= user.nombre %></strong></span>
+      </div>
+      <div class="topbar-actions">
+        <a href="/admin/proyectos/nuevo" class="btn btn-primary btn-sm">➕ Nuevo Proyecto</a>
+        <span class="badge badge-purple" style="font-size:0.72rem;"><%= user.rol %></span>
+      </div>
+    </header>
+
+    <div class="page-container">
+
+      <!-- ─── STATS GLOBALES ───────────────────────────────────────────────── -->
+      <div class="stats-grid" style="grid-template-columns: repeat(4,1fr); gap:0.65rem; margin-bottom:1rem;">
+
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background:var(--accent);"></div>
+          <div class="stat-value text-accent"><%= statsGlobales.total_proyectos %></div>
+          <div class="stat-label">Total Proyectos</div>
+          <div class="stat-trend text-muted">📁 Registrados en el sistema</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background:var(--blue);"></div>
+          <div class="stat-value" style="color:var(--blue);"><%= statsGlobales.activos %></div>
+          <div class="stat-label">Proyectos Activos</div>
+          <div class="stat-trend text-muted">🚀 En ejecución actualmente</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background:var(--teal);"></div>
+          <div class="stat-value" style="color:var(--teal);"><%= statsGlobales.cerrados %></div>
+          <div class="stat-label">Proyectos Cerrados</div>
+          <div class="stat-trend text-muted">✅ Finalizados con éxito</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background:var(--yellow);"></div>
+          <div class="stat-value" style="color:var(--yellow);"><%= statsGlobales.pausados %></div>
+          <div class="stat-label">Proyectos Pausados</div>
+          <div class="stat-trend text-muted">⏸️ Temporalmente detenidos</div>
+        </div>
+
+      </div>
+
+      <!-- ─── STATS SECUNDARIAS ────────────────────────────────────────────── -->
+      <div class="stats-grid" style="grid-template-columns: repeat(3,1fr); gap:0.65rem; margin-bottom:1rem;">
+
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background:var(--purple);"></div>
+          <div class="stat-value" style="color:var(--purple);"><%= usuarios.length %></div>
+          <div class="stat-label">Usuarios Registrados</div>
+          <div class="stat-trend text-muted">👥 Total en el sistema</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background:var(--orange);"></div>
+          <div class="stat-value" style="color:var(--orange);"><%= metodologias.length %></div>
+          <div class="stat-label">Metodologías</div>
+          <div class="stat-trend text-muted">📐 Marcos de trabajo disponibles</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-glow" style="background:var(--pink);"></div>
+          <%
+            const promedioGlobal = proyectos.length > 0
+              ? Math.round(proyectos.reduce((s,p) => s + (p.promedio_avance || 0), 0) / proyectos.length)
+              : 0;
+          %>
+          <div class="stat-value" style="color:var(--pink);"><%= promedioGlobal %>%</div>
+          <div class="stat-label">Avance Promedio Global</div>
+          <div class="stat-trend text-muted">📊 Todos los proyectos activos</div>
+        </div>
+
+      </div>
+
+      <!-- ─── PROYECTOS + USUARIOS ─────────────────────────────────────────── -->
+      <div class="grid-2" style="gap:0.75rem; margin-bottom:1rem;">
+
+        <!-- Proyectos con avance -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📁 Proyectos — Avance</span>
+            <a href="/admin/proyectos" class="btn btn-secondary btn-sm">Ver todos →</a>
+          </div>
+
+          <% if (proyectos.length === 0) { %>
+          <div style="text-align:center; padding:1.5rem; color:var(--text-muted);">
+            <div style="font-size:2rem; margin-bottom:0.5rem;">📭</div>
+            <p style="font-size:0.85rem;">No hay proyectos registrados</p>
+          </div>
+          <% } else { %>
+          <div style="display:flex; flex-direction:column; gap:0.6rem;">
+            <% proyectos.slice(0,6).forEach(p => {
+              const avance = p.promedio_avance || 0;
+              let badgeClass = 'badge-slate';
+              if (p.estado === 'Activo') badgeClass = 'badge-blue';
+              else if (p.estado === 'Cerrado') badgeClass = 'badge-green';
+              else if (p.estado === 'Pausado') badgeClass = 'badge-yellow';
+            %>
+            <div style="padding:0.65rem 0.75rem; background:var(--bg-tertiary); border:1px solid var(--border-subtle); border-radius:var(--radius-md);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+                <div>
+                  <a href="/admin/proyectos/<%= p.id_proyecto %>/config" style="font-size:0.82rem; font-weight:600; color:var(--text-primary); text-decoration:none;">
+                    <%= p.nombre %>
+                  </a>
+                  <div style="font-size:0.7rem; color:var(--text-muted); margin-top:0.1rem;">
+                    <%= p.total_actividades || 0 %> actividades · <%= p.metodologia_nombre || 'Sin metodología' %>
+                  </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                  <span class="badge <%= badgeClass %>" style="font-size:0.65rem;"><%= p.estado %></span>
+                  <span style="font-size:0.78rem; font-weight:700; color:var(--accent);"><%= avance %>%</span>
+                </div>
+              </div>
+              <!-- Progress bar -->
+              <div class="qa-bar">
+                <div class="qa-bar-fill" style="width:<%= avance %>%; background: <%= avance >= 80 ? 'var(--accent)' : avance >= 50 ? 'var(--blue)' : 'var(--orange)' %>;"></div>
+              </div>
+            </div>
+            <% }) %>
+            <% if (proyectos.length > 6) { %>
+            <a href="/admin/proyectos" style="text-align:center; padding:0.4rem; color:var(--accent); font-size:0.78rem; font-weight:500;">
+              Ver <%= proyectos.length - 6 %> más →
+            </a>
+            <% } %>
+          </div>
+          <% } %>
+        </div>
+
+        <!-- Usuarios registrados -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">👥 Usuarios del Sistema</span>
+            <a href="/admin/usuarios" class="btn btn-secondary btn-sm">Gestionar →</a>
+          </div>
+
+          <% if (usuarios.length === 0) { %>
+          <div style="text-align:center; padding:1.5rem; color:var(--text-muted);">
+            <p style="font-size:0.85rem;">No hay usuarios registrados</p>
+          </div>
+          <% } else { %>
+          <div style="display:flex; flex-direction:column; gap:0.4rem;">
+            <% usuarios.slice(0,8).forEach(u => {
+              const initials = u.nombre ? u.nombre.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() : '?';
+              let rolBadge = 'badge-slate';
+              if (u.rol === 'Administrador') rolBadge = 'badge-purple';
+              else if (u.rol === 'Director de Proyecto') rolBadge = 'badge-blue';
+              else if (u.rol === 'Gestor de Configuración') rolBadge = 'badge-orange';
+              else if (u.rol === 'Desarrollador') rolBadge = 'badge-teal';
+              else if (u.rol === 'Analista QA') rolBadge = 'badge-pink';
+            %>
+            <div style="display:flex; align-items:center; gap:0.65rem; padding:0.5rem 0.6rem; border-radius:var(--radius-md); transition:background 0.15s;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='transparent'">
+              <div style="width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--purple),var(--blue)); display:flex; align-items:center; justify-content:center; font-size:0.65rem; font-weight:700; color:white; flex-shrink:0;">
+                <%= initials %>
+              </div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:0.8rem; font-weight:600; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><%= u.nombre %></div>
+                <div style="font-size:0.7rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><%= u.correo %></div>
+              </div>
+              <span class="badge <%= rolBadge %>" style="font-size:0.62rem; flex-shrink:0;"><%= u.rol %></span>
+            </div>
+            <% }) %>
+            <% if (usuarios.length > 8) { %>
+            <a href="/admin/usuarios" style="text-align:center; padding:0.4rem; color:var(--accent); font-size:0.78rem; font-weight:500;">
+              Ver <%= usuarios.length - 8 %> más →
+            </a>
+            <% } %>
+          </div>
+          <% } %>
+        </div>
+
+      </div>
+
+      <!-- ─── METODOLOGÍAS ─────────────────────────────────────────────────── -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📐 Metodologías Registradas</span>
+          <a href="/admin/metodologias" class="btn btn-secondary btn-sm">Gestionar →</a>
+        </div>
+
+        <% if (metodologias.length === 0) { %>
+        <div style="text-align:center; padding:1.5rem; color:var(--text-muted);">
+          <div style="font-size:2rem; margin-bottom:0.5rem;">📭</div>
+          <p style="font-size:0.85rem;">No hay metodologías registradas aún</p>
+          <a href="/admin/metodologias" class="btn btn-primary btn-sm" style="margin-top:0.75rem;">➕ Crear primera metodología</a>
+        </div>
+        <% } else { %>
+        <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap:0.65rem;">
+          <% metodologias.forEach((m, idx) => {
+            const colors = ['var(--accent)','var(--blue)','var(--purple)','var(--orange)','var(--pink)','var(--teal)'];
+            const col = colors[idx % colors.length];
+          %>
+          <div style="padding:0.85rem 1rem; background:var(--bg-tertiary); border:1px solid var(--border-subtle); border-radius:var(--radius-md); border-left:3px solid <%= col %>;">
+            <div style="font-size:0.85rem; font-weight:600; color:var(--text-primary); margin-bottom:0.25rem;"><%= m.nombre %></div>
+            <div style="font-size:0.72rem; color:var(--text-muted);">
+              <%= m.etapas ? m.etapas.length : 0 %> etapas ·
+              <%= m.etapas ? m.etapas.reduce((s, e) => s + (e.fases ? e.fases.length : 0), 0) : 0 %> fases
+            </div>
+            <% if (m.descripcion) { %>
+            <div style="font-size:0.72rem; color:var(--text-secondary); margin-top:0.35rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><%= m.descripcion %></div>
+            <% } %>
+          </div>
+          <% }) %>
+        </div>
+        <% } %>
+      </div>
+
+    </div><!-- /page-container -->
+
+    <%- include('../partials/footer') %>
+  </div><!-- /main-content -->
+</div><!-- /app-wrapper -->

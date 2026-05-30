@@ -73,6 +73,7 @@
           { correo: 'ccb@upt.pe',       label: '5. Comité CCB',     icon: '⚖️' },
           { correo: 'gregory@upt.pe',   label: '6. Desarrollador',  icon: '💻' },
           { correo: 'cesar@upt.pe',     label: '7. Tester / QA',    icon: '🧪' },
+          { correo: 'admin@upt.pe',     label: '8. Administrador',  icon: '🔑' },
         ]; %>
         <% demoUsers.forEach((u, idx) => { %>
         <button
@@ -92,7 +93,6 @@
             display: flex;
             align-items: center;
             gap: 0.4rem;
-            <%= idx === demoUsers.length - 1 ? 'grid-column: span 2;' : '' %>
           "
           onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--accent)';"
           onmouseout="this.style.borderColor='var(--border-subtle)'; this.style.color='var(--text-secondary)';"

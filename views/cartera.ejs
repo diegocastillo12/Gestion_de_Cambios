@@ -1,0 +1,224 @@
+<%- include('partials/head') %>
+
+<style>
+  .cartera-hero {
+    background: linear-gradient(135deg, var(--accent) 0%, #7c3aed 100%);
+    border-radius: 16px;
+    padding: 2rem 2.5rem;
+    margin-bottom: 2rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .cartera-hero::before {
+    content: '💼';
+    position: absolute;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 5rem;
+    opacity: 0.15;
+  }
+  .cartera-hero h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem; }
+  .cartera-hero p  { opacity: 0.85; font-size: 0.95rem; }
+
+  .proyectos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .proyecto-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    transition: all 0.25s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .proyecto-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(99,102,241,0.18);
+  }
+  .proyecto-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), #7c3aed);
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+  .proyecto-card:hover::before { opacity: 1; }
+
+  .proyecto-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    gap: 0.75rem;
+  }
+  .proyecto-card-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+  .proyecto-card-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .progreso-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+  }
+  .progreso-label strong { color: var(--text-primary); }
+
+  .progress-bar-outer {
+    background: var(--bg-secondary);
+    border-radius: 99px;
+    height: 8px;
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+  }
+  .progress-bar-inner {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--accent), #7c3aed);
+    transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+    min-width: 2px;
+  }
+
+  .proyecto-card-meta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
+  }
+  .proyecto-card-meta span { display: flex; align-items: center; gap: 0.3rem; }
+
+  .badge-notif {
+    background: #ef4444;
+    color: white;
+    border-radius: 99px;
+    padding: 0.1rem 0.55rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+    50%       { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 5rem 2rem;
+    color: var(--text-muted);
+  }
+  .empty-state .empty-icon { font-size: 4rem; margin-bottom: 1rem; opacity: 0.5; }
+  .empty-state p { font-size: 1rem; }
+
+  .estado-badge {
+    display: inline-block;
+    padding: 0.25rem 0.7rem;
+    border-radius: 99px;
+    font-size: 0.73rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .estado-Activo    { background: rgba(16,185,129,0.15); color: #10b981; }
+  .estado-Pausado   { background: rgba(245,158,11,0.15);  color: #f59e0b; }
+  .estado-Cerrado   { background: rgba(99,102,241,0.15);  color: #818cf8; }
+  .estado-Archivado { background: rgba(107,114,128,0.15); color: #9ca3af; }
+</style>
+
+<div class="layout">
+  <%- include('partials/sidebar') %>
+
+  <main class="main-content">
+    <%- include('partials/head') -%>
+    <!-- Se re-incluye el head solo para el body, el layout se gestiona en el partial -->
+
+    <!-- Hero -->
+    <div class="cartera-hero">
+      <h1>💼 Mi Cartera de Proyectos</h1>
+      <p>Bienvenido/a, <%= user.nombre %>. Aquí tienes todos tus proyectos asignados.</p>
+    </div>
+
+    <% if (proyectos && proyectos.length > 0) { %>
+    <!-- Grid de proyectos -->
+    <div class="proyectos-grid">
+      <% proyectos.forEach(p => {
+        const avance = parseFloat(p.promedio_avance || 0);
+        const estadoClass = 'estado-' + (p.estado || 'Activo').replace(/\s/g,'');
+      %>
+      <a href="/proyectos/<%= p.id_proyecto %>" class="proyecto-card">
+        <div class="proyecto-card-header">
+          <div class="proyecto-card-title"><%= p.nombre %></div>
+          <div style="display:flex;align-items:center;gap:0.5rem;flex-shrink:0;">
+            <span class="estado-badge <%= estadoClass %>"><%= p.estado %></span>
+            <% if (p.reportes_nuevos > 0) { %>
+            <span class="badge-notif"><%= p.reportes_nuevos %></span>
+            <% } %>
+          </div>
+        </div>
+
+        <p class="proyecto-card-desc"><%= p.descripcion || 'Sin descripción.' %></p>
+
+        <!-- Barra de progreso -->
+        <div class="progreso-label">
+          <span>Avance del proyecto</span>
+          <strong><%= avance %>%</strong>
+        </div>
+        <div class="progress-bar-outer">
+          <div class="progress-bar-inner" style="width:<%= avance %>%"></div>
+        </div>
+
+        <div class="proyecto-card-meta">
+          <% if (p.fecha_inicio) { %>
+          <span>📅 <%= new Date(p.fecha_inicio).toLocaleDateString('es-PE') %></span>
+          <% } %>
+          <% if (p.fecha_fin) { %>
+          <span>🏁 <%= new Date(p.fecha_fin).toLocaleDateString('es-PE') %></span>
+          <% } %>
+          <span>📋 <%= p.total_actividades || 0 %> actividades</span>
+          <% if (p.metodologia_nombre) { %>
+          <span>📐 <%= p.metodologia_nombre %></span>
+          <% } %>
+        </div>
+      </a>
+      <% }); %>
+    </div>
+
+    <% } else { %>
+    <div class="empty-state">
+      <div class="empty-icon">📭</div>
+      <h3 style="margin-bottom:0.5rem;">Sin proyectos asignados</h3>
+      <p>El administrador aún no te ha asignado a ningún proyecto.</p>
+    </div>
+    <% } %>
+
+  </main>
+</div>
+
+<%- include('partials/footer') %>

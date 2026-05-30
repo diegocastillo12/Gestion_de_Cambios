@@ -1,0 +1,213 @@
+<%- include('../partials/head') %>
+
+<div class="app-wrapper">
+  <%- include('../partials/sidebar', { user, roles }) %>
+
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Abrir menú">☰</button>
+      <div class="topbar-title">
+        <% if (proyecto) { %>
+          ✏️ Editar Proyecto: <span style="color:var(--accent);"><%= proyecto.nombre %></span>
+        <% } else { %>
+          ➕ Nuevo Proyecto
+        <% } %>
+      </div>
+      <div class="topbar-actions">
+        <a href="/admin/proyectos" class="btn btn-ghost btn-sm">← Volver a Proyectos</a>
+        <span class="badge badge-purple" style="font-size:0.72rem;"><%= user.rol %></span>
+      </div>
+    </header>
+
+    <div class="page-container">
+
+      <div style="max-width:720px; margin: 0 auto;">
+        <div class="card">
+          <div class="card-header" style="margin-bottom:1.5rem;">
+            <div>
+              <h2 style="font-size:1.1rem; font-weight:700; margin-bottom:0.25rem;">
+                <% if (proyecto) { %>✏️ Editar Proyecto<% } else { %>➕ Crear Nuevo Proyecto<% } %>
+              </h2>
+              <p style="font-size:0.82rem; color:var(--text-muted); margin:0;">
+                <% if (proyecto) { %>Modifica los datos del proyecto.<% } else { %>Completa el formulario para crear un nuevo proyecto en el sistema.<% } %>
+              </p>
+            </div>
+          </div>
+
+          <form id="form-proyecto" onsubmit="guardarProyecto(event)">
+
+            <!-- Nombre -->
+            <div class="form-group">
+              <label class="form-label">Nombre del Proyecto *</label>
+              <input
+                type="text"
+                name="nombre"
+                class="form-control"
+                required
+                placeholder="Ej: Sistema de Gestión de Inventario"
+                value="<%= proyecto ? proyecto.nombre : '' %>"
+              >
+              <span class="form-hint">Nombre descriptivo y único para identificar el proyecto.</span>
+            </div>
+
+            <!-- Descripción -->
+            <div class="form-group">
+              <label class="form-label">Descripción</label>
+              <textarea
+                name="descripcion"
+                class="form-control"
+                rows="4"
+                placeholder="Descripción detallada del proyecto, objetivos, alcance..."
+              ><%= proyecto ? proyecto.descripcion : '' %></textarea>
+            </div>
+
+            <!-- Estado + Metodología -->
+            <div class="grid-2" style="gap:0.75rem;">
+              <div class="form-group">
+                <label class="form-label">Estado *</label>
+                <select name="estado" class="form-control" required>
+                  <% estadosProyecto.forEach(e => { %>
+                  <option value="<%= e %>" <%= proyecto && proyecto.estado === e ? 'selected' : '' %>><%= e %></option>
+                  <% }) %>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Metodología</label>
+                <select name="id_metodologia" class="form-control">
+                  <option value="">— Sin metodología —</option>
+                  <% metodologias.forEach(m => { %>
+                  <option value="<%= m.id_metodologia %>"
+                    <%= proyecto && String(proyecto.id_metodologia) === String(m.id_metodologia) ? 'selected' : '' %>
+                  ><%= m.nombre %></option>
+                  <% }) %>
+                </select>
+                <span class="form-hint">Marco de trabajo que seguirá el proyecto.</span>
+              </div>
+            </div>
+
+            <!-- Fechas -->
+            <div class="grid-2" style="gap:0.75rem;">
+              <div class="form-group">
+                <label class="form-label">Fecha de Inicio</label>
+                <input
+                  type="date"
+                  name="fecha_inicio"
+                  class="form-control"
+                  onclick="this.showPicker()"
+                  onfocus="this.showPicker()"
+                  value="<%= proyecto && proyecto.fecha_inicio ? proyecto.fecha_inicio.substring(0,10) : '' %>"
+                >
+              </div>
+              <div class="form-group">
+                <label class="form-label">Fecha de Fin Estimada</label>
+                <input
+                  type="date"
+                  name="fecha_fin"
+                  class="form-control"
+                  onclick="this.showPicker()"
+                  onfocus="this.showPicker()"
+                  value="<%= proyecto && proyecto.fecha_fin ? proyecto.fecha_fin.substring(0,10) : '' %>"
+                >
+              </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="divider" style="margin: 1.25rem 0;"></div>
+
+            <!-- Mensaje de error -->
+            <div id="form-error" style="display:none;" class="alert alert-error"></div>
+
+            <!-- Acciones -->
+            <div style="display:flex; gap:0.75rem; justify-content:flex-end; align-items:center;">
+              <a href="/admin/proyectos" class="btn btn-ghost">Cancelar</a>
+              <button type="submit" class="btn btn-primary" id="btn-submit">
+                <% if (proyecto) { %>💾 Guardar Cambios<% } else { %>➕ Crear Proyecto<% } %>
+              </button>
+            </div>
+
+          </form>
+        </div>
+
+        <!-- Info adicional si editando -->
+        <% if (proyecto) { %>
+        <div class="card" style="margin-top:0.75rem; border-color:var(--border-subtle);">
+          <div class="card-header">
+            <span class="card-title">⚙️ Acciones del Proyecto</span>
+          </div>
+          <div style="display:flex; gap:0.65rem; flex-wrap:wrap;">
+            <a href="/admin/proyectos/<%= proyecto.id_proyecto %>/config" class="btn btn-secondary btn-sm">
+              ⚙️ Ir a Configuración Completa
+            </a>
+            <a href="/admin/proyectos/<%= proyecto.id_proyecto %>/config#tab-equipo" class="btn btn-ghost btn-sm">
+              👥 Gestionar Equipo
+            </a>
+            <a href="/admin/proyectos/<%= proyecto.id_proyecto %>/config#tab-cronograma" class="btn btn-ghost btn-sm">
+              📅 Ver Cronograma
+            </a>
+          </div>
+        </div>
+        <% } %>
+      </div>
+
+    </div><!-- /page-container -->
+
+    <%- include('../partials/footer') %>
+  </div><!-- /main-content -->
+</div><!-- /app-wrapper -->
+
+<script>
+  async function guardarProyecto(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-submit');
+    const errEl = document.getElementById('form-error');
+    const originalText = btn.textContent;
+    btn.textContent = 'Guardando...'; btn.disabled = true;
+    errEl.style.display = 'none';
+
+    const fd = new FormData(e.target);
+    const body = Object.fromEntries(fd.entries());
+    // Limpiar campos vacíos
+    if (!body.id_metodologia) delete body.id_metodologia;
+    if (!body.fecha_inicio) delete body.fecha_inicio;
+    if (!body.fecha_fin) delete body.fecha_fin;
+
+    const isEdit = <%= proyecto ? 'true' : 'false' %>;
+    const id = <%= proyecto ? proyecto.id_proyecto : 'null' %>;
+    const url = isEdit ? `/api/admin/proyectos/${id}` : '/api/admin/proyectos';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al guardar proyecto');
+
+      // Redirigir a config si nuevo, o a lista si editando
+      if (isEdit) {
+        window.location.href = `/admin/proyectos/${id}/config`;
+      } else {
+        window.location.href = `/admin/proyectos/${data.id_proyecto || data.id}/config`;
+      }
+    } catch(err) {
+      errEl.textContent = err.message; errEl.style.display = 'flex';
+      btn.textContent = originalText; btn.disabled = false;
+    }
+  }
+
+  // Validar que fecha_fin sea posterior a fecha_inicio
+  const fechaInicio = document.querySelector('[name=fecha_inicio]');
+  const fechaFin = document.querySelector('[name=fecha_fin]');
+  if (fechaFin) {
+    fechaFin.addEventListener('change', () => {
+      if (fechaInicio.value && fechaFin.value && fechaFin.value < fechaInicio.value) {
+        alert('La fecha de fin no puede ser anterior a la fecha de inicio.');
+        fechaFin.value = '';
+      }
+    });
+  }
+</script>
