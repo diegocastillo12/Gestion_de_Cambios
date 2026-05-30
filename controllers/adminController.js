@@ -10,6 +10,7 @@ const UserModel        = require('../models/UserModel');
 const ProyectoModel    = require('../models/ProyectoModel');
 const MetodologiaModel = require('../models/MetodologiaModel');
 const CronogramaModel  = require('../models/CronogramaModel');
+const ReporteModel     = require('../models/ReporteModel');
 const { ROLES, ROLES_PROYECTO, ESTADOS_PROYECTO, TIPOS_ECM } = require('../config/constants');
 const { query } = require('../config/db');
 
@@ -177,6 +178,9 @@ exports.mostrarEditarProyecto = asyncH(async (req, res) => {
     [id]
   );
 
+  const reportes = await ReporteModel.findByProyecto(id, 20);
+  const ranking = await ReporteModel.getRanking(id);
+
   res.render('admin/proyecto-config', {
     user,
     roles: ROLES,
@@ -190,6 +194,8 @@ exports.mostrarEditarProyecto = asyncH(async (req, res) => {
     resumenCronograma,
     arbolMetodologia,
     ticketsProyecto,
+    reportes,
+    ranking,
     estadosProyecto: ESTADOS_PROYECTO,
     tiposEcm: TIPOS_ECM,
     title: `Config: ${proyecto.nombre}`,
