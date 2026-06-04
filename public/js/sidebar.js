@@ -293,4 +293,188 @@
     observer.observe(el);
   });
 
+  // ─── CAMPANA DE NOTIFICACIONES PARA NUEVAS SOLICITUDES ──────────────────────
+  const profileRoleEl = document.querySelector('.sidebar-profile-role');
+  if (profileRoleEl) {
+    const userRole = profileRoleEl.textContent.trim();
+    if (userRole === 'Administrador' || userRole === 'Director' || userRole === 'Gestor de Configuración') {
+      setupNotificationBell();
+    }
+  }
+
+  async function setupNotificationBell() {
+    const topbarActions = document.querySelector('.topbar-actions');
+    if (!topbarActions) return;
+
+    // Inyectar estilos CSS dinámicamente
+    const style = document.createElement('style');
+    style.textContent = `
+      .notification-bell-container {
+        position: relative;
+        margin-right: 12px;
+        display: flex;
+        align-items: center;
+      }
+      .notification-bell-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-size: 1.25rem;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        transition: background 0.2s;
+        color: var(--text-primary);
+      }
+      .notification-bell-btn:hover {
+        background: rgba(255,255,255,0.06);
+      }
+      .notification-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 8px;
+        width: 290px;
+        background: #1e1e2f;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        display: none;
+        padding: 0.75rem;
+        backdrop-filter: blur(8px);
+      }
+      .notification-badge {
+        position: absolute;
+        top: 0px;
+        right: 0px;
+        background: #ef4444;
+        color: white;
+        font-size: 0.6rem;
+        font-weight: 800;
+        padding: 2px 5px;
+        border-radius: 99px;
+        line-height: 1;
+      }
+      .notification-item {
+        padding: 0.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.15s;
+        border-bottom: 1px solid rgba(255,255,255,0.03);
+      }
+      .notification-item:hover {
+        background: rgba(255, 255, 255, 0.04);
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Crear la estructura de la campana en el DOM
+    const bellContainer = document.createElement('div');
+    bellContainer.className = 'notification-bell-container';
+
+    const bellBtn = document.createElement('button');
+    bellBtn.className = 'notification-bell-btn';
+    bellBtn.innerHTML = '🔔';
+
+    const badge = document.createElement('span');
+    badge.className = 'notification-badge';
+    badge.style.display = 'none';
+    bellBtn.appendChild(badge);
+    bellContainer.appendChild(bellBtn);
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'notification-dropdown';
+    dropdown.innerHTML = `
+      <div style="font-weight: 700; font-size: 0.8rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.4rem; color: var(--text-primary);">
+        <span>🔔 Nuevas Solicitudes</span>
+        <span style="color: var(--accent); cursor: pointer; font-size: 0.7rem;" id="ver-todos-notif">Ver todas</span>
+      </div>
+      <div class="notification-list" style="display: flex; flex-direction: column; gap: 0.4rem; max-height: 250px; overflow-y: auto;">
+        <div style="text-align: center; color: var(--text-muted); font-size: 0.72rem; padding: 1rem 0;">Cargando solicitudes...</div>
+      </div>
+    `;
+    bellContainer.appendChild(dropdown);
+
+    // Insertar la campana en la barra de acciones
+    topbarActions.insertBefore(bellContainer, topbarActions.firstChild);
+
+    // Manejar el toggle del dropdown
+    bellBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    });
+
+    document.addEventListener('click', () => {
+      dropdown.style.display = 'none';
+    });
+
+    dropdown.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+
+    const viewAllLink = dropdown.querySelector('#ver-todos-notif');
+    if (viewAllLink) {
+      viewAllLink.addEventListener('click', () => {
+        window.location.href = '/tickets?estado=Solicitado';
+      });
+    }
+
+    // Consultar solicitudes desde la API
+    try {
+      const res = await fetch('/api/tickets');
+      if (!res.ok) return;
+      const json = await res.json();
+      if (!json.success || !json.data) return;
+
+      // Filtrar tickets en estado 'Solicitado'
+      const solicitados = json.data.filter(t => t.estado === 'Solicitado');
+      const listContainer = dropdown.querySelector('.notification-list');
+
+      if (solicitados.length > 0) {
+        badge.textContent = solicitados.length;
+        badge.style.display = 'block';
+
+        listContainer.innerHTML = '';
+        solicitados.slice(0, 5).forEach(t => {
+          const item = document.createElement('div');
+          item.className = 'notification-item';
+          item.innerHTML = `
+            <div style="font-weight: 700; color: var(--accent); margin-bottom: 0.15rem; font-size: 0.7rem;">${t.id}</div>
+            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.75rem;">${t.titulo}</div>
+            <div style="font-size: 0.65rem; color: var(--text-muted);">De: ${t.solicitanteNombre || 'Cliente'}</div>
+          `;
+          
+          item.addEventListener('click', () => {
+            window.location.href = `/tickets/${t.id}`;
+          });
+          listContainer.appendChild(item);
+        });
+
+        if (solicitados.length > 5) {
+          const moreItem = document.createElement('div');
+          moreItem.style.textAlign = 'center';
+          moreItem.style.fontSize = '0.65rem';
+          moreItem.style.color = 'var(--text-muted)';
+          moreItem.style.paddingTop = '0.3rem';
+          moreItem.textContent = `+ ${solicitados.length - 5} más solicitudes`;
+          listContainer.appendChild(moreItem);
+        }
+      } else {
+        badge.style.display = 'none';
+        listContainer.innerHTML = `
+          <div style="text-align: center; color: var(--text-muted); font-size: 0.7rem; padding: 1.5rem 0;">
+            ☕ No hay nuevas solicitudes pendientes
+          </div>
+        `;
+      }
+    } catch (err) {
+      console.error('Error fetching notifications:', err);
+    }
+  }
+
 })();
