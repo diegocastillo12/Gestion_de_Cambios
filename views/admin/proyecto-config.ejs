@@ -81,7 +81,11 @@
           <% if (proyecto.estado === 'Activo') { %>badge-blue<% } else if (proyecto.estado === 'Cerrado') { %>badge-green<% } else if (proyecto.estado === 'Pausado') { %>badge-yellow<% } else { %>badge-slate<% } %>
         "><%= proyecto.estado %></span>
         <a href="/admin/proyectos" class="btn btn-ghost btn-sm">← Volver</a>
+        <% if (resumenCronograma.total > 0) { %>
+        <button class="btn btn-secondary btn-sm" disabled title="No se puede editar: el cronograma ya tiene actividades" style="opacity:0.45; cursor:not-allowed;">🔒 Editar</button>
+        <% } else { %>
         <a href="/admin/proyectos/<%= proyecto.id_proyecto %>/editar" class="btn btn-secondary btn-sm">✏️ Editar</a>
+        <% } %>
       </div>
     </header>
 
@@ -133,7 +137,11 @@
           <div class="card">
             <div class="card-header">
               <span class="card-title">📋 Datos del Proyecto</span>
+              <% if (resumenCronograma.total > 0) { %>
+              <button class="btn btn-ghost btn-sm" disabled title="No se puede editar: el cronograma ya tiene actividades" style="opacity:0.4; cursor:not-allowed;">🔒 Editar</button>
+              <% } else { %>
               <a href="/admin/proyectos/<%= proyecto.id_proyecto %>/editar" class="btn btn-ghost btn-sm">✏️ Editar</a>
+              <% } %>
             </div>
             <div style="display:flex; flex-direction:column; gap:0.75rem;">
               <div>

@@ -152,7 +152,11 @@
           <!-- Acciones -->
           <div style="display:flex; gap:0.5rem; align-items:center; padding-top:0.4rem; border-top:1px solid var(--border-subtle);">
             <a href="/admin/proyectos/<%= p.id_proyecto %>/config" class="btn btn-secondary btn-sm" style="flex:1; justify-content:center;">⚙️ Configurar</a>
-            <a href="/admin/proyectos/<%= p.id_proyecto %>/editar" class="btn btn-ghost btn-sm">✏️</a>
+            <% if (p.total_actividades > 0) { %>
+            <button class="btn btn-ghost btn-sm" disabled title="No se puede editar: el cronograma ya tiene actividades" style="opacity:0.4; cursor:not-allowed;">✏️</button>
+            <% } else { %>
+            <a href="/admin/proyectos/<%= p.id_proyecto %>/editar" class="btn btn-ghost btn-sm" title="Editar proyecto">✏️</a>
+            <% } %>
             <button class="btn btn-danger btn-sm" onclick="confirmarEliminar(<%= p.id_proyecto %>, '<%= p.nombre.replace(/'/g, "\\'") %>')">🗑️</button>
           </div>
         </div>
