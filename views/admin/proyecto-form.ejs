@@ -97,7 +97,7 @@
                   class="form-control"
                   onclick="this.showPicker()"
                   onfocus="this.showPicker()"
-                  value="<%= proyecto && proyecto.fecha_inicio ? proyecto.fecha_inicio.substring(0,10) : '' %>"
+                  value="<%= proyecto && proyecto.fecha_inicio ? new Date(proyecto.fecha_inicio).toISOString().substring(0,10) : '' %>"
                 >
               </div>
               <div class="form-group">
@@ -108,7 +108,7 @@
                   class="form-control"
                   onclick="this.showPicker()"
                   onfocus="this.showPicker()"
-                  value="<%= proyecto && proyecto.fecha_fin ? proyecto.fecha_fin.substring(0,10) : '' %>"
+                  value="<%= proyecto && proyecto.fecha_fin ? new Date(proyecto.fecha_fin).toISOString().substring(0,10) : '' %>"
                 >
               </div>
             </div>
