@@ -241,12 +241,13 @@
             <tr>
               <th>Actividad</th>
               <th>Fase</th>
+              <th>Responsable</th>
               <th>Inicio</th>
               <th>Fin</th>
               <th>Avance</th>
               <th>Estado</th>
               <th>Entregable</th>
-              <% if(['Desarrollador Asignado','Líder Técnico','Gestor de Configuración'].includes(miRolEnProyecto)){ %><th>Acción</th><% } %>
+              <% if(user.rol !== 'Solicitante'){ %><th>Acción</th><% } %>
             </tr>
           </thead>
           <tbody>
@@ -261,7 +262,22 @@
                 <div style="font-weight:500;"><%= act.nombre %></div>
                 <% if(act.descripcion) { %><div style="font-size:0.78rem;color:var(--text-muted);"><%= act.descripcion %></div><% } %>
               </td>
-              <td style="color:var(--text-muted);font-size:0.8rem;"><%= act.fase_nombre || '—' %></td>
+              <td style="color:var(--text-muted);font-size:0.8rem;">
+                <% if(act.etapa_nombre) { %><div style="font-size:0.7rem;color:var(--text-muted);"><%= act.etapa_nombre %></div><% } %>
+                <%= act.fase_nombre || '—' %>
+              </td>
+              <td style="font-size:0.82rem;">
+                <% if(act.asignado_nombre) { %>
+                <div style="display:flex;align-items:center;gap:0.35rem;">
+                  <div style="width:26px;height:26px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:white;flex-shrink:0;">
+                    <%= act.asignado_nombre.slice(0,2).toUpperCase() %>
+                  </div>
+                  <span style="font-size:0.8rem;"><%= act.asignado_nombre.split(' ')[0] %></span>
+                </div>
+                <% } else { %>
+                <span style="color:var(--text-muted);">Sin asignar</span>
+                <% } %>
+              </td>
               <td style="font-size:0.82rem;"><%= act.fecha_inicio ? new Date(act.fecha_inicio).toLocaleDateString('es-PE') : '—' %></td>
               <td style="font-size:0.82rem;"><%= act.fecha_fin ? new Date(act.fecha_fin).toLocaleDateString('es-PE') : '—' %></td>
               <td>
@@ -278,12 +294,21 @@
                   </a>
                 <% } else { %>—<% } %>
               </td>
-              <% if(['Desarrollador Asignado','Líder Técnico','Gestor de Configuración'].includes(miRolEnProyecto)){ %>
+              <% if(user.rol !== 'Solicitante'){ %>
               <td>
-                <% if(act.es_reportable) { %>
+                <% 
+                  const puedeReportar = act.es_reportable && (
+                    user.id === act.id_usuario ||
+                    user.rol === 'Administrador' ||
+                    miRolEnProyecto === 'Líder Técnico'
+                  );
+                %>
+                <% if(puedeReportar) { %>
                 <button class="btn-reporte" onclick="abrirModalReporte(<%= act.id_actividad %>, '<%= act.nombre.replace(/'/g, "\\'") %>', <%= act.porcentaje_avance %>)">
                   📝 Reportar
                 </button>
+                <% } else if(act.es_reportable) { %>
+                <span style="font-size:0.75rem;color:var(--text-muted);">Solo responsable</span>
                 <% } else { %>
                 <span style="font-size:0.75rem;color:var(--text-muted);">No reportable</span>
                 <% } %>

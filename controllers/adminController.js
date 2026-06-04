@@ -140,6 +140,31 @@ exports.mostrarNuevoProyecto = asyncH(async (req, res) => {
   });
 });
 
+exports.mostrarEditarFormProyecto = asyncH(async (req, res) => {
+  const user = req.session.user;
+  const { id } = req.params;
+  const proyecto = await ProyectoModel.findById(id);
+  if (!proyecto) {
+    return res.status(404).render('error', { title: '404', message: 'Proyecto no encontrado.', user, roles: ROLES });
+  }
+
+  // Bloquear edición si el cronograma ya tiene actividades
+  const resumen = await CronogramaModel.getResumen(id);
+  if (resumen.total > 0) {
+    return res.redirect(`/admin/proyectos/${id}/config?error=cronograma`);
+  }
+
+  const metodologias = await MetodologiaModel.findAll();
+  res.render('admin/proyecto-form', {
+    user,
+    roles: ROLES,
+    metodologias,
+    estadosProyecto: ESTADOS_PROYECTO,
+    proyecto,
+    title: `Editar: ${proyecto.nombre}`,
+  });
+});
+
 exports.crearProyecto = asyncH(async (req, res) => {
   const user = req.session.user;
   const { nombre, descripcion, estado, fecha_inicio, fecha_fin, id_metodologia } = req.body;
@@ -205,6 +230,16 @@ exports.mostrarEditarProyecto = asyncH(async (req, res) => {
 exports.actualizarProyecto = asyncH(async (req, res) => {
   const { id } = req.params;
   const { nombre, descripcion, estado, fecha_inicio, fecha_fin, id_metodologia } = req.body;
+
+  // No permitir editar si ya hay actividades en el cronograma
+  const resumen = await CronogramaModel.getResumen(id);
+  if (resumen.total > 0) {
+    return res.status(400).json({
+      success: false,
+      error: 'No se puede editar el proyecto porque el cronograma ya tiene actividades definidas. Elimina las actividades primero.',
+    });
+  }
+
   await ProyectoModel.update(id, { nombre, descripcion, estado, fechaInicio: fecha_inicio, fechaFin: fecha_fin, idMetodologia: id_metodologia || null });
   return res.json({ success: true });
 });

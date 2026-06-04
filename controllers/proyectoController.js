@@ -160,21 +160,58 @@ exports.reportarAvance = asyncH(async (req, res) => {
 // ─── CRONOGRAMA (CRUD API) ────────────────────────────────────────────────────
 exports.crearActividad = asyncH(async (req, res) => {
   const user = req.session.user;
-  const { idProyecto, idFase, nombre, descripcion, fechaInicio, fechaFin, esReportable, idEntregable, porcentaje_avance, estado } = req.body;
+  // Aceptar tanto snake_case como camelCase
+  const idProyecto  = req.body.idProyecto  || req.body.id_proyecto;
+  const idFase      = req.body.idFase      || req.body.id_fase      || null;
+  const idEntregable= req.body.idEntregable|| req.body.id_entregable|| null;
+  const idUsuario   = req.body.idUsuario   || req.body.id_usuario   || null;
+  const nombre      = req.body.nombre;
+  const descripcion = req.body.descripcion || '';
+  const fechaInicio = req.body.fechaInicio || req.body.fecha_inicio;
+  const fechaFin    = req.body.fechaFin    || req.body.fecha_fin;
+  const esReportable= req.body.esReportable !== undefined ? req.body.esReportable : req.body.es_reportable;
+  const porcentaje_avance = req.body.porcentaje_avance || 0;
+  const estado      = req.body.estado || 'Pendiente';
 
   if (!idProyecto || !nombre || !fechaInicio || !fechaFin) {
-    return res.status(400).json({ success: false, error: 'Campos requeridos faltantes.' });
+    return res.status(400).json({ success: false, error: 'Campos requeridos faltantes: proyecto, nombre, fecha inicio y fecha fin.' });
   }
 
-  const result = await CronogramaModel.create({ idProyecto, idFase, nombre, descripcion, fechaInicio, fechaFin, esReportable, idEntregable, porcentaje_avance, estado });
+  // Validar que fecha inicio sea <= fecha fin
+  if (new Date(fechaInicio) > new Date(fechaFin)) {
+    return res.status(400).json({ success: false, error: 'La fecha de inicio no puede ser posterior a la fecha de fin.' });
+  }
+
+  const result = await CronogramaModel.create({
+    idProyecto, idFase, idUsuario, nombre, descripcion,
+    fechaInicio, fechaFin, esReportable, idEntregable, porcentaje_avance, estado
+  });
   const actividad = await CronogramaModel.findById(result.insertId);
   return res.json({ success: true, actividad });
 });
 
 exports.actualizarActividad = asyncH(async (req, res) => {
   const { id } = req.params;
-  const { idFase, nombre, descripcion, fechaInicio, fechaFin, esReportable, idEntregable, estado, porcentaje_avance } = req.body;
-  await CronogramaModel.update(id, { idFase, nombre, descripcion, fechaInicio, fechaFin, esReportable, idEntregable, estado, porcentaje_avance });
+  // Aceptar tanto snake_case como camelCase
+  const idFase       = req.body.idFase       || req.body.id_fase       || null;
+  const idEntregable = req.body.idEntregable || req.body.id_entregable || null;
+  const idUsuario    = req.body.idUsuario    || req.body.id_usuario    || null;
+  const nombre       = req.body.nombre;
+  const descripcion  = req.body.descripcion  || '';
+  const fechaInicio  = req.body.fechaInicio  || req.body.fecha_inicio;
+  const fechaFin     = req.body.fechaFin     || req.body.fecha_fin;
+  const esReportable = req.body.esReportable !== undefined ? req.body.esReportable : req.body.es_reportable;
+  const estado       = req.body.estado       || 'Pendiente';
+  const porcentaje_avance = req.body.porcentaje_avance;
+
+  // Validar fechas si se proporcionan
+  if (fechaInicio && fechaFin && new Date(fechaInicio) > new Date(fechaFin)) {
+    return res.status(400).json({ success: false, error: 'La fecha de inicio no puede ser posterior a la fecha de fin.' });
+  }
+
+  await CronogramaModel.update(id, {
+    idFase, idUsuario, nombre, descripcion, fechaInicio, fechaFin, esReportable, idEntregable, estado, porcentaje_avance
+  });
   return res.json({ success: true });
 });
 

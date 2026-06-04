@@ -48,6 +48,7 @@ router.get('/admin/usuarios',             auth.requireAuth, requireAdmin, admin.
 // Proyectos
 router.get('/admin/proyectos',            auth.requireAuth, requireAdmin, admin.listarProyectos);
 router.get('/admin/proyectos/nuevo',      auth.requireAuth, requireAdmin, admin.mostrarNuevoProyecto);
+router.get('/admin/proyectos/:id/editar', auth.requireAuth, requireAdmin, admin.mostrarEditarFormProyecto);
 router.get('/admin/proyectos/:id/config', auth.requireAuth, requireAdmin, admin.mostrarEditarProyecto);
 
 // Metodologías

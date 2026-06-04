@@ -320,6 +320,10 @@
             </div>
           </div>
 
+          <%
+          // Mostrar aviso si el proyecto no tiene cronograma pero llegó con error
+          const errorParam = typeof query !== 'undefined' && typeof req !== 'undefined' ? (req && req.query && req.query.error) : '';
+          %>
           <% if (cronograma.length === 0) { %>
           <div style="text-align:center; padding:2rem; color:var(--text-muted);">
             <div style="font-size:2.5rem; margin-bottom:0.75rem;">📅</div>
@@ -333,6 +337,7 @@
                 <tr>
                   <th>Actividad</th>
                   <th>Fase</th>
+                  <th>Responsable</th>
                   <th>Fechas</th>
                   <th>Estado</th>
                   <th>Avance</th>
@@ -342,9 +347,9 @@
               <tbody>
                 <% cronograma.forEach(a => {
                   let estBadge = 'badge-slate';
-                  if (a.estado === 'Completada') estBadge = 'badge-green';
+                  if (a.estado === 'Completado') estBadge = 'badge-green';
                   else if (a.estado === 'En Progreso') estBadge = 'badge-blue';
-                  else if (a.estado === 'Bloqueada') estBadge = 'badge-red';
+                  else if (a.estado === 'Bloqueado') estBadge = 'badge-red';
                   else if (a.estado === 'Pendiente') estBadge = 'badge-yellow';
                 %>
                 <tr class="activity-row">
@@ -354,10 +359,28 @@
                       <% if (a.es_reportable) { %><span class="badge badge-teal" style="font-size:0.58rem; margin-left:0.3rem;">Reportable</span><% } %>
                     </div>
                     <% if (a.descripcion) { %>
-                    <div style="font-size:0.7rem; color:var(--text-muted); margin-top:0.1rem; max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><%= a.descripcion %></div>
+                    <div style="font-size:0.7rem; color:var(--text-muted); margin-top:0.1rem; max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><%= a.descripcion %></div>
+                    <% } %>
+                    <% if (a.entregable_ticket_id) { %>
+                    <div style="font-size:0.68rem; color:var(--accent); margin-top:0.15rem;">🎫 <%= a.entregable_ticket_id %> — <%= a.entregable_titulo ? a.entregable_titulo.substring(0,30) : '' %></div>
                     <% } %>
                   </td>
-                  <td style="font-size:0.78rem; color:var(--text-secondary);"><%= a.fase_nombre || '—' %></td>
+                  <td style="font-size:0.78rem; color:var(--text-secondary);">
+                    <% if (a.etapa_nombre) { %><div style="font-size:0.68rem; color:var(--text-muted);"><%= a.etapa_nombre %></div><% } %>
+                    <%= a.fase_nombre || '—' %>
+                  </td>
+                  <td style="font-size:0.78rem;">
+                    <% if (a.asignado_nombre) { %>
+                    <div style="display:flex; align-items:center; gap:0.35rem;">
+                      <div style="width:24px; height:24px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:0.6rem; font-weight:700; color:white; flex-shrink:0;">
+                        <%= a.asignado_nombre.slice(0,2).toUpperCase() %>
+                      </div>
+                      <span style="color:var(--text-secondary);"><%= a.asignado_nombre.split(' ')[0] %></span>
+                    </div>
+                    <% } else { %>
+                    <span style="color:var(--text-muted);">—</span>
+                    <% } %>
+                  </td>
                   <td style="font-size:0.75rem; color:var(--text-muted); white-space:nowrap;">
                     <% if (a.fecha_inicio) { %><div>📅 <%= new Date(a.fecha_inicio).toLocaleDateString('es-MX', {day:'2-digit',month:'short'}) %></div><% } %>
                     <% if (a.fecha_fin) { %><div>🏁 <%= new Date(a.fecha_fin).toLocaleDateString('es-MX', {day:'2-digit',month:'short'}) %></div><% } %>
@@ -567,7 +590,7 @@
 
 <!-- ═══ MODAL ACTIVIDAD ═══════════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-actividad">
-  <div class="modal" style="max-width:600px;">
+  <div class="modal" style="max-width:640px;">
     <div class="modal-header">
       <span class="modal-title" id="act-modal-title">➕ Nueva Actividad</span>
       <button class="modal-close" onclick="closeModal('modal-actividad')">✕</button>
@@ -575,39 +598,94 @@
     <form onsubmit="guardarActividad(event)">
       <input type="hidden" name="id_actividad" id="act-id">
       <div class="grid-2" style="gap:0.65rem;">
+        <!-- Nombre -->
         <div class="form-group" style="grid-column:1/-1;">
-          <label class="form-label">Nombre *</label>
-          <input type="text" name="nombre" id="act-nombre" class="form-control" required placeholder="Nombre de la actividad">
+          <label class="form-label">Nombre de la Actividad *</label>
+          <input type="text" name="nombre" id="act-nombre" class="form-control" required placeholder="Ej: Análisis de requerimientos del módulo X">
         </div>
+        <!-- Descripción -->
         <div class="form-group" style="grid-column:1/-1;">
           <label class="form-label">Descripción</label>
-          <textarea name="descripcion" id="act-descripcion" class="form-control" rows="2" placeholder="Descripción opcional"></textarea>
+          <textarea name="descripcion" id="act-descripcion" class="form-control" rows="2" placeholder="Descripción opcional de la actividad"></textarea>
+        </div>
+        <!-- Fase de metodología -->
+        <div class="form-group">
+          <label class="form-label">Fase (Metodología)</label>
+          <select name="id_fase" id="act-fase" class="form-control">
+            <option value="">— Sin fase específica —</option>
+            <% if (arbolMetodologia && arbolMetodologia.etapas) { %>
+              <% arbolMetodologia.etapas.forEach(etapa => { %>
+                <optgroup label="📌 Etapa: <%= etapa.nombre %>">
+                  <% if (etapa.fases && etapa.fases.length > 0) { %>
+                    <% etapa.fases.forEach(fase => { %>
+                      <option value="<%= fase.id_fase %>"><%= fase.nombre %></option>
+                    <% }) %>
+                  <% } else { %>
+                    <option disabled>— Sin fases en esta etapa —</option>
+                  <% } %>
+                </optgroup>
+              <% }) %>
+            <% } else { %>
+              <option disabled>— Proyecto sin metodología asignada —</option>
+            <% } %>
+          </select>
+        </div>
+        <!-- Responsable -->
+        <div class="form-group">
+          <label class="form-label">Responsable (Miembro)</label>
+          <select name="id_usuario" id="act-usuario" class="form-control">
+            <option value="">— Sin asignar —</option>
+            <% if (equipo && equipo.length > 0) { %>
+              <% equipo.forEach(m => { %>
+                <option value="<%= m.id_usuario %>"><%= m.nombre %> (<%= m.rol_en_proyecto %>)</option>
+              <% }) %>
+            <% } else { %>
+              <option disabled>— Sin miembros en el equipo —</option>
+            <% } %>
+          </select>
+        </div>
+        <!-- Entregable (Ticket) -->
+        <div class="form-group" style="grid-column:1/-1;">
+          <label class="form-label">Entregable vinculado (Ticket)</label>
+          <select name="id_entregable" id="act-entregable" class="form-control">
+            <option value="">— Sin entregable vinculado —</option>
+            <% if (ticketsProyecto && ticketsProyecto.length > 0) { %>
+              <% ticketsProyecto.forEach(t => { %>
+                <option value="<%= t.id_sc %>"><%= t.ticket_id %> — <%= t.titulo %> (<%= t.estado_actual %>)</option>
+              <% }) %>
+            <% } else { %>
+              <option disabled>— Sin tickets en este proyecto —</option>
+            <% } %>
+          </select>
+        </div>
+        <!-- Fechas -->
+        <div class="form-group">
+          <label class="form-label">Fecha Inicio *</label>
+          <input type="date" name="fecha_inicio" id="act-fecha-inicio" class="form-control" required onclick="this.showPicker()" onfocus="this.showPicker()">
         </div>
         <div class="form-group">
-          <label class="form-label">Fecha Inicio</label>
-          <input type="date" name="fecha_inicio" id="act-fecha-inicio" class="form-control" onclick="this.showPicker()" onfocus="this.showPicker()">
+          <label class="form-label">Fecha Fin *</label>
+          <input type="date" name="fecha_fin" id="act-fecha-fin" class="form-control" required onclick="this.showPicker()" onfocus="this.showPicker()">
         </div>
-        <div class="form-group">
-          <label class="form-label">Fecha Fin</label>
-          <input type="date" name="fecha_fin" id="act-fecha-fin" class="form-control" onclick="this.showPicker()" onfocus="this.showPicker()">
-        </div>
+        <!-- Estado y Avance -->
         <div class="form-group">
           <label class="form-label">Estado</label>
           <select name="estado" id="act-estado" class="form-control">
             <option value="Pendiente">Pendiente</option>
             <option value="En Progreso">En Progreso</option>
-            <option value="Completada">Completada</option>
-            <option value="Bloqueada">Bloqueada</option>
+            <option value="Completado">Completado</option>
+            <option value="Bloqueado">Bloqueado</option>
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">% Avance</label>
+          <label class="form-label">% Avance Inicial</label>
           <input type="number" name="porcentaje_avance" id="act-avance" class="form-control" min="0" max="100" value="0">
         </div>
+        <!-- Es reportable -->
         <div class="form-group" style="grid-column:1/-1;">
           <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
-            <input type="checkbox" name="es_reportable" id="act-reportable" style="width:16px;height:16px;">
-            <span class="form-label" style="margin:0;">Actividad reportable</span>
+            <input type="checkbox" name="es_reportable" id="act-reportable" style="width:16px;height:16px;" checked>
+            <span class="form-label" style="margin:0;">Permitir reportes de avance por el responsable</span>
           </label>
         </div>
       </div>
@@ -737,6 +815,9 @@
     document.getElementById('act-estado').value = 'Pendiente';
     document.getElementById('act-avance').value = 0;
     document.getElementById('act-reportable').checked = true;
+    document.getElementById('act-fase').value = '';
+    document.getElementById('act-usuario').value = '';
+    document.getElementById('act-entregable').value = '';
     openModal('modal-actividad');
   }
   function editarActividad(a) {
@@ -750,6 +831,9 @@
     document.getElementById('act-estado').value = a.estado || 'Pendiente';
     document.getElementById('act-avance').value = a.porcentaje_avance || 0;
     document.getElementById('act-reportable').checked = !!a.es_reportable;
+    document.getElementById('act-fase').value = a.id_fase || '';
+    document.getElementById('act-usuario').value = a.id_usuario || '';
+    document.getElementById('act-entregable').value = a.id_entregable || '';
     openModal('modal-actividad');
   }
   async function guardarActividad(e) {
@@ -760,6 +844,17 @@
     const fd = new FormData(e.target);
     const body = Object.fromEntries(fd.entries());
     body.es_reportable = document.getElementById('act-reportable').checked ? 1 : 0;
+    // Limpiar campos vacíos opcionales
+    if (!body.id_fase) delete body.id_fase;
+    if (!body.id_usuario) delete body.id_usuario;
+    if (!body.id_entregable) delete body.id_entregable;
+    // Validación de fechas en cliente
+    if (body.fecha_inicio && body.fecha_fin && body.fecha_inicio > body.fecha_fin) {
+      errEl.textContent = 'La fecha de inicio no puede ser posterior a la fecha de fin.';
+      errEl.style.display = 'flex';
+      btn.textContent = 'Guardar Actividad'; btn.disabled = false;
+      return;
+    }
     const id = body.id_actividad;
     const url = id ? `/api/admin/proyectos/${PROYECTO_ID}/cronograma/${id}` : `/api/admin/proyectos/${PROYECTO_ID}/cronograma`;
     const method = id ? 'PUT' : 'POST';

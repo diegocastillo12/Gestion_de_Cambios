@@ -12,6 +12,7 @@ const BASE_ACTIVIDAD = `
     ca.id_actividad,
     ca.id_proyecto,
     ca.id_fase,
+    ca.id_usuario,
     ca.nombre,
     ca.descripcion,
     ca.fecha_inicio,
@@ -24,11 +25,13 @@ const BASE_ACTIVIDAD = `
     e.nombre AS etapa_nombre,
     sc.ticket_id AS entregable_ticket_id,
     sc.titulo AS entregable_titulo,
-    sc.estado_actual AS entregable_estado
+    sc.estado_actual AS entregable_estado,
+    u.nombre_completo AS asignado_nombre
   FROM cronograma_actividades ca
   LEFT JOIN fases f ON ca.id_fase = f.id_fase
   LEFT JOIN etapas e ON f.id_etapa = e.id_etapa
   LEFT JOIN solicitudes_cambio sc ON ca.id_entregable = sc.id_sc
+  LEFT JOIN usuarios u ON ca.id_usuario = u.id_usuario
 `;
 
 class CronogramaModel {
@@ -48,7 +51,7 @@ class CronogramaModel {
 
   /** Crear actividad en el cronograma */
   async create(data) {
-    const { idProyecto, idFase, nombre, descripcion, fechaInicio, fechaFin, esReportable, idEntregable, porcentaje_avance, estado } = data;
+    const { idProyecto, idFase, idUsuario, nombre, descripcion, fechaInicio, fechaFin, esReportable, idEntregable, porcentaje_avance, estado } = data;
     
     let pct = parseFloat(porcentaje_avance);
     if (isNaN(pct)) pct = 0;
@@ -61,12 +64,13 @@ class CronogramaModel {
 
     const sql = `
       INSERT INTO cronograma_actividades
-        (id_proyecto, id_fase, nombre, descripcion, fecha_inicio, fecha_fin, es_reportable, id_entregable, porcentaje_avance, estado)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (id_proyecto, id_fase, id_usuario, nombre, descripcion, fecha_inicio, fecha_fin, es_reportable, id_entregable, porcentaje_avance, estado)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     return query(sql, [
       idProyecto,
       idFase || null,
+      idUsuario || null,
       nombre,
       descripcion || '',
       fechaInicio,
@@ -80,7 +84,7 @@ class CronogramaModel {
 
   /** Actualizar actividad */
   async update(idActividad, data) {
-    const { idFase, nombre, descripcion, fechaInicio, fechaFin, esReportable, idEntregable, estado, porcentaje_avance } = data;
+    const { idFase, idUsuario, nombre, descripcion, fechaInicio, fechaFin, esReportable, idEntregable, estado, porcentaje_avance } = data;
     
     let DB_estado = estado || 'Pendiente';
     if (DB_estado === 'Completada') DB_estado = 'Completado';
@@ -98,12 +102,13 @@ class CronogramaModel {
 
     const sql = `
       UPDATE cronograma_actividades
-      SET id_fase = ?, nombre = ?, descripcion = ?, fecha_inicio = ?, fecha_fin = ?,
+      SET id_fase = ?, id_usuario = ?, nombre = ?, descripcion = ?, fecha_inicio = ?, fecha_fin = ?,
           es_reportable = ?, id_entregable = ?, estado = ?, porcentaje_avance = ?
       WHERE id_actividad = ?
     `;
     return query(sql, [
       idFase || null,
+      idUsuario || null,
       nombre,
       descripcion || '',
       fechaInicio,
