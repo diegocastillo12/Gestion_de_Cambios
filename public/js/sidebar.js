@@ -443,15 +443,44 @@
         solicitados.slice(0, 5).forEach(t => {
           const item = document.createElement('div');
           item.className = 'notification-item';
-          item.innerHTML = `
-            <div style="font-weight: 700; color: var(--accent); margin-bottom: 0.15rem; font-size: 0.7rem;">${t.id}</div>
-            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.75rem;">${t.titulo}</div>
-            <div style="font-size: 0.65rem; color: var(--text-muted);">De: ${t.solicitanteNombre || 'Cliente'}</div>
-          `;
+          item.style.padding = '0.6rem 0.75rem';
+          item.style.borderRadius = '6px';
+          item.style.background = 'rgba(255, 255, 255, 0.02)';
+          item.style.border = '1px solid rgba(255, 255, 255, 0.04)';
+          item.style.marginBottom = '0.4rem';
+          item.style.cursor = 'pointer';
+          item.style.transition = 'all 0.2s ease';
+          
+          item.addEventListener('mouseover', () => {
+            item.style.background = 'rgba(99, 102, 241, 0.08)';
+            item.style.borderColor = 'rgba(99, 102, 241, 0.25)';
+            item.style.transform = 'translateY(-1px)';
+          });
+          item.addEventListener('mouseout', () => {
+            item.style.background = 'rgba(255, 255, 255, 0.02)';
+            item.style.borderColor = 'rgba(255, 255, 255, 0.04)';
+            item.style.transform = 'none';
+          });
           
           item.addEventListener('click', () => {
             window.location.href = `/tickets/${t.id}`;
           });
+
+          item.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem;">
+              <span style="font-weight: 800; color: var(--accent); font-size: 0.72rem; letter-spacing: 0.02em;">${t.id}</span>
+              <span style="font-size: 0.65rem; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.12); padding: 0.1rem 0.4rem; border-radius: 99px; text-transform: uppercase;">Nuevo</span>
+            </div>
+            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.35rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.78rem;">
+              ${t.titulo}
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.68rem; color: var(--text-muted);">
+              <span>👤 ${t.solicitanteNombre || 'Cliente'}</span>
+              <span style="color: var(--text-secondary); max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${t.proyectoNombre || 'Global'}">
+                📁 ${t.proyectoNombre || 'Global'}
+              </span>
+            </div>
+          `;
           listContainer.appendChild(item);
         });
 

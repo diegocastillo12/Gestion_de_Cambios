@@ -28,11 +28,13 @@ const BASE_QUERY = `
     u_sol.nombre_completo AS solicitanteNombre,
     u_sol.correo          AS solicitanteCorreo,
     u_dev.nombre_completo AS asignadoNombre,
-    u_test.nombre_completo AS testerNombre
+    u_test.nombre_completo AS testerNombre,
+    p.nombre              AS proyectoNombre
   FROM  solicitudes_cambio sc
   LEFT JOIN usuarios u_sol  ON sc.id_solicitante    = u_sol.id_usuario
   LEFT JOIN usuarios u_dev  ON sc.id_desarrollador  = u_dev.id_usuario
   LEFT JOIN usuarios u_test ON sc.id_tester         = u_test.id_usuario
+  LEFT JOIN proyectos p     ON sc.id_proyecto       = p.id_proyecto
 `;
 
 class TicketModel {
