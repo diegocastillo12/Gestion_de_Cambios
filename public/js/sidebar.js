@@ -463,7 +463,11 @@
           });
           
           item.addEventListener('click', () => {
-            window.location.href = `/tickets/${t.id}`;
+            if (t.id_proyecto) {
+              window.location.href = `/admin/proyectos/${t.id_proyecto}/config?tab=tickets`;
+            } else {
+              window.location.href = `/tickets/${t.id}`;
+            }
           });
 
           item.innerHTML = `

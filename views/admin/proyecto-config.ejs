@@ -125,6 +125,7 @@
         <button id="btn-tab-info" class="tab-btn active" onclick="switchTab('tab-info', this)">📋 Información General</button>
         <button id="btn-tab-equipo" class="tab-btn" onclick="switchTab('tab-equipo', this)">👥 Equipo</button>
         <button id="btn-tab-cronograma" class="tab-btn" onclick="switchTab('tab-cronograma', this)">📅 Cronograma</button>
+        <button id="btn-tab-tickets" class="tab-btn" onclick="switchTab('tab-tickets', this)">🎫 Tickets</button>
         <button id="btn-tab-metodologia" class="tab-btn" onclick="switchTab('tab-metodologia', this)">📐 Metodología</button>
         <button id="btn-tab-ranking" class="tab-btn" onclick="switchTab('tab-ranking', this)">🏆 Ranking</button>
       </div>
@@ -209,35 +210,6 @@
 
         </div>
 
-        <!-- Tickets asociados -->
-        <% if (ticketsProyecto && ticketsProyecto.length > 0) { %>
-        <div class="card" style="margin-top:0.75rem;">
-          <div class="card-header">
-            <span class="card-title">🎫 Tickets del Proyecto</span>
-            <span class="badge badge-blue"><%= ticketsProyecto.length %> tickets</span>
-          </div>
-          <div class="table-wrapper" style="border:none; background:transparent;">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Título</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% ticketsProyecto.slice(0,10).forEach(t => { %>
-                <tr onclick="window.open('/tickets/<%= t.ticket_id %>','_blank')" style="cursor:pointer;">
-                  <td><span class="ticket-id"><%= t.ticket_id %></span></td>
-                  <td style="max-width:400px;"><span class="ticket-title-text"><%= t.titulo %></span></td>
-                  <td><span class="badge badge-slate" style="font-size:0.68rem;"><%= t.estado_actual %></span></td>
-                </tr>
-                <% }) %>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <% } %>
       </div>
 
       <!-- ════════════════════ TAB: EQUIPO ════════════════════════════════ -->
@@ -509,6 +481,54 @@
                 <% }) %>
               </tbody>
             </table>
+          </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- ════════════════════ TAB: TICKETS ════════════════════════════════ -->
+      <div id="tab-tickets" class="tab-panel">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🎫 Tickets del Proyecto</span>
+            <span class="badge badge-blue"><%= (ticketsProyecto || []).length %> tickets</span>
+          </div>
+          <% if (ticketsProyecto && ticketsProyecto.length > 0) { %>
+          <div class="table-wrapper" style="border:none; background:transparent; max-height: 600px; overflow-y: auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Título</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% ticketsProyecto.forEach(t => { %>
+                <tr onclick="window.open('/tickets/<%= t.ticket_id %>','_blank')" style="cursor:pointer;">
+                  <td><span class="ticket-id"><%= t.ticket_id %></span></td>
+                  <td style="max-width:400px;"><span class="ticket-title-text"><%= t.titulo %></span></td>
+                  <td>
+                    <span class="badge
+                      <% if (t.estado_actual === 'Solicitado') { %>badge-blue
+                      <% } else if (t.estado_actual === 'Liberado') { %>badge-green
+                      <% } else if (t.estado_actual === 'En Desarrollo') { %>badge-teal
+                      <% } else if (t.estado_actual === 'En Pruebas QA' || t.estado_actual === 'En Pruebas UAT') { %>badge-yellow
+                      <% } else { %>badge-slate<% } %>"
+                      style="font-size:0.68rem;">
+                      <%= t.estado_actual %>
+                    </span>
+                  </td>
+                </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+          <% } else { %>
+          <div style="text-align:center; padding:2.5rem; color:var(--text-muted);">
+            <div style="font-size:3rem; margin-bottom:1rem;">🎫</div>
+            <h3 style="margin-bottom:0.5rem;">Sin tickets registrados</h3>
+            <p style="color:var(--text-muted);">No hay tickets creados para este proyecto.</p>
           </div>
           <% } %>
         </div>
@@ -859,6 +879,18 @@
 
   // Restaurar pestaña activa al cargar la página
   document.addEventListener('DOMContentLoaded', () => {
+    // 1. Verificar si hay pestaña especificada en la URL (ej: ?tab=tickets)
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlTab = urlParams.get('tab');
+    if (urlTab) {
+      const btn = document.getElementById('btn-tab-' + urlTab);
+      if (btn) {
+        switchTab('tab-' + urlTab, btn);
+        return;
+      }
+    }
+
+    // 2. Si no, restaurar desde localStorage
     const activeTab = localStorage.getItem('activeTab_' + PROYECTO_ID);
     if (activeTab) {
       const btn = document.getElementById('btn-' + activeTab);
