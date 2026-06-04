@@ -226,7 +226,9 @@
       <button id="btn-tab-equipo" class="tab-btn" onclick="switchTab('equipo', this)">👥 Equipo</button>
       <button id="btn-tab-metodologia" class="tab-btn" onclick="switchTab('metodologia', this)">📐 Metodología</button>
       <button id="btn-tab-tickets" class="tab-btn" onclick="switchTab('tickets', this)">🎫 Tickets</button>
+      <% if (user.rol !== 'Solicitante') { %>
       <button id="btn-tab-ranking" class="tab-btn" onclick="switchTab('ranking', this)">🏆 Ranking</button>
+      <% } %>
     </div>
 
     <!-- TAB: CRONOGRAMA -->
@@ -531,6 +533,7 @@
       </div>
     </div>
 
+    <% if (user.rol !== 'Solicitante') { %>
     <!-- TAB: RANKING -->
     <div id="tab-ranking" class="tab-panel">
       <div class="card">
@@ -580,6 +583,7 @@
         <% } %>
       </div>
     </div>
+    <% } %>
 
   </main>
 </div>
