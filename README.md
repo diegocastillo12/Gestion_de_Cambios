@@ -311,13 +311,13 @@ npm install
 ```
 
 ### 2. Configurar el archivo `.env`
-Ya viene pre-configurado con la base de datos remota del equipo en Filess.io:
+Crea un archivo `.env` en la raíz del proyecto con las credenciales de tu base de datos:
 ```env
-DB_HOST=be2wna.h.filess.io
-DB_PORT=3305
-DB_USER=Gestion_de_Cambios_catshelook
-DB_PASSWORD=e0e7dd41fde09f1afe5852af4ec6c8bbea90b0d1
-DB_NAME=Gestion_de_Cambios_catshelook
+DB_HOST=tu_host
+DB_PORT=3306
+DB_USER=tu_usuario
+DB_PASSWORD=tu_contraseña
+DB_NAME=nombre_base_de_datos
 PORT=3000
 ```
 
@@ -335,14 +335,6 @@ npm start
 Accede en: **http://localhost:3000**
 
 ---
-
-## 📊 Proyectos Activos en la Base de Datos
-
-| ID | Nombre | Metodología | Estado |
-|---|---|---|---|
-| 1 | ZOFRA TACNA | RUP | Activo |
-| 5 | SISTEMA DE MATRÍCULA UPT | Scrum | Activo |
-| 6 | LOGÍSTICA MUNICIPAL | RUP | Activo |
 
 ---
 
