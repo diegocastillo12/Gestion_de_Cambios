@@ -494,7 +494,7 @@
       <div class="card" style="overflow:auto;">
         <div class="section-header" style="margin-bottom:1rem;">
           <h2 class="section-title" style="font-size:1rem;">🎫 Solicitudes de Cambio del Proyecto</h2>
-          <% if(['Solicitante','Gestor de Configuración'].includes(miRolEnProyecto) || ['Solicitante','Gestor de Configuración'].includes(user.rol)){ %>
+          <% if(['Solicitante', 'Director', 'Gestor de Configuración', 'Líder Técnico'].includes(miRolEnProyecto) || ['Solicitante', 'Director', 'Gestor de Configuración', 'Líder Técnico'].includes(user.rol) || user.rol === 'Administrador'){ %>
           <a href="/tickets/nuevo?id_proyecto=<%= proyecto.id_proyecto %>" class="btn btn-primary" style="font-size:0.82rem;padding:0.4rem 1rem;">➕ Nueva Solicitud</a>
           <% } %>
         </div>
