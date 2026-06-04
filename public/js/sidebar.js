@@ -297,7 +297,7 @@
   const profileRoleEl = document.querySelector('.sidebar-profile-role');
   if (profileRoleEl) {
     const userRole = profileRoleEl.textContent.trim();
-    if (userRole === 'Administrador' || userRole === 'Director' || userRole === 'Gestor de Configuración') {
+    if (userRole === 'Administrador') {
       setupNotificationBell();
     }
   }
