@@ -216,12 +216,18 @@
 
 <script>
 function abrirModalGitHub() {
-  document.getElementById('modalGitHub').style.display = 'flex';
+  const modal = document.getElementById('modalGitHub');
+  modal.style.display = 'flex';
+  setTimeout(() => modal.classList.add('open'), 10);
   verificarEstadoGitHub();
 }
 
 function cerrarModalGitHub() {
-  document.getElementById('modalGitHub').style.display = 'none';
+  const modal = document.getElementById('modalGitHub');
+  modal.classList.remove('open');
+  setTimeout(() => {
+    modal.style.display = 'none';
+  }, 300);
 }
 
 async function verificarEstadoGitHub() {
