@@ -1,123 +1,169 @@
-# Diagrama de Clases UML - GestioCambios
+# Modelo de Dominio (Diagrama de Clases Conceptual) - GestioCambios
 
-El diagrama de clases modela la estructura lógica del backend, definiendo los métodos, atributos y relaciones de los componentes de configuración, controladores, servicios y modelos de datos (patrón 3 capas).
+El Modelo de Dominio es un diagrama de clases conceptual que representa las entidades del mundo real en el espacio del problema de GestioCambios, detallando sus atributos en lenguaje de negocio y sus relaciones, sin incluir métodos, clases de diseño de software (como controladores, enrutadores o modelos ORM) o componentes de infraestructura técnica.
 
 ---
 
-## 🎨 1. Diagrama en PlantUML
+## 1. Guía de Lectura para el Cliente
+
+Para facilitar la comprensión del diagrama sin necesidad de conocimientos técnicos de UML, tenga en cuenta las siguientes pautas:
+
+* **Clases (Cajas):** Representan los conceptos o "cosas" importantes del negocio (ej. Proyecto, Usuario, Solicitud de Cambio). Cada caja contiene características de ese concepto (atributos).
+* **Tipos de Datos Conceptuales:** Para evitar tecnicismos de programación, los atributos utilizan tipos de datos de negocio:
+  * **Texto:** Nombres, descripciones, estados o comentarios.
+  * **Número:** Identificadores únicos, contadores u ordenaciones.
+  * **Fecha / Fecha y Hora:** Momentos en el tiempo en que ocurren los eventos.
+  * **Porcentaje:** Valores proporcionales (ej. avance de tareas).
+* **Líneas de Relación (Conexiones):** Indican cómo se conectan dos conceptos en el mundo real (ej. un Proyecto *contiene* Actividades).
+* **Multiplicidades (Números en los extremos de las líneas):**
+  * **"1"**: Exactamente uno.
+  * **"0..1"**: Opcional (puede tener uno o ninguno).
+  * **"many" o "*"**: Varios o muchos (desde cero hasta muchos).
+  * *Ejemplo:* Una Solicitud de Cambio pertenece a **1** Proyecto, mientras que un Proyecto puede tener **many** (muchas) Solicitudes de Cambio.
+
+---
+
+## 2. Diagrama en PlantUML
 
 ```plantuml
-@startuml
-skinparam classAttributeIconSize 0
-skinparam backgroundColor #FFFFFF
-skinparam ranksep 60
-skinparam nodesep 50
+@startuml GestioCambios_Modelo_Dominio
 
-skinparam class {
-    BackgroundColor #F8FAFC
-    BorderColor #64748B
-    ArrowColor #475569
+' CONFIGURACION VISUAL SIN COLORES PERSONALIZADOS
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+class Proyecto {
+  + id_proyecto : Número
+  + nombre : Texto
+  + descripcion : Texto
+  + estado : Texto
+  + fecha_inicio : Fecha
+  + fecha_fin : Fecha
 }
 
-package "Configuración" {
-    class "db" as DB_Helper << (M,#85C1E9) Module >> {
-        + pool : Pool
-        + query(sql: String, params: Array) : Promise<Array>
-        + testConnection() : Promise<Boolean>
-    }
-
-    class "constants" as Constants << (M,#85C1E9) Module >> {
-        + ROLES : Object
-        + ESTADOS : Array<String>
-        + TIPOS_CAMBIO : Array<String>
-        + IMPACTOS : Array<String>
-        + ESTADO_META : Object
-        + FLUJO_ESTADOS : Array<String>
-    }
+class Metodologia {
+  + id_metodologia : Número
+  + nombre : Texto
+  + descripcion : Texto
 }
 
-package "Modelos (Data Access Layer)" {
-    class "UserModel" as UserModel << (C,#2ECC71) Class >> {
-        + findByCorreo(correo: String) : Promise<Object>
-        + findById(id: Number) : Promise<Object>
-        + findAll() : Promise<Array>
-        + findActiveByRoles(rolesList: Array<String>) : Promise<Array>
-        + updatePasswordHash(id: Number, hash: String) : Promise<Boolean>
-    }
-
-    class "TicketModel" as TicketModel << (C,#2ECC71) Class >> {
-        + findAll(filtros: Object) : Promise<Array>
-        + findById(ticketId: String) : Promise<Object>
-        + countAll() : Promise<Number>
-        + create(ticketData: Object) : Promise<Object>
-        + updateEstado(idSc: Number, nuevoEstado: String) : Promise<Object>
-        + updatePersonal(idSc: Number, idDev: Number, idTester: Number) : Promise<Object>
-        + getHistorial(idSc: Number) : Promise<Array>
-        + addHistorial(histData: Object) : Promise<Object>
-        + getEcsAfectados(idSc: Number) : Promise<Array<String>>
-        + getEvidenciaGit(idSc: Number) : Promise<Object>
-        + saveEvidenciaGit(gitData: Object) : Promise<Object>
-        + getControlCalidad(idSc: Number) : Promise<Object>
-        + saveControlCalidad(qaData: Object) : Promise<Object>
-    }
+class Etapa {
+  + id_etapa : Número
+  + nombre : Texto
+  + orden : Número
 }
 
-package "Servicios (Lógica de Negocio)" {
-    class "WorkflowService" as WorkflowService << (C,#F1C40F) Class >> {
-        - TRANSICIONES : Object
-        + isValidTransition(actual: String, nuevo: String, rol: String) : Boolean
-        + getTransicionesDisponibles(actual: String, rol: String) : Array<String>
-        + filtrarPorRol(tickets: Array, user: Object) : Array
-        + filtrarBandeja(tickets: Array, user: Object) : Array
-        + calcularStats(tickets: Array) : Object
-    }
+class Fase {
+  + id_fase : Número
+  + nombre : Texto
+  + orden : Número
 }
 
-package "Controladores (MVC)" {
-    class "authController" as AuthController << (M,#E74C3C) Module >> {
-        + showLogin(req, res)
-        + login(req, res)
-        + logout(req, res)
-        + requireAuth(req, res, next)
-        + requireRole(rolesPermitidos...) : Function
-    }
-
-    class "changeController" as ChangeController << (M,#E74C3C) Module >> {
-        + dashboard(req, res)
-        + listarTickets(req, res)
-        + mostrarTicket(req, res)
-        + mostrarNuevoTicket(req, res)
-        + crearTicket(req, res)
-        + cambiarEstado(req, res)
-        + apiListar(req, res)
-        + apiDetalle(req, res)
-    }
+class EntregableECM {
+  + id_ecm : Número
+  + nombre : Texto
+  + tipo : Texto
 }
 
-' Relaciones de dependencia e interacción
-UserModel ..> DB_Helper : usa query()
-TicketModel ..> DB_Helper : usa query()
+class Usuario {
+  + id_usuario : Número
+  + nombre_completo : Texto
+  + correo : Texto
+  + rol_global : Texto
+}
 
-WorkflowService ..> Constants : lee ROLES y ESTADOS
+class MiembroEquipo {
+  + rol_en_proyecto : Texto
+}
 
-AuthController ..> UserModel : consulta usuarios
-AuthController ..> Constants : lee ROLES
+class Actividad {
+  + id_actividad : Número
+  + nombre : Texto
+  + descripcion : Texto
+  + fecha_inicio : Fecha
+  + fecha_fin : Fecha
+  + porcentaje_avance : Porcentaje
+  + estado : Texto
+}
 
-ChangeController ..> TicketModel : gestiona datos
-ChangeController ..> UserModel : consulta personal técnico
-ChangeController ..> WorkflowService : delega reglas de flujo
-ChangeController ..> Constants : lee ROLES y estados de UI
+class SolicitudCambio {
+  + ticket_id : Texto
+  + titulo : Texto
+  + descripcion : Texto
+  + justificacion : Texto
+  + tipo : Texto
+  + prioridad : Texto
+  + impacto : Texto
+  + riesgo : Texto
+  + estado_actual : Texto
+  + version_afectada : Texto
+  + fecha_creacion : Fecha
+}
+
+class HistorialEstado {
+  + id_historial : Número
+  + estado_anterior : Texto
+  + estado_nuevo : Texto
+  + fecha_hora : Fecha y Hora
+  + comentario : Texto
+  + usuario_nombre : Texto
+  + usuario_rol : Texto
+}
+
+class EvidenciaGit {
+  + id_evidencia : Número
+  + nombre_rama : Texto
+  + url_pull_request : Texto
+  + comentario_tecnico : Texto
+}
+
+class ControlCalidad {
+  + id_calidad : Número
+  + total_pruebas : Número
+  + casos_fallidos : Número
+  + qa_estado : Texto
+  + notas_tecnicas : Texto
+  + fecha_ejecucion : Fecha y Hora
+}
+
+' Relaciones y Multiplicidades
+Proyecto "1" *-- "many" Actividad : contiene
+Proyecto "many" o-- "many" Usuario : asigna
+(Proyecto, Usuario) .. MiembroEquipo
+
+Proyecto "many" --> "1" Metodologia : utiliza
+Metodologia "1" *-- "many" Etapa : estructurada en
+Etapa "1" *-- "many" Fase : dividida en
+Fase "1" *-- "many" EntregableECM : define
+
+Actividad "many" --> "1" Fase : pertenece a
+Actividad "many" --> "0..1" EntregableECM : entrega
+Actividad "many" --> "0..1" SolicitudCambio : vincula a entregable
+Actividad "many" --> "0..1" Usuario : asignada a (responsable)
+
+SolicitudCambio "many" --> "1" Proyecto : pertenece a
+SolicitudCambio "many" --> "1" Usuario : creada por (Solicitante)
+SolicitudCambio "many" --> "0..1" Usuario : asignada a (Desarrollador)
+SolicitudCambio "many" --> "0..1" Usuario : asignada a (Tester)
+
+SolicitudCambio "1" *-- "many" HistorialEstado : genera
+SolicitudCambio "1" -- "0..1" EvidenciaGit : tiene
+SolicitudCambio "1" -- "0..1" ControlCalidad : tiene
 
 @enduml
 ```
 
 ---
 
-## 📝 2. Descripción de Componentes Claves
+## 3. Descripcion de las Clases Conceptuales
 
-* **Capa de Configuración:** 
-  * `db.js` maneja la infraestructura técnica de base de datos exponiendo la conexión mediante promesas.
-  * `constants.js` declara las constantes y variables paramétricas globales (evitando la duplicidad y el acoplamiento rígido).
-* **Capa de Modelos (DAL):** Clases singleton encargadas únicamente de la consulta y mapeo físico relacional con la base de datos de usuarios y tickets de cambio.
-* **Capa de Servicios:** `WorkflowService` actúa como el motor de reglas y la máquina de estados. Evalúa si las acciones enviadas por la UI son correctas según las transiciones lógicas del negocio SCM.
-* **Capa de Controladores:** Clases encargadas de interactuar con Express.js, extrayendo parámetros de peticiones web y mapeando las respuestas mediante renderizado HTML (EJS) o API REST (JSON).
+* **Proyecto:** Representa el esfuerzo temporal con fecha de inicio y fin para implementar una metodologia de control de configuracion.
+* **Metodologia:** El marco metodologico de gestion de software (Scrum/RUP) que define las fases y los entregables esperados del proyecto.
+* **Etapa, Fase y EntregableECM:** Elementos jerarquicos que estructuran la metodologia. El Elemento de Configuracion (ECM) representa el tipo de entregable a generar (ej. codigo, documento, diagrama).
+* **Usuario y MiembroEquipo:** Representa los actores registrados. Un usuario tiene un rol global, pero adquiere un rol especifico (MiembroEquipo) y privilegios cuando es asignado a un proyecto.
+* **Actividad:** Tarea especifica del cronograma del proyecto, asociada a una fase de la metodologia, con fechas y un miembro responsable asignado.
+* **SolicitudCambio (Ticket):** La solicitud formal de modificacion realizada por un cliente, la cual atraviesa el workflow SCM.
+* **HistorialEstado:** Registro de auditoria inalterable que detalla cada cambio de estado del ticket, el actor responsable, la fecha/hora y la justificacion.
+* **EvidenciaGit:** Informacion de trazabilidad del repositorio (rama y Pull/Merge Request) agregada por el desarrollador asignado al ticket.
+* **ControlCalidad:** Informe de resultados del plan de pruebas tecnicas ejecutado y registrado por el Tester responsable del control de calidad.
+

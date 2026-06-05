@@ -36,6 +36,45 @@ async function testConnection() {
   try {
     const conn = await pool.getConnection();
     console.log('  ✅ Conexión MySQL establecida correctamente.');
+    
+    // Auto-crear/modificar tabla versiones_ecs si es necesario
+    try {
+      // 1. Crear la tabla si no existe
+      await conn.query(`
+        CREATE TABLE IF NOT EXISTS versiones_ecs (
+          id_version int(11) NOT NULL AUTO_INCREMENT,
+          id_actividad int(11) NOT NULL,
+          id_proyecto int(11) NOT NULL,
+          version_numero varchar(20) NOT NULL,
+          descripcion_cambio text DEFAULT NULL,
+          id_usuario_autor int(11) NOT NULL,
+          fecha_version timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (id_version)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+      
+      // 2. Verificar/agregar columnas archivo_ruta, archivo_nombre y contenido_texto
+      const [columns] = await conn.query('SHOW COLUMNS FROM versiones_ecs');
+      const hasRuta = columns.some(c => c.Field === 'archivo_ruta');
+      const hasNombre = columns.some(c => c.Field === 'archivo_nombre');
+      const hasContenido = columns.some(c => c.Field === 'contenido_texto');
+      
+      if (!hasRuta) {
+        await conn.query('ALTER TABLE versiones_ecs ADD COLUMN archivo_ruta varchar(255) DEFAULT NULL');
+        console.log('  🔧 Columna archivo_ruta agregada a versiones_ecs.');
+      }
+      if (!hasNombre) {
+        await conn.query('ALTER TABLE versiones_ecs ADD COLUMN archivo_nombre varchar(255) DEFAULT NULL');
+        console.log('  🔧 Columna archivo_nombre agregada a versiones_ecs.');
+      }
+      if (!hasContenido) {
+        await conn.query('ALTER TABLE versiones_ecs ADD COLUMN contenido_texto longtext DEFAULT NULL');
+        console.log('  🔧 Columna contenido_texto agregada a versiones_ecs.');
+      }
+    } catch (dbErr) {
+      console.warn('  ⚠️ Advertencia al verificar/inicializar tabla versiones_ecs:', dbErr.message);
+    }
+
     conn.release();
     return true;
   } catch (err) {

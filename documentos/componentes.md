@@ -1,102 +1,132 @@
 # Diagrama de Componentes - GestioCambios
 
-El diagrama de componentes detalla la organización lógica de los módulos de software en tiempo de ejecución, sus interfaces de comunicación y la distribución de tareas entre el frontend, el backend y la persistencia de datos.
+El **Diagrama de Componentes** (Modelo C4 - Nivel 3) detalla la organización lógica de los módulos de software en tiempo de ejecución, sus interfaces de comunicación y la distribución de responsabilidades entre el frontend, el backend y la capa de almacenamiento en el servidor físico.
 
 ---
 
-## 🎨 1. Diagrama en PlantUML
+## 1. Diagrama en PlantUML
 
 ```plantuml
-@startuml
-skinparam backgroundColor #FFFFFF
-skinparam ranksep 60
-skinparam nodesep 45
+@startuml GestioCambios_Componentes
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam componentStyle uml2
 
-skinparam component {
-    BackgroundColor #F8FAFC
-    BorderColor #475569
-    FontColor #1E293B
+' 1. CLIENT PRESENTATION LAYER (Navegador)
+package "Navegador Cliente [Presentación]" as P_Presentation {
+  component [EJS Render Engine (HTML/CSS)] as EJS_UI
+  component [styles.css] as CSS_Static
+  component [sidebar.js (AJAX Client)] as JS_Client
 }
 
-skinparam interface {
-    BackgroundColor #F1C40F
-    BorderColor #D68910
+' 2. WEB SERVICES & API LAYER (Express / Node.js)
+package "Express Application Server [Node.js Backend]" as P_Backend {
+  
+  interface "HTTP / HTTPS Port 3000" as Port_3000
+  interface "REST API Port 3000" as Port_API
+  
+  ' Enrutamiento
+  component [webRoutes.js] as Router_Web
+  component [apiRoutes.js] as Router_API
+  
+  ' Controladores
+  component [authController.js] as Auth_Ctrl
+  component [changeController.js] as Change_Ctrl
+  component [proyectoController.js] as Proj_Ctrl
+  component [adminController.js] as Admin_Ctrl
+  
+  ' Servicios del Dominio
+  component [WorkflowService.js] as Workflow_Svc
+  
+  ' Modelos de Datos (DAO)
+  component [UserModel.js] as Model_User
+  component [TicketModel.js] as Model_Ticket
+  component [ProyectoModel.js] as Model_Proj
+  component [CronogramaModel.js] as Model_Crono
+  component [ReporteModel.js] as Model_Rep
+  component [MetodologiaModel.js] as Model_Met
+  
+  ' Conector de Base de Datos
+  component [db.js (Pool Helper)] as db_conn
 }
 
-' 1. CLIENT LAYER (Navegador)
-package "Navegador Cliente [Capa de Presentación]" {
-    component [UI Engine (HTML/CSS)] as UI
-    component [AJAX Client (sidebar.js)] as ClientJS
+' 3. DATABASE SERVER LAYER (MySQL)
+package "Database Server [MySQL 8]" as P_Database {
+  interface "MySQL Connection Pool Port 3306" as Port_3306
+  component [MySQL Engine] as DB_Engine
 }
 
-' 2. WEB SERVICES LAYER (Express API / Routing)
-package "Servidor de Aplicaciones Express [Node.js Server]" {
-    
-    interface "HTTP/HTTPS (Port 3000)" as HTTP_Int
-    interface "REST API JSON" as REST_Int
-    
-    component [Enrutador Web (webRoutes)] as RouterWeb
-    component [Enrutador API (apiRoutes)] as RouterAPI
-    
-    component [Auth Controller] as AuthCtrl
-    component [Change Controller] as ChangeCtrl
-    
-    component [Workflow Service] as Service
-    
-    component [User Model] as UserModel
-    component [TicketModel] as TicketModel
-}
+' 4. EXTERNAL LAYER (SaaS)
+component [GitHub / GitLab SaaS] as Git_Svc
 
-' 3. DATABASE LAYER (MySQL)
-package "Servidor de Datos [MySQL]" {
-    interface "Conexiones Pool (Port 3306)" as DB_Int
-    component [MySQL Database Engine] as MySQL
-}
+' --- RELACIONES Y FLUJOS DE COMUNICACIÓN EN TIEMPO DE EJECUCIÓN ---
 
-' 4. EXTERNAL LAYER (Git Platform)
-component [Git SaaS (GitHub / GitLab)] as GitSvc
+' Interfaz de cliente a enrutadores
+EJS_UI --> Port_3000 : "Carga y navegación web"
+JS_Client --> Port_API : "Llamadas asíncronas AJAX"
 
-' --- RELACIONES Y FLUJOS ---
+Port_3000 -- Router_Web
+Port_API -- Router_API
 
-UI --> HTTP_Int : "Carga HTML/CSS"
-ClientJS --> REST_Int : "Envía payloads JSON"
+' Despacho de rutas a controladores
+Router_Web --> Auth_Ctrl : "Despacha"
+Router_Web --> Change_Ctrl : "Despacha"
+Router_Web --> Proj_Ctrl : "Despacha"
+Router_Web --> Admin_Ctrl : "Despacha"
 
-HTTP_Int -- RouterWeb
-REST_Int -- RouterAPI
+Router_API --> Change_Ctrl : "Despacha llamadas API"
+Router_API --> Proj_Ctrl : "Despacha llamadas API"
+Router_API --> Admin_Ctrl : "Despacha llamadas API"
 
-RouterWeb --> AuthCtrl : "Despacha solicitudes"
-RouterWeb --> ChangeCtrl : "Despacha solicitudes"
-RouterAPI --> ChangeCtrl : "Despacha solicitudes API"
+' Controladores a Servicios y Modelos
+Change_Ctrl --> Workflow_Svc : "Valida transiciones"
+Change_Ctrl --> Model_Ticket : "CRUD de Solicitud de Cambio"
+Change_Ctrl --> Model_Proj : "Consulta equipo y miembros"
+Change_Ctrl --> Model_Crono : "Sincroniza actividades vinculadas"
 
-ChangeCtrl --> Service : "Valida reglas de flujo"
-ChangeCtrl --> UserModel : "Pide personal activo"
-ChangeCtrl --> TicketModel : "Operaciones de tickets"
-AuthCtrl --> UserModel : "Valida login"
+Auth_Ctrl --> Model_User : "Consulta credenciales locales"
 
-UserModel --> DB_Int : "Petición SQL"
-TicketModel --> DB_Int : "Petición SQL"
-DB_Int -- MySQL
+Proj_Ctrl --> Model_Proj : "Consulta proyectos asignados"
+Proj_Ctrl --> Model_Crono : "CRUD de actividades"
+Proj_Ctrl --> Model_Rep : "Consulta y crea reportes"
 
-ClientJS ..> GitSvc : "Referencia URLs de Merge Requests"
+Admin_Ctrl --> Model_User : "CRUD de cuentas"
+Admin_Ctrl --> Model_Proj : "Crea proyectos y asignaciones"
+Admin_Ctrl --> Model_Met : "CRUD de estructuras de entregables"
+
+' Modelos a la Base de Datos
+Model_User --> db_conn : "Envía SQL parametrizado"
+Model_Ticket --> db_conn : "Envía SQL parametrizado"
+Model_Proj --> db_conn : "Envía SQL parametrizado"
+Model_Crono --> db_conn : "Envía SQL parametrizado"
+Model_Rep --> db_conn : "Envía SQL parametrizado"
+Model_Met --> db_conn : "Envía SQL parametrizado"
+
+db_conn --> Port_3306 : "Petición pool de conexiones"
+Port_3306 -- DB_Engine
+
+' Frontend con el exterior
+JS_Client ..> Git_Svc : "Vincula URLs de Pull Requests"
 
 @enduml
 ```
 
 ---
 
-## 📝 2. Especificación de Componentes e Interfaces
+## 2. Especificación de Componentes e Interfaces
 
 ### Capa de Cliente (Presentación)
-* **UI Engine (HTML5/CSS3):** Encargado de pintar el maquetado dinámico y responder al escalado visual.
-* **AJAX Client (`sidebar.js`):** Gestiona la lógica asíncrona del lado del cliente. Escucha eventos, recolecta inputs (como asignados, ramas de Git, evidencias de QA) y realiza peticiones `PUT/POST` en formato JSON para actualizar los tickets sin parpadeos de recarga.
+* **`EJS Render Engine (HTML/CSS)`:** Motor de plantillas que procesa y muestra la maquetación dinámica.
+* **`styles.css`:** Contiene las reglas CSS globales de la interfaz del sistema.
+* **`sidebar.js`:** Lógica de scripting cliente que maneja eventos asíncronos (AJAX) para transmitir actualizaciones en formato JSON de estados, asignaciones, Git y control de calidad.
 
-### Capa de Servidor (Negocio y Control)
-* **Interfaces HTTP y REST:** Puntos de entrada lógicos expuestos en el puerto `3000`.
-* **Enrutadores (`webRoutes` y `apiRoutes`):** Analizan las URLs entrantes y derivan la ejecución al controlador correspondiente.
-* **Controladores (`authController` y `changeController`):** Procesan la información de sesión y coordinan las llamadas lógicas.
-* **Workflow Service:** Componente lógico que implementa el autómata de estados de cambio de SCM, controlando qué transiciones están permitidas por rol.
-* **Capa de Modelos (User y Ticket):** Módulos que encapsulan las sentencias SQL y abstraen las consultas de BD en objetos de negocio legibles.
+### Capa del Servidor de Aplicación (Backend)
+* **`webRoutes.js` y `apiRoutes.js`:** Enrutadores que dirigen las llamadas URL a las operaciones de controladores correspondientes.
+* **Controladores (`authController`, `changeController`, `proyectoController` y `adminController`):** Orquestan el procesamiento de datos, validan perfiles de sesión y devuelven respuestas.
+* **`WorkflowService.js`:** Servicio centralizado que evalúa la validez de los cambios de estado en base a la máquina de estados.
+* **Capa de Modelos DAO (`UserModel`, `TicketModel`, `ProyectoModel`, `CronogramaModel`, `ReporteModel` y `MetodologiaModel`):** Abstraen el acceso a la base de datos implementando las funciones asíncronas de lectura y escritura.
+* **`db.js`:** Utilidad pool que automatiza la conexión y desconexión con el socket relacional MySQL.
 
-### Capa de Datos y Servicios Externos
-* **MySQL Database Engine (Puerto 3306):** Servidor relacional encargado del resguardo de las tablas físicas del sistema.
-* **Git SaaS (GitHub/GitLab):** Servicio externo de administración de código referenciado mediante enlaces HTTP desde el cliente.
+### Capa de Persistencia y Terceros
+* **`MySQL Engine` (Puerto 3306):** Motor de base de datos relacional encargado de la consistencia e integridad de las tablas del sistema.
+* **`GitHub / GitLab SaaS`:** Servidor externo de versionamiento referenciado lógicamente mediante enlaces URL en las solicitudes de cambio.

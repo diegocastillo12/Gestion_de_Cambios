@@ -1,147 +1,153 @@
 # Diagrama de Paquetes - GestioCambios
 
-El diagrama de paquetes representa la estructura de directorios física y lógica del código fuente de **GestioCambios**, delineando cómo se agrupan los archivos en módulos y las dependencias de importación entre ellos.
+El diagrama de paquetes en la fase de analisis representa la estructura logica y conceptual de los dominios funcionales del sistema, mostrando como se agrupan los requisitos del negocio en modulos independientes, todos los sub-componentes (nodos funcionales) que integran cada modulo, y las dependencias de servicio entre ellos.
 
 ---
 
-## 🎨 1. Diagrama en PlantUML
+## 1. Diagrama en PlantUML
 
 ```plantuml
-@startuml
-skinparam backgroundColor #FFFFFF
-skinparam ranksep 50
-skinparam nodesep 35
+@startuml GestioCambios_Paquetes_Analisis_Ampliado
 
-skinparam package {
-    BackgroundColor #F8FAFC
-    BorderColor #475569
-    FontColor #1E293B
+' CONFIGURACION VISUAL SIN COLORES PERSONALIZADOS
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+left to right direction
+
+package "Seguridad y Acceso" as P_Seguridad {
+  [Autenticacion]
+  [Control de Acceso (RBAC)]
+  [Cifrado de Claves]
+  [Manejo de Sesiones]
+  [Verificacion de Roles]
+  [Validacion de Credenciales]
 }
 
-' 1. RAÍZ DEL PROYECTO
-package "Directorio Raíz [/]" as Root {
-    rectangle "server.js\n[Punto de entrada]" as ServerJS
-    rectangle "hash-passwords.js\n[Migración de claves]" as HashPass
-    rectangle "test-app.js\n[Script de pruebas]" as TestApp
-    rectangle "bd.sql\n[Script de Base de Datos]" as BDSql
-    rectangle ".env\n[Variables de entorno]" as Env
-    rectangle ".gitignore" as GitIgnore
-    rectangle "package.json\n[Metadatos del proyecto]" as PackageJson
-    rectangle "package-lock.json" as PackageLock
-    rectangle "README.md\n[Documentación técnica]" as Readme
+package "Administracion" as P_Administracion {
+  [Gestion de Usuarios]
+  [Gestion de Proyectos]
+  [Gestion de Metodologias]
+  [Gestion de Equipos]
+  [Gestion de Clientes]
+  [Arbol de Entregables SCM]
 }
 
-' 2. CAPAS DEL SISTEMA
-package "config/" as ConfigFolder {
-    rectangle "db.js\n[Pool MySQL]" as DBJs
-    rectangle "constants.js\n[Constantes globales]" as ConstJs
-    rectangle "db-init.js\n[Inicialización de tablas]" as DBInitJs
+package "Planificacion de Proyectos" as P_Planificacion {
+  [Construccion de Cronograma]
+  [Definicion de Actividades]
+  [Asociacion de Entregables (ECMs)]
+  [Calendario de Fases]
+  [Asignacion de Tareas]
+  [Seguimiento del Cronograma]
 }
 
-package "routes/" as RoutesFolder {
-    rectangle "webRoutes.js\n[Rutas HTML EJS]" as WebRoutes
-    rectangle "apiRoutes.js\n[API REST JSON]" as ApiRoutes
+package "Gestion de Cambios SCM" as P_GestionCambios {
+  [Registro de Solicitudes]
+  [Analisis de Impacto]
+  [Aprobacion y Decisiones]
+  [Asignacion de Recursos]
+  [Estimacion de Horas]
+  [Cola de Aprobaciones]
+  [Versionado del Cambio]
 }
 
-package "controllers/" as ControllersFolder {
-    rectangle "authController.js\n[Controlador Auth]" as AuthCtrl
-    rectangle "changeController.js\n[Controlador SCM]" as ChangeCtrl
+package "Ejecucion y Trazabilidad" as P_Ejecucion {
+  [Registro de Evidencias Git]
+  [Control de Ramas y PRs]
+  [Trazabilidad de Commits]
+  [Asociacion de Codigo a Tareas]
 }
 
-package "services/" as ServicesFolder {
-    rectangle "WorkflowService.js\n[Lógica de estados]" as WorkflowSvc
+package "Aseguramiento de Calidad" as P_QA_UAT {
+  [Registro de Pruebas QA]
+  [Validacion y Conformidad UAT]
+  [Bitacora de Errores QA]
+  [Control de Retorno a Desarrollo]
 }
 
-package "models/" as ModelsFolder {
-    rectangle "UserModel.js\n[Modelo Usuario]" as UserMdl
-    rectangle "TicketModel.js\n[Modelo Ticket]" as TicketMdl
+package "Monitoreo y Auditoria" as P_Auditoria {
+  [Bandeja de Tareas]
+  [Historial de Transiciones]
+  [Reportes de Avance]
+  [Ranking de Rendimiento]
+  [Metricas de Estados]
+  [Notificaciones de Eventos]
 }
 
-package "views/" as ViewsFolder {
-    package "partials/" as PartialsFolder {
-        rectangle "head.ejs" as HeadEjs
-        rectangle "sidebar.ejs" as SidebarEjs
-        rectangle "footer.ejs" as FooterEjs
-    }
-    rectangle "dashboard.ejs" as DashEjs
-    rectangle "error.ejs" as ErrEjs
-    rectangle "login.ejs" as LoginEjs
-    rectangle "nuevo-ticket.ejs" as NuevoEjs
-    rectangle "ticket-detail.ejs" as DetailEjs
-    rectangle "tickets.ejs" as TicketsEjs
-}
-
-package "public/" as PublicFolder {
-    package "css/" as CssFolder {
-        rectangle "styles.css\n[Estilos visuales]" as StylesCss
-    }
-    package "js/" as JsFolder {
-        rectangle "sidebar.js\n[Lógica AJAX UI]" as SidebarJs
-    }
-}
-
-package "node_modules/" as NodeModulesFolder {
-    rectangle "express\n[Servidor HTTP]" as ExpDep
-    rectangle "mysql2\n[Conector DB]" as MysqlDep
-    rectangle "bcryptjs\n[Hasheo seguro]" as BcryptDep
-    rectangle "ejs\n[Motor vistas]" as EjsDep
-}
-
-' RELACIONES DE DEPENDENCIA
-ServerJS --> WebRoutes : "importa"
-ServerJS --> ApiRoutes : "importa"
-ServerJS --> DBInitJs : "ejecuta al arrancar"
-ServerJS --> DBJs : "prueba conexión"
-ServerJS --> Env : "lee variables"
-
-WebRoutes --> AuthCtrl : "despacha"
-WebRoutes --> ChangeCtrl : "despacha"
-ApiRoutes --> ChangeCtrl : "despacha"
-ApiRoutes --> AuthCtrl : "valida sesión"
-
-AuthCtrl --> UserMdl : "consulta datos"
-AuthCtrl --> BcryptDep : "compara hashes"
-AuthCtrl --> ConstJs : "lee roles"
-AuthCtrl --> LoginEjs : "renderiza"
-AuthCtrl --> ErrEjs : "renderiza"
-
-ChangeCtrl --> TicketMdl : "realiza operaciones CRUD"
-ChangeCtrl --> UserMdl : "consulta personal activo"
-ChangeCtrl --> WorkflowSvc : "valida transiciones"
-ChangeCtrl --> ConstJs : "lee roles y estados"
-ChangeCtrl --> DashEjs : "renderiza"
-ChangeCtrl --> TicketsEjs : "renderiza"
-ChangeCtrl --> DetailEjs : "renderiza"
-ChangeCtrl --> NuevoEjs : "renderiza"
-
-WorkflowSvc --> ConstJs : "valida"
-
-UserMdl --> DBJs : "ejecuta queries"
-TicketMdl --> DBJs : "ejecuta queries"
-DBJs --> ConstJs : "importa constants.js"
-DBJs --> Env : "configura credenciales"
-DBJs --> MysqlDep : "crea pool de conexiones"
-DBInitJs --> DBJs : "usa conexión activa"
-
-ViewsFolder ..> PublicFolder : "enlaza recursos"
-ViewsFolder ..> PartialsFolder : "incluye componentes comunes"
-
-HashPass --> DBJs : "conecta DB"
-HashPass --> BcryptDep : "hashea claves"
-TestApp --> ServerJS : "peticiones HTTP"
+' RELACIONES DE DEPENDENCIA LOGICA
+P_Administracion ..> P_Seguridad : <<use>>
+P_Planificacion ..> P_Administracion : <<use>>
+P_GestionCambios ..> P_Seguridad : <<use>>
+P_GestionCambios ..> P_Planificacion : <<use>>
+P_Ejecucion ..> P_GestionCambios : <<use>>
+P_QA_UAT ..> P_Ejecucion : <<use>>
+P_Auditoria ..> P_GestionCambios : <<use>>
+P_Auditoria ..> P_QA_UAT : <<use>>
+P_Auditoria ..> P_Planificacion : <<use>>
 
 @enduml
 ```
 
 ---
 
-## 📝 2. Organización del Código y Capas de Acoplamiento
+## 2. Descripcion Detallada de los Paquetes y Nodos Funcionales
 
-La estructura física del proyecto implementa una **arquitectura en capas altamente desacoplada**:
-* **Directorio Raíz (`/`):** Contiene archivos de configuración de infraestructura, metadatos (`package.json`), variables de entorno (`.env`), scripts de inicialización de la BD SQL (`bd.sql`) y scripts auxiliares.
-* **Paquete `config/`:** Infraestructura técnica de base de datos e inicialización. Contiene el pool de conexiones y el archivo centralizado de constantes de la lógica.
-* **Paquetes de Negocio (`models/`, `services/`, `controllers/` y `routes/`):** Divididos físicamente por su responsabilidad única:
-  * Las rutas dirigen las peticiones hacia los controladores.
-  * Los controladores consumen modelos para los datos y servicios para evaluar el flujo.
-  * Los modelos realizan consultas y retornan registros puros.
-* **Paquetes de Interfaz (`views/` y `public/`):** Contienen las vistas HTML dinámicas en EJS y los recursos estáticos vinculados en el navegador del cliente.
+### Seguridad y Acceso
+Modulo encargado de la proteccion y validacion de identidad de la plataforma.
+* **Autenticacion:** Inicio y cierre de sesion.
+* **Control de Acceso (RBAC):** Politica de control basada en roles para restringir rutas.
+* **Cifrado de Claves:** Hasheo unidireccional de contrasenas.
+* **Manejo de Sesiones:** Mantenimiento del estado del usuario durante 8 horas.
+* **Verificacion de Roles:** Evaluacion de permisos especificos del usuario.
+* **Validacion de Credenciales:** Verificacion de sintaxis e integridad de correos y contrasenas.
+
+### Administracion
+Encargado de la estructura organizativa inicial y los datos maestros del sistema.
+* **Gestion de Usuarios:** Creacion, edicion e inhabilitacion de cuentas globales.
+* **Gestion de Proyectos:** Registro de los proyectos en ejecucion.
+* **Gestion de Metodologias:** Estructura de marcos de trabajo (RUP/Scrum).
+* **Gestion de Equipos:** Registro de personal tecnico asignado a proyectos.
+* **Gestion de Clientes:** Asignacion de solicitantes validos por proyecto.
+* **Arbol de Entregables SCM:** Estructuracion de la relacion Etapas > Fases > ECMs.
+
+### Planificacion de Proyectos
+Modulo de calendarizacion y planificacion temporal de tareas.
+* **Construccion de Cronograma:** CRUD de actividades del proyecto.
+* **Definicion de Actividades:** Parametrizacion de nombres y descripciones de tareas.
+* **Asociacion de Entregables (ECMs):** Vinculo de actividades con entregables metodologicos.
+* **Calendario de Fases:** Fechas limite de inicio y fin por fase de trabajo.
+* **Asignacion de Tareas:** Designacion del responsable tecnico de cada actividad.
+* **Seguimiento del Cronograma:** Calculo automatico del porcentaje de avance.
+
+### Gestion de Cambios SCM
+Nucleo que administra el ciclo de vida de las solicitudes de cambio (Tickets).
+* **Registro de Solicitudes:** Creacion de tickets por Solicitantes o Miembros del equipo.
+* **Analisis de Impacto:** Evaluacion tecnica de viabilidad y criticidad del cambio.
+* **Aprobacion y Decisiones:** Resolucion de aprobacion formal por Director o CCB.
+* **Asignacion de Recursos:** Asignacion de Desarrollador y Tester para tickets aprobados.
+* **Estimacion de Horas:** Calculo de esfuerzo en horas-hombre de desarrollo.
+* **Cola de Aprobaciones:** Bandeja de autorizacion formal de solicitudes de cambio.
+* **Versionado del Cambio:** Asignacion de version final del cambio en el analisis.
+
+### Ejecucion y Trazabilidad
+Modulo operativo donde el desarrollador realiza la modificacion del software.
+* **Registro de Evidencias Git:** Formulario de registro de ramas de repositorio.
+* **Control de Ramas y PRs:** Enlace a URLs de Pull Requests del servidor de Git.
+* **Trazabilidad de Commits:** Vinculo de codigo fuente al ID del ticket.
+* **Asociacion de Codigo a Tareas:** Union del avance en Git con las actividades del cronograma.
+
+### Aseguramiento de Calidad (QA/UAT)
+Modulo encargado de verificar que los cambios cumplan con los estandares definidos.
+* **Registro de Pruebas QA:** Registro de casos de prueba ejecutados y observaciones.
+* **Validacion y Conformidad UAT:** Firma de aceptacion de usuario final (Solicitante).
+* **Bitacora de Errores QA:** Registro y notas de incidencias encontradas.
+* **Control de Retorno a Desarrollo:** Derivacion automatica de tickets fallidos a desarrollo.
+
+### Monitoreo y Auditoria
+Paquete encargado del control, seguimiento global y resguardo de la informacion.
+* **Bandeja de Tareas:** Lista personalizada de pendientes segun el rol del usuario.
+* **Historial de Transiciones:** Registro inmutable de auditoria de los cambios de estado.
+* **Reportes de Avance:** Bitacora de reportes de avance diario del cronograma.
+* **Ranking de Rendimiento:** Tabla de medallas segun tareas completadas.
+* **Metricas de Estados:** Graficos estadisticos del estado de los tickets.
+* **Notificaciones de Eventos:** Campana de notificaciones de tickets solicitados.

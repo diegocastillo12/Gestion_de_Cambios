@@ -206,7 +206,17 @@ exports.crearActividad = asyncH(async (req, res) => {
 });
 
 exports.actualizarActividad = asyncH(async (req, res) => {
+  const user = req.session.user;
   const { id } = req.params;
+
+  // RN-08: Inmutabilidad del cronograma — solo Administrador puede modificar
+  if (user.rol !== ROLES.ADMINISTRADOR) {
+    return res.status(403).json({
+      success: false,
+      error: 'El cronograma base es inmutable. Solo el Administrador puede modificar actividades.',
+    });
+  }
+
   // Aceptar tanto snake_case como camelCase
   const idFase       = req.body.idFase       || req.body.id_fase       || null;
   const idEntregable = req.body.idEntregable || req.body.id_entregable || null;
@@ -231,9 +241,64 @@ exports.actualizarActividad = asyncH(async (req, res) => {
 });
 
 exports.eliminarActividad = asyncH(async (req, res) => {
+  const user = req.session.user;
   const { id } = req.params;
+
+  // RN-08: Inmutabilidad del cronograma — solo Administrador puede eliminar
+  if (user.rol !== ROLES.ADMINISTRADOR) {
+    return res.status(403).json({
+      success: false,
+      error: 'El cronograma base es inmutable. Solo el Administrador puede eliminar actividades.',
+    });
+  }
+
   await CronogramaModel.delete(id);
   return res.json({ success: true });
+});
+
+// ─── VERSIONADO GRANULAR DE ECS ───────────────────────────────────────────────
+const VersionEcsModel = require('../models/VersionEcsModel');
+
+exports.crearVersion = asyncH(async (req, res) => {
+  const user = req.session.user;
+  const idActividad      = req.body.idActividad    || req.body.id_actividad;
+  const idProyecto       = req.body.idProyecto     || req.body.id_proyecto;
+  const versionNumero    = req.body.versionNumero   || req.body.version_numero;
+  const descripcionCambio = req.body.descripcionCambio || req.body.descripcion_cambio || '';
+  const contenidoTexto    = req.body.contenidoTexto    || req.body.contenido_texto || '';
+
+  if (!idActividad || !idProyecto || !versionNumero) {
+    return res.status(400).json({ success: false, error: 'Campos requeridos: actividad, proyecto y número de versión.' });
+  }
+
+  const archivoRuta = req.file ? `/uploads/versiones/${req.file.filename}` : null;
+  const archivoNombre = req.file ? req.file.originalname : null;
+
+  await VersionEcsModel.create({
+    idActividad,
+    idProyecto,
+    versionNumero,
+    descripcionCambio,
+    idUsuarioAutor: user.id,
+    archivoRuta,
+    archivoNombre,
+    contenidoTexto,
+  });
+
+  return res.json({ success: true });
+});
+
+exports.listarVersiones = asyncH(async (req, res) => {
+  const { id } = req.params; // id_actividad
+  const versiones = await VersionEcsModel.findByActividad(id);
+  return res.json({ success: true, versiones });
+});
+
+exports.listarVersionesProyecto = asyncH(async (req, res) => {
+  const { id } = req.params; // id_proyecto
+  const versiones = await VersionEcsModel.findByProyecto(id);
+  const resumen   = await VersionEcsModel.getResumenProyecto(id);
+  return res.json({ success: true, versiones, resumen });
 });
 
 // ─── REPORTES HISTORIAL ───────────────────────────────────────────────────────

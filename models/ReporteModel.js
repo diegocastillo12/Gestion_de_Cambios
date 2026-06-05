@@ -81,6 +81,7 @@ class ReporteModel {
   /**
    * Ranking de miembros del equipo por actividad reportada en un proyecto
    * Ordena por último % reportado (mayor primero) y total de reportes
+   * Incluye detección de tareas atrasadas (fecha_fin < hoy y no completadas)
    */
   async getRanking(idProyecto) {
     const sql = `
@@ -90,7 +91,9 @@ class ReporteModel {
         pe.rol_en_proyecto AS rol,
         COUNT(DISTINCT ra.id_reporte) AS total_reportes,
         COALESCE(AVG(ca.porcentaje_avance), 0) AS promedio_avance,
-        MAX(ra.fecha_reporte) AS ultimo_reporte
+        MAX(ra.fecha_reporte) AS ultimo_reporte,
+        SUM(CASE WHEN ca.fecha_fin < CURDATE() AND ca.estado != 'Completado' THEN 1 ELSE 0 END) AS tareas_atrasadas,
+        COUNT(DISTINCT ca.id_actividad) AS total_tareas
       FROM proyecto_equipo pe
       JOIN usuarios u ON pe.id_usuario = u.id_usuario
       LEFT JOIN reportes_avance ra ON (ra.id_usuario_reporta = pe.id_usuario AND ra.id_proyecto = pe.id_proyecto)

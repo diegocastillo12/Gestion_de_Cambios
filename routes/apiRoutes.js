@@ -115,4 +115,31 @@ router.delete('/ecm/:id',                            auth.requireAuth, requireAd
 router.post('/admin/metodologias/fases/:id/ecm',     auth.requireAuth, requireAdmin, admin.crearECM);
 router.delete('/admin/metodologias/ecm/:id',         auth.requireAuth, requireAdmin, admin.eliminarECM);
 
+const multer = require('multer');
+const fs = require('fs');
+
+// Configuración de almacenamiento para versiones de ECS
+const uploadDir = 'public/uploads/versiones';
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + '-' + file.originalname);
+  }
+});
+
+const upload = multer({ storage: storage });
+
+// ─── VERSIONADO GRANULAR DE ECS ───────────────────────────────────────────────
+router.post('/versiones',                            auth.requireAuth, upload.single('archivo'), proy.crearVersion);
+router.get('/actividades/:id/versiones',             auth.requireAuth, proy.listarVersiones);
+router.get('/proyectos/:id/versiones',               auth.requireAuth, proy.listarVersionesProyecto);
+router.get('/admin/proyectos/:id/versiones',         auth.requireAuth, proy.listarVersionesProyecto);
+
 module.exports = router;

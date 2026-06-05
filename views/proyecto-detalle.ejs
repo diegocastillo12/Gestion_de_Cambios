@@ -395,22 +395,24 @@
               </td>
               <% if(user.rol !== 'Solicitante'){ %>
               <td>
-                <% 
-                  const puedeReportar = act.es_reportable && (
-                    user.id === act.id_usuario ||
-                    user.rol === 'Administrador' ||
-                    miRolEnProyecto === 'Líder Técnico'
-                  );
-                %>
-                <% if(puedeReportar) { %>
-                <button class="btn-reporte" onclick="abrirModalReporte(<%= act.id_actividad %>, '<%= act.nombre.replace(/'/g, "\\'") %>', <%= act.porcentaje_avance %>)">
-                  📝 Reportar
-                </button>
-                <% } else if(act.es_reportable) { %>
-                <span style="font-size:0.75rem;color:var(--text-muted);">Solo responsable</span>
-                <% } else { %>
-                <span style="font-size:0.75rem;color:var(--text-muted);">No reportable</span>
-                <% } %>
+                <div style="display:flex; gap:0.4rem; align-items:center;">
+                  <% 
+                    const puedeReportar = act.es_reportable && (
+                      user.id === act.id_usuario ||
+                      user.rol === 'Administrador' ||
+                      miRolEnProyecto === 'Líder Técnico'
+                    );
+                  %>
+                  <% if(puedeReportar) { %>
+                  <button class="btn-reporte" onclick="abrirModalReporte(<%= act.id_actividad %>, '<%= act.nombre.replace(/'/g, "\\'") %>', <%= act.porcentaje_avance %>)" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;">
+                    📝 Reportar
+                  </button>
+                  <% } %>
+
+                  <button class="btn-reporte" onclick="abrirModalVersiones(<%= act.id_actividad %>, '<%= act.nombre.replace(/'/g, "\\'") %>', <%= puedeReportar ? 'true' : 'false' %>)" style="padding: 0.35rem 0.6rem; font-size: 0.75rem; background: var(--bg-hover, #2d3748); border: 1px solid var(--border-subtle, #4a5568); color: var(--text-secondary, #e2e8f0);">
+                    🗂️ Versiones
+                  </button>
+                </div>
               </td>
               <% } %>
             </tr>
@@ -615,8 +617,95 @@
   </div>
 </div>
 
+<!-- Modal: Versiones de ECS -->
+<div class="modal-overlay" id="modalVersiones">
+  <div class="modal-box" style="width: 750px; max-width: 95%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; padding: 1.5rem;">
+    <button class="modal-close" onclick="cerrarModal('modalVersiones')">✕</button>
+    <div class="modal-title" style="margin-bottom: 0.5rem;">🗂️ Versiones del ECS</div>
+    <p id="modal-versiones-actividad-nombre" style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1.25rem; font-weight: 500;"></p>
+
+    <!-- Listado de Versiones -->
+    <div style="flex: 1; overflow-y: auto; margin-bottom: 1.25rem; padding-right: 0.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+        <h5 style="font-size: 0.82rem; font-weight: 700; text-transform: uppercase; color: var(--text-primary); margin: 0; letter-spacing: 0.05em;">Historial de Versiones</h5>
+        <button type="button" class="btn btn-primary" onclick="mostrarDiff()" style="padding: 0.35rem 0.65rem; font-size: 0.72rem; display: flex; align-items: center; gap: 0.25rem;">
+          🔍 Comparar Seleccionados (Diff)
+        </button>
+      </div>
+      <table class="cronograma-table" style="font-size: 0.82rem; width: 100%;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--border-subtle);">
+            <th style="padding: 0.5rem 0.25rem; width: 35px; text-align: center;"></th>
+            <th style="padding: 0.5rem 0.25rem; width: 70px; text-align: left;">Versión</th>
+            <th style="padding: 0.5rem 0.25rem; text-align: left;">Descripción del Cambio</th>
+            <th style="padding: 0.5rem 0.25rem; width: 100px; text-align: left;">Autor</th>
+            <th style="padding: 0.5rem 0.25rem; width: 120px; text-align: left;">Fecha</th>
+            <th style="padding: 0.5rem 0.25rem; width: 100px; text-align: right;">Documento</th>
+          </tr>
+        </thead>
+        <tbody id="versiones-tabla-body">
+          <!-- Se inyecta dinámicamente -->
+        </tbody>
+      </table>
+      <div id="versiones-vacio" style="text-align: center; padding: 2.5rem; color: var(--text-muted); display: none;">
+        <span style="font-size: 2.5rem;">📂</span>
+        <p style="margin-top: 0.5rem; font-size: 0.85rem;">No hay versiones registradas para este elemento de configuración.</p>
+      </div>
+
+      <!-- Visualizador de Diff -->
+      <div id="diff-visualizador" style="background: var(--bg-tertiary, #1a1a24); color: var(--text-secondary, #e2e8f0); border-radius: 6px; font-family: monospace; font-size: 0.8rem; padding: 0.75rem; white-space: pre-wrap; border: 1px solid var(--border-subtle, #2d2d3d); display: none; max-height: 250px; overflow-y: auto; margin-top: 1rem;"></div>
+    </div>
+
+    <!-- Formulario para Registrar Nueva Versión -->
+    <div id="seccion-nueva-version" style="border-top: 1px solid var(--border-subtle); padding-top: 1.25rem; display: none;">
+      <h5 style="font-size: 0.82rem; font-weight: 700; text-transform: uppercase; color: var(--text-primary); margin-bottom: 0.75rem; letter-spacing: 0.05em;">Registrar Nueva Versión (ECS)</h5>
+      <form id="form-nueva-version" onsubmit="enviarNuevaVersion(event)" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 0.75rem;">
+        <input type="hidden" id="version-id-actividad" name="idActividad">
+        <input type="hidden" id="version-id-proyecto" name="idProyecto" value="<%= proyecto.id_proyecto %>">
+        
+        <div style="display: flex; gap: 0.75rem;">
+          <div class="form-group" style="width: 140px; margin-bottom: 0;">
+            <label class="form-label" style="font-size: 0.72rem;">Versión (ej: 1.1)</label>
+            <input type="text" id="version-numero" name="versionNumero" class="form-input" placeholder="1.0" required style="padding: 0.45rem; font-size: 0.8rem;">
+          </div>
+          
+          <div class="form-group" style="flex: 1; margin-bottom: 0;">
+            <label class="form-label" style="font-size: 0.72rem;">Archivo / Entregable (ECS) <span style="color:var(--text-muted); font-size:0.68rem;">(Opcional)</span></label>
+            <input type="file" id="version-archivo" name="archivo" class="form-input" style="padding: 0.35rem 0.45rem; font-size: 0.8rem;">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" style="font-size: 0.72rem;">Contenido del ECS (Texto / Código) <span style="color:var(--text-muted); font-size:0.68rem;">(Opcional si subes archivo)</span></label>
+          <textarea id="version-contenido-texto" name="contenidoTexto" class="form-input" rows="3" style="resize: vertical; padding: 0.45rem; font-size: 0.8rem; font-family: monospace;" placeholder="Pega aquí el contenido de texto o código de esta versión para poder realizar comparativas..."></textarea>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" style="font-size: 0.72rem;">Descripción de Cambios</label>
+          <textarea id="version-descripcion" name="descripcionCambio" class="form-input" rows="2" style="resize: vertical; padding: 0.45rem; font-size: 0.8rem;" placeholder="Detalla los cambios realizados en esta versión..." required></textarea>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 0.5rem;">
+          <button type="button" class="btn btn-ghost" onclick="cerrarModal('modalVersiones')" style="padding: 0.45rem 1rem; font-size: 0.8rem;">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btn-subir-version" style="padding: 0.45rem 1rem; font-size: 0.8rem;">Subir y Registrar</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Mensaje sin permisos para subir versión -->
+    <div id="seccion-nueva-version-no-permiso" style="border-top: 1px solid var(--border-subtle); padding-top: 1rem; text-align: center; display: none;">
+      <p style="font-size: 0.78rem; color: var(--text-muted);">Solo el responsable asignado, el administrador o el líder técnico pueden registrar nuevas versiones de este ECS.</p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/5.2.0/diff.min.js"></script>
+
 <script>
 let actividadActual = null;
+let versionActividadActual = null;
+let versionPuedeSubir = false;
+let versionesActuales = [];
 
 const PROYECTO_ID = <%= proyecto.id_proyecto %>;
 
@@ -679,7 +768,6 @@ async function enviarReporte() {
 
     if (data.success) {
       cerrarModal('modalReporte');
-      // Actualizar la barra de progreso de la actividad en la tabla sin recargar
       location.reload();
     } else {
       alert('Error: ' + (data.error || 'No se pudo enviar el reporte.'));
@@ -692,10 +780,252 @@ async function enviarReporte() {
   }
 }
 
-// Cerrar modal con click fuera
+// ─── CONTROL DE VERSIONES (ECS) CLIENT SIDE ──────────────────────────────────
+async function abrirModalVersiones(idActividad, nombre, puedeSubir) {
+  versionActividadActual = idActividad;
+  versionPuedeSubir = puedeSubir;
+  
+  document.getElementById('modal-versiones-actividad-nombre').textContent = nombre;
+  document.getElementById('version-id-actividad').value = idActividad;
+  document.getElementById('version-numero').value = '';
+  document.getElementById('version-descripcion').value = '';
+  document.getElementById('version-archivo').value = '';
+  document.getElementById('version-contenido-texto').value = '';
+  document.getElementById('diff-visualizador').style.display = 'none';
+  document.getElementById('diff-visualizador').innerHTML = '';
+
+  if (puedeSubir) {
+    document.getElementById('seccion-nueva-version').style.display = 'block';
+    document.getElementById('seccion-nueva-version-no-permiso').style.display = 'none';
+  } else {
+    document.getElementById('seccion-nueva-version').style.display = 'none';
+    document.getElementById('seccion-nueva-version-no-permiso').style.display = 'block';
+  }
+
+  await cargarHistorialVersiones(idActividad);
+  document.getElementById('modalVersiones').classList.add('open');
+}
+
+async function cargarHistorialVersiones(idActividad) {
+  const tbody = document.getElementById('versiones-tabla-body');
+  const vacio = document.getElementById('versiones-vacio');
+  tbody.innerHTML = '';
+  vacio.style.display = 'none';
+  versionesActuales = [];
+
+  try {
+    const res = await fetch(`/api/actividades/${idActividad}/versiones`);
+    const data = await res.json();
+
+    if (data.success && data.versiones && data.versiones.length > 0) {
+      versionesActuales = data.versiones;
+
+      if (versionPuedeSubir) {
+        const ultVersion = data.versiones[0].version_numero;
+        const partes = ultVersion.split('.');
+        if (partes.length === 2) {
+          const minor = parseInt(partes[1]);
+          if (!isNaN(minor)) {
+            document.getElementById('version-numero').value = `${partes[0]}.${minor + 1}`;
+          }
+        } else {
+          document.getElementById('version-numero').value = '1.0';
+        }
+      }
+
+      data.versiones.forEach(v => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+        
+        const tdCheck = document.createElement('td');
+        tdCheck.style.padding = '0.6rem 0.25rem';
+        tdCheck.style.textAlign = 'center';
+        tdCheck.innerHTML = `<input type="checkbox" class="diff-checkbox" value="${v.id_version}" onchange="manejarCambioCheckbox(this)">`;
+
+        const tdVer = document.createElement('td');
+        tdVer.style.padding = '0.6rem 0.25rem';
+        tdVer.innerHTML = `<span class="badge badge-blue" style="font-size:0.7rem; font-weight:700;">v${v.version_numero}</span>`;
+        
+        const tdDesc = document.createElement('td');
+        tdDesc.style.padding = '0.6rem 0.25rem';
+        tdDesc.style.color = 'var(--text-secondary)';
+        tdDesc.textContent = v.descripcion_cambio || 'Sin descripción';
+        
+        const tdAutor = document.createElement('td');
+        tdAutor.style.padding = '0.6rem 0.25rem';
+        tdAutor.textContent = v.autor_nombre ? v.autor_nombre.split(' ')[0] : '—';
+        
+        const tdFecha = document.createElement('td');
+        tdFecha.style.padding = '0.6rem 0.25rem';
+        tdFecha.style.color = 'var(--text-muted)';
+        tdFecha.style.fontSize = '0.75rem';
+        tdFecha.textContent = new Date(v.fecha_version).toLocaleDateString('es-PE', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
+
+        const tdDoc = document.createElement('td');
+        tdDoc.style.padding = '0.6rem 0.25rem';
+        tdDoc.style.textAlign = 'right';
+        if (v.archivo_ruta) {
+          tdDoc.innerHTML = `<a href="${v.archivo_ruta}" download="${v.archivo_nombre || 'archivo'}" class="btn btn-primary" style="padding:0.25rem 0.5rem; font-size:0.68rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.2rem;">💾 Descargar</a>`;
+        } else {
+          tdDoc.innerHTML = `<span style="color:var(--text-muted); font-size:0.75rem;">Sin archivo</span>`;
+        }
+
+        tr.appendChild(tdCheck);
+        tr.appendChild(tdVer);
+        tr.appendChild(tdDesc);
+        tr.appendChild(tdAutor);
+        tr.appendChild(tdFecha);
+        tr.appendChild(tdDoc);
+        tbody.appendChild(tr);
+      });
+    } else {
+      if (versionPuedeSubir) {
+        document.getElementById('version-numero').value = '1.0';
+      }
+      vacio.style.display = 'block';
+    }
+  } catch (err) {
+    console.error('Error al cargar versiones:', err);
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--red); padding: 1rem;">Error al cargar el historial.</td></tr>';
+  }
+}
+
+function manejarCambioCheckbox(cb) {
+  const checked = document.querySelectorAll('.diff-checkbox:checked');
+  if (checked.length > 2) {
+    cb.checked = false;
+    alert('Solo puedes seleccionar un máximo de 2 versiones para comparar.');
+  }
+}
+
+function mostrarDiff() {
+  const checkboxes = document.querySelectorAll('.diff-checkbox:checked');
+  if (checkboxes.length !== 2) {
+    alert('Por favor, selecciona exactamente 2 versiones para comparar.');
+    return;
+  }
+  
+  const idV1 = parseInt(checkboxes[0].value);
+  const idV2 = parseInt(checkboxes[1].value);
+  
+  const v1 = versionesActuales.find(v => v.id_version === idV1);
+  const v2 = versionesActuales.find(v => v.id_version === idV2);
+  
+  if (!v1 || !v2) return;
+  
+  const antigua = new Date(v1.fecha_version) < new Date(v2.fecha_version) ? v1 : v2;
+  const nueva = antigua === v1 ? v2 : v1;
+  
+  const text1 = antigua.contenido_texto || '';
+  const text2 = nueva.contenido_texto || '';
+  
+  if (!text1.trim() && !text2.trim()) {
+    alert('Ninguna de las versiones seleccionadas tiene contenido de texto para comparar.');
+    return;
+  }
+  
+  const diff = Diff.diffLines(text1, text2);
+  const visualizador = document.getElementById('diff-visualizador');
+  visualizador.innerHTML = '';
+  visualizador.style.display = 'block';
+  
+  const header = document.createElement('div');
+  header.style.borderBottom = '1px solid var(--border-subtle)';
+  header.style.paddingBottom = '0.5rem';
+  header.style.marginBottom = '0.5rem';
+  header.style.fontWeight = 'bold';
+  header.style.fontSize = '0.82rem';
+  header.style.color = 'var(--text-primary)';
+  header.innerHTML = `Comparando v${antigua.version_numero} (antigua) ➔ v${nueva.version_numero} (nueva):`;
+  visualizador.appendChild(header);
+  
+  const pre = document.createElement('pre');
+  pre.style.margin = '0';
+  pre.style.overflowX = 'auto';
+  
+  diff.forEach(part => {
+    let val = part.value;
+    if (val.endsWith('\n')) val = val.slice(0, -1);
+    
+    const lines = val.split('\n');
+    lines.forEach(line => {
+      const lineSpan = document.createElement('span');
+      lineSpan.style.display = 'block';
+      lineSpan.style.padding = '0.1rem 0.5rem';
+      
+      if (part.added) {
+        lineSpan.style.background = 'rgba(46, 164, 79, 0.15)';
+        lineSpan.style.color = '#3fb950';
+        lineSpan.style.borderLeft = '3px solid #2ea44f';
+        lineSpan.textContent = `+ ${line}`;
+      } else if (part.removed) {
+        lineSpan.style.background = 'rgba(248, 81, 73, 0.15)';
+        lineSpan.style.color = '#f85149';
+        lineSpan.style.borderLeft = '3px solid #f85149';
+        lineSpan.textContent = `- ${line}`;
+      } else {
+        lineSpan.style.color = 'var(--text-muted)';
+        lineSpan.style.opacity = '0.7';
+        lineSpan.textContent = `  ${line}`;
+      }
+      pre.appendChild(lineSpan);
+    });
+  });
+  
+  visualizador.appendChild(pre);
+  visualizador.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function enviarNuevaVersion(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btn-subir-version');
+  const form = document.getElementById('form-nueva-version');
+  const archivo = document.getElementById('version-archivo').files[0];
+  const texto = document.getElementById('version-contenido-texto').value.trim();
+
+  if (!archivo && !texto) {
+    alert('Debes adjuntar un archivo o rellenar el contenido de texto para registrar la versión.');
+    return;
+  }
+
+  const formData = new FormData(form);
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  try {
+    const res = await fetch('/api/versiones', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      await cargarHistorialVersiones(versionActividadActual);
+      document.getElementById('version-descripcion').value = '';
+      document.getElementById('version-archivo').value = '';
+      document.getElementById('version-contenido-texto').value = '';
+      document.getElementById('diff-visualizador').style.display = 'none';
+      document.getElementById('diff-visualizador').innerHTML = '';
+      alert('Versión de ECS registrada correctamente.');
+    } else {
+      alert('Error: ' + (data.error || 'No se pudo subir la versión.'));
+    }
+  } catch (err) {
+    alert('Error de conexión.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Subir y Registrar';
+  }
+}
+
+// Cerrar modales con click fuera
 document.getElementById('modalReporte').addEventListener('click', function(e) {
   if (e.target === this) cerrarModal('modalReporte');
+});
+document.getElementById('modalVersiones').addEventListener('click', function(e) {
+  if (e.target === this) cerrarModal('modalVersiones');
 });
 </script>
 
 <%- include('partials/footer') %>
+

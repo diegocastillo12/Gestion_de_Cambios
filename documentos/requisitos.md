@@ -24,6 +24,9 @@ Este documento detalla la especificacion de requisitos de software (SRS) para el
 | RF-14 | Creacion y Edicion de Actividades | Permitir al Administrador registrar actividades en el cronograma del proyecto asociadas a fases metodologicas y entregables (ECMs). | Administracion | Alta |
 | RF-15 | Gestion de Metodologias SCM | Permitir al Administrador definir y estructurar metodologias de trabajo compuestas por Etapas, Fases y Elementos de Configuracion (ECMs). | Administracion | Alta |
 | RF-16 | Registro de Usuarios Globales | Habilitar al Administrador para crear, actualizar y dar de baja cuentas de usuario del sistema (nombre, correo, contrasena cifrada y rol global). | Administracion | Alta |
+| RF-17 | Asignacion Individual de ECS/ECMs | Permitir al Gestor asignar cada entregable metodológico, secciones de documentos o diagramas a un miembro específico del equipo de forma granular. | Administrador | Alta |
+| RF-18 | Ranking de Rendimiento y Atrasos | El sistema debe mostrar un ranking del progreso del equipo y alertar automáticamente quién está atrasado respecto a las fechas límite del cronograma base. | Auditoria | Alta |
+| RF-19 | Versionado de Secciones Documentales | Habilitar el control de versiones independiente para bloques de texto y diagramas individuales, asignándoles IDs únicos dentro de los documentos (SRS/SAD). | Gestion de Cambios | Alta |
 
 ---
 
