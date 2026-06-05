@@ -369,8 +369,6 @@ exports.listarVersionesProyecto = asyncH(async (req, res) => {
 });
 
 // ─── CONFIGURACIÓN DE GITHUB ──────────────────────────────────────────────────
-const encryption = require('../services/encryptionService');
-const { Octokit } = require('@octokit/rest');
 
 exports.guardarGithubToken = asyncH(async (req, res) => {
   const user = req.session.user;
