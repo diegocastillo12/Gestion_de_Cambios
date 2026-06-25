@@ -63,6 +63,147 @@
 
   /* ─── ACTIVITY ROW ──────────────────────────────────────────────────────── */
   .activity-row td { vertical-align: middle; }
+
+  /* ─── CALENDARIO MENSUAL DE CRONOGRAMA ───────────────────────────────────── */
+  .cronograma-calendar-container {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+  .calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.25rem;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .calendar-grid-header {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-subtle);
+    font-weight: 600;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    text-align: center;
+  }
+  .calendar-grid-header div {
+    padding: 0.5rem 0;
+  }
+  .calendar-grid-body {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    background: var(--bg-primary);
+  }
+  .calendar-cell {
+    border-right: 1px solid var(--border-subtle);
+    border-bottom: 1px solid var(--border-subtle);
+    min-height: 70px;
+    padding: 0.35rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    position: relative;
+    background: var(--bg-primary);
+    transition: background 0.15s;
+    cursor: cell;
+  }
+  .calendar-cell:hover {
+    background: var(--bg-hover, rgba(99, 102, 241, 0.02));
+  }
+  .calendar-cell:nth-child(7n) {
+    border-right: none;
+  }
+  .calendar-cell.other-month {
+    background: var(--bg-tertiary);
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .calendar-cell.today-cell {
+    background: rgba(var(--accent-rgb,99,102,241), 0.03);
+  }
+  .calendar-day-num {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 0.15rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+  }
+  .calendar-cell.today-cell .calendar-day-num {
+    background: var(--accent);
+    color: #fff;
+  }
+  .calendar-event {
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 0.15rem 0.35rem;
+    border-radius: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: transform 0.1s;
+  }
+  .calendar-event:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.08);
+  }
+  .calendar-btn {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    height: 28px;
+  }
+  .calendar-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-default);
+  }
+  .calendar-btn-nav {
+    width: 28px;
+    padding: 0;
+    font-size: 0.95rem;
+  }
+  .event-completado {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.25);
+  }
+  .event-progreso {
+    background: rgba(59, 130, 246, 0.12);
+    color: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.25);
+  }
+  .event-pendiente {
+    background: rgba(100, 116, 139, 0.12);
+    color: #64748b;
+    border-color: rgba(100, 116, 139, 0.25);
+  }
+  .event-bloqueado {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.25);
+  }
 </style>
 
 <div class="app-wrapper">
@@ -225,7 +366,10 @@
           <div class="card">
             <div class="card-header">
               <span class="card-title">👥 Miembros del Equipo</span>
-              <button class="btn btn-primary btn-sm" onclick="openModal('modal-agregar-miembro')">➕ Agregar</button>
+              <div style="display:flex; gap:0.35rem;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="agregarEquipoPredeterminado()" title="Agregar miembros predefinidos con sus roles" style="display:inline-flex; align-items:center; gap:0.25rem;">⚡ Cargar Predefinidos</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="openModal('modal-agregar-miembro')">➕ Agregar</button>
+              </div>
             </div>
 
             <% if (equipo.length === 0) { %>
@@ -265,7 +409,10 @@
           <div class="card">
             <div class="card-header">
               <span class="card-title">🤝 Clientes / Stakeholders</span>
-              <button class="btn btn-secondary btn-sm" onclick="openModal('modal-agregar-cliente')">➕ Agregar</button>
+              <div style="display:flex; gap:0.35rem;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="agregarClientesPredeterminados()" title="Agregar clientes predefinidos" style="display:inline-flex; align-items:center; gap:0.25rem; background:var(--bg-hover); border:1px solid var(--border-default); color:var(--text-secondary);">⚡ Cargar Predefinidos</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="openModal('modal-agregar-cliente')">➕ Agregar</button>
+              </div>
             </div>
             <% if (clientes.length === 0) { %>
             <div style="text-align:center; padding:1.5rem; color:var(--text-muted);">
@@ -317,176 +464,218 @@
           </div>
           <% } else { %>
 
-          <!-- DIAGRAMA DE GANTT -->
-          <%
-            // Rango de fechas
-            let minDate = null;
-            let maxDate = null;
-            cronograma.forEach(a => {
-              const s = new Date(a.fecha_inicio);
-              const f = new Date(a.fecha_fin);
-              if (!minDate || s < minDate) minDate = s;
-              if (!maxDate || f > maxDate) maxDate = f;
-            });
-
-            if (!minDate && proyecto.fecha_inicio) minDate = new Date(proyecto.fecha_inicio);
-            if (!maxDate && proyecto.fecha_fin) maxDate = new Date(proyecto.fecha_fin);
-            if (!minDate) minDate = new Date();
-            if (!maxDate) maxDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-
-            if (minDate.getTime() === maxDate.getTime()) {
-              maxDate = new Date(minDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-            }
-
-            const totalTime = maxDate.getTime() - minDate.getTime();
-
-            // Intervalos para labels
-            const intervals = 4;
-            const labels = [];
-            for (let i = 0; i <= intervals; i++) {
-              const dateVal = new Date(minDate.getTime() + (totalTime / intervals) * i);
-              labels.push(dateVal.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit' }));
-            }
-          %>
-          <div style="margin: 0 1.25rem 1.5rem 1.25rem; padding: 1.25rem; background: var(--bg-tertiary); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-            <h4 style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
-              📊 Línea de Tiempo Visual (Gantt)
-            </h4>
-            
-            <!-- Escala de fechas -->
-            <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.7rem; color: var(--text-muted); margin-bottom: 0.75rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.4rem;">
-              <div style="width: 180px; font-weight: 700; flex-shrink: 0;">Actividad</div>
-              <div style="flex: 1; display: flex; justify-content: space-between; position: relative; padding: 0 4px;">
-                <% labels.forEach(lbl => { %>
-                <span>📅 <%= lbl %></span>
-                <% }) %>
-              </div>
+          <!-- SUB-NAVEGACIÓN INTERNA DEL CRONOGRAMA -->
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem; flex-wrap:wrap; gap:0.5rem; border-bottom:1px solid var(--border-subtle); padding-bottom:0.75rem; padding-left: 1.25rem; padding-right: 1.25rem;">
+            <div style="display:flex; gap:0.25rem; background:var(--bg-secondary); padding:0.25rem; border-radius:8px; border:1px solid var(--border-default);">
+              <button type="button" class="tab-btn active" id="subbtn-calendario" onclick="switchCronogramaView('calendario')" style="font-size:0.75rem; padding:0.4rem 0.85rem; border-radius:6px; border:none; background:transparent; font-weight:600; cursor:pointer; color:var(--accent);">📅 Calendario Grande</button>
+              <button type="button" class="tab-btn" id="subbtn-gantt" onclick="switchCronogramaView('gantt')" style="font-size:0.75rem; padding:0.4rem 0.85rem; border-radius:6px; border:none; background:transparent; font-weight:600; cursor:pointer; color:var(--text-muted);">📊 Línea de Tiempo (Gantt)</button>
+              <button type="button" class="tab-btn" id="subbtn-tabla" onclick="switchCronogramaView('tabla')" style="font-size:0.75rem; padding:0.4rem 0.85rem; border-radius:6px; border:none; background:transparent; font-weight:600; cursor:pointer; color:var(--text-muted);">📋 Tabla Detallada</button>
             </div>
-
-            <!-- Listado de barras -->
-            <div style="display: flex; flex-direction: column; gap: 0.65rem;">
-              <% cronograma.forEach(a => {
-                const actStart = new Date(a.fecha_inicio);
-                const actEnd = new Date(a.fecha_fin);
-                
-                const startVal = Math.max(minDate.getTime(), actStart.getTime());
-                const endVal = Math.min(maxDate.getTime(), actEnd.getTime());
-                
-                const leftOffset = ((startVal - minDate.getTime()) / totalTime) * 100;
-                const widthPct = Math.max(4, ((endVal - startVal) / totalTime) * 100);
-
-                let colorBg = 'rgba(100, 116, 139, 0.15)';
-                let colorBorder = '#64748b';
-                let colorProgress = '#64748b';
-                if (a.estado === 'Completado') {
-                  colorBg = 'rgba(16, 185, 129, 0.12)';
-                  colorBorder = '#10b981';
-                  colorProgress = '#10b981';
-                } else if (a.estado === 'En Progreso') {
-                  colorBg = 'rgba(59, 130, 246, 0.12)';
-                  colorBorder = '#3b82f6';
-                  colorProgress = '#3b82f6';
-                } else if (a.estado === 'Bloqueado') {
-                  colorBg = 'rgba(239, 68, 68, 0.12)';
-                  colorBorder = '#ef4444';
-                  colorProgress = '#ef4444';
-                }
-              %>
-              <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.75rem;">
-                <div style="width: 180px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-secondary); flex-shrink: 0;" title="<%= a.nombre %>">
-                  <%= a.nombre %>
-                </div>
-                <div style="flex: 1; background: var(--bg-primary); height: 18px; border-radius: 4px; position: relative; border: 1px solid var(--border-subtle); overflow: hidden;">
-                  <!-- Gantt Bar -->
-                  <div style="position: absolute; left: <%= leftOffset %>%; width: <%= widthPct %>%; height: 100%; background: <%= colorBg %>; border-left: 3px solid <%= colorBorder %>; display: flex; align-items: center;">
-                    <!-- Inner progress fill -->
-                    <div style="width: <%= a.porcentaje_avance %>%; height: 100%; background: <%= colorProgress %>; opacity: 0.2;"></div>
-                    <!-- Label inside the row -->
-                    <span style="position: absolute; left: 8px; font-size: 0.62rem; font-weight: 700; color: var(--text-primary); white-space: nowrap; pointer-events: none; text-shadow: 0 1px 1px var(--bg-tertiary);">
-                      <%= parseFloat(a.porcentaje_avance).toFixed(0) %>% · <%= a.asignado_nombre || 'Sin asignar' %>
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <% }) %>
-            </div>
-
           </div>
 
-          <div class="table-wrapper" style="border:none; background:transparent;">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Actividad</th>
-                  <th>Fase</th>
-                  <th>Responsable</th>
-                  <th>Fechas</th>
-                  <th>Estado</th>
-                  <th>Avance</th>
-                  <th style="text-align:right;">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
+          <!-- 1. VISTA: CALENDARIO GRANDE -->
+          <div id="cview-calendario" style="display:block; padding: 0 1.25rem 1.25rem 1.25rem;">
+            <div style="background: var(--bg-tertiary); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.65rem 0.85rem; margin-bottom: 0.75rem; font-size: 0.78rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem;">
+              <span>💡</span>
+              <span><strong>Consejo:</strong> Haz clic en un día libre para <strong>crear una actividad</strong> en esa fecha, o haz clic en un bloque de tarea para <strong>editarla/eliminarla</strong>.</span>
+            </div>
+            <div class="cronograma-calendar-container">
+              <div class="calendar-header">
+                <button type="button" onclick="navigateCronogramaCalendar(-1)" class="calendar-btn calendar-btn-nav">‹</button>
+                <h3 id="cron-cal-titulo" style="font-weight:700; font-size:1rem; color:var(--text-primary); margin:0;"></h3>
+                <div style="display:flex; gap:0.5rem; align-items:center;">
+                  <button type="button" onclick="goTodayCronogramaCalendar()" class="calendar-btn">Hoy</button>
+                  <button type="button" onclick="navigateCronogramaCalendar(1)" class="calendar-btn calendar-btn-nav">›</button>
+                </div>
+              </div>
+              <div class="calendar-grid-header">
+                <div>Lunes</div>
+                <div>Martes</div>
+                <div>Miércoles</div>
+                <div>Jueves</div>
+                <div>Viernes</div>
+                <div>Sábado</div>
+                <div>Domingo</div>
+              </div>
+              <div id="cron-cal-grid" class="calendar-grid-body"></div>
+            </div>
+          </div>
+
+          <!-- 2. VISTA: DIAGRAMA DE GANTT -->
+          <div id="cview-gantt" style="display:none;">
+            <!-- DIAGRAMA DE GANTT -->
+            <%
+              // Rango de fechas
+              let minDate = null;
+              let maxDate = null;
+              cronograma.forEach(a => {
+                const s = new Date(a.fecha_inicio);
+                const f = new Date(a.fecha_fin);
+                if (!minDate || s < minDate) minDate = s;
+                if (!maxDate || f > maxDate) maxDate = f;
+              });
+
+              if (!minDate && proyecto.fecha_inicio) minDate = new Date(proyecto.fecha_inicio);
+              if (!maxDate && proyecto.fecha_fin) maxDate = new Date(proyecto.fecha_fin);
+              if (!minDate) minDate = new Date();
+              if (!maxDate) maxDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+              if (minDate.getTime() === maxDate.getTime()) {
+                maxDate = new Date(minDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+              }
+
+              const totalTime = maxDate.getTime() - minDate.getTime();
+
+              // Intervalos para labels
+              const intervals = 4;
+              const labels = [];
+              for (let i = 0; i <= intervals; i++) {
+                const dateVal = new Date(minDate.getTime() + (totalTime / intervals) * i);
+                labels.push(dateVal.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit' }));
+              }
+            %>
+            <div style="margin: 0 1.25rem 1.5rem 1.25rem; padding: 1.25rem; background: var(--bg-tertiary); border-radius: var(--radius-md); border: 1px solid var(--border-subtle); overflow-x: auto;">
+              <h4 style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                📊 Línea de Tiempo Visual (Gantt)
+              </h4>
+              
+              <!-- Escala de fechas -->
+              <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.7rem; color: var(--text-muted); margin-bottom: 0.75rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.4rem;">
+                <div style="width: 180px; font-weight: 700; flex-shrink: 0;">Actividad</div>
+                <div style="flex: 1; display: flex; justify-content: space-between; position: relative; padding: 0 4px;">
+                  <% labels.forEach(lbl => { %>
+                  <span>📅 <%= lbl %></span>
+                  <% }) %>
+                </div>
+              </div>
+
+              <!-- Listado de barras -->
+              <div style="display: flex; flex-direction: column; gap: 0.65rem;">
                 <% cronograma.forEach(a => {
-                  let estBadge = 'badge-slate';
-                  if (a.estado === 'Completado') estBadge = 'badge-green';
-                  else if (a.estado === 'En Progreso') estBadge = 'badge-blue';
-                  else if (a.estado === 'Bloqueado') estBadge = 'badge-red';
-                  else if (a.estado === 'Pendiente') estBadge = 'badge-yellow';
+                  const actStart = new Date(a.fecha_inicio);
+                  const actEnd = new Date(a.fecha_fin);
+                  
+                  const startVal = Math.max(minDate.getTime(), actStart.getTime());
+                  const endVal = Math.min(maxDate.getTime(), actEnd.getTime());
+                  
+                  const leftOffset = ((startVal - minDate.getTime()) / totalTime) * 100;
+                  const widthPct = Math.max(4, ((endVal - startVal) / totalTime) * 100);
+
+                  let colorBg = 'rgba(100, 116, 139, 0.15)';
+                  let colorBorder = '#64748b';
+                  let colorProgress = '#64748b';
+                  if (a.estado === 'Completado') {
+                    colorBg = 'rgba(16, 185, 129, 0.12)';
+                    colorBorder = '#10b981';
+                    colorProgress = '#10b981';
+                  } else if (a.estado === 'En Progreso') {
+                    colorBg = 'rgba(59, 130, 246, 0.12)';
+                    colorBorder = '#3b82f6';
+                    colorProgress = '#3b82f6';
+                  } else if (a.estado === 'Bloqueado') {
+                    colorBg = 'rgba(239, 68, 68, 0.12)';
+                    colorBorder = '#ef4444';
+                    colorProgress = '#ef4444';
+                  }
                 %>
-                <tr class="activity-row">
-                  <td>
-                    <div style="font-size:0.83rem; font-weight:600; color:var(--text-primary);">
-                      <%= a.nombre %>
-                      <% if (a.es_reportable) { %><span class="badge badge-teal" style="font-size:0.58rem; margin-left:0.3rem;">Reportable</span><% } %>
+                <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.75rem;">
+                  <div style="width: 180px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-secondary); flex-shrink: 0;" title="<%= a.nombre %>">
+                    <%= a.nombre %>
+                  </div>
+                  <div style="flex: 1; background: var(--bg-primary); height: 18px; border-radius: 4px; position: relative; border: 1px solid var(--border-subtle); overflow: hidden;">
+                    <!-- Gantt Bar -->
+                    <div style="position: absolute; left: <%= leftOffset %>%; width: <%= widthPct %>%; height: 100%; background: <%= colorBg %>; border-left: 3px solid <%= colorBorder %>; display: flex; align-items: center;">
+                      <!-- Inner progress fill -->
+                      <div style="width: <%= a.porcentaje_avance %>%; height: 100%; background: <%= colorProgress %>; opacity: 0.2;"></div>
+                      <!-- Label inside the row -->
+                      <span style="position: absolute; left: 8px; font-size: 0.62rem; font-weight: 700; color: var(--text-primary); white-space: nowrap; pointer-events: none; text-shadow: 0 1px 1px var(--bg-tertiary);">
+                        <%= parseFloat(a.porcentaje_avance).toFixed(0) %>% · <%= a.asignado_nombre || 'Sin asignar' %>
+                      </span>
                     </div>
-                    <% if (a.descripcion) { %>
-                    <div style="font-size:0.7rem; color:var(--text-muted); margin-top:0.1rem; max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><%= a.descripcion %></div>
-                    <% } %>
-                    <% if (a.entregable_ticket_id) { %>
-                    <div style="font-size:0.68rem; color:var(--accent); margin-top:0.15rem;">🎫 <%= a.entregable_ticket_id %> — <%= a.entregable_titulo ? a.entregable_titulo.substring(0,30) : '' %></div>
-                    <% } %>
-                  </td>
-                  <td style="font-size:0.78rem; color:var(--text-secondary);">
-                    <% if (a.etapa_nombre) { %><div style="font-size:0.68rem; color:var(--text-muted);"><%= a.etapa_nombre %></div><% } %>
-                    <%= a.fase_nombre || '—' %>
-                  </td>
-                  <td style="font-size:0.78rem;">
-                    <% if (a.asignado_nombre) { %>
-                    <div style="display:flex; align-items:center; gap:0.35rem;">
-                      <div style="width:24px; height:24px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:0.6rem; font-weight:700; color:white; flex-shrink:0;">
-                        <%= a.asignado_nombre.slice(0,2).toUpperCase() %>
-                      </div>
-                      <span style="color:var(--text-secondary);"><%= a.asignado_nombre.split(' ')[0] %></span>
-                    </div>
-                    <% } else { %>
-                    <span style="color:var(--text-muted);">—</span>
-                    <% } %>
-                  </td>
-                  <td style="font-size:0.75rem; color:var(--text-muted); white-space:nowrap;">
-                    <% if (a.fecha_inicio) { %><div>📅 <%= new Date(a.fecha_inicio).toLocaleDateString('es-MX', {day:'2-digit',month:'short'}) %></div><% } %>
-                    <% if (a.fecha_fin) { %><div>🏁 <%= new Date(a.fecha_fin).toLocaleDateString('es-MX', {day:'2-digit',month:'short'}) %></div><% } %>
-                  </td>
-                  <td><span class="badge <%= estBadge %>" style="font-size:0.65rem;"><%= a.estado %></span></td>
-                  <td style="min-width:100px;">
-                    <div style="display:flex; align-items:center; gap:0.4rem;">
-                      <div class="qa-bar" style="flex:1;">
-                        <div class="qa-bar-fill" style="width:<%= a.porcentaje_avance || 0 %>%;"></div>
-                      </div>
-                      <span style="font-size:0.72rem; font-weight:700; color:var(--accent); min-width:30px;"><%= a.porcentaje_avance || 0 %>%</span>
-                    </div>
-                  </td>
-                  <td style="text-align:right;">
-                    <div style="display:flex; gap:0.35rem; justify-content:flex-end;">
-                      <button class="btn btn-ghost btn-sm" onclick="abrirModalVersiones(<%= a.id_actividad %>, '<%= a.nombre.replace(/'/g, "\\'") %>')" title="Versiones">🗂️</button>
-                      <button class="btn btn-ghost btn-sm" onclick='editarActividad(<%= JSON.stringify(a) %>)' title="Editar">✏️</button>
-                      <button class="btn btn-danger btn-sm" onclick="eliminarActividad(<%= a.id_actividad %>)" title="Eliminar">🗑️</button>
-                    </div>
-                  </td>
-                </tr>
+                  </div>
+                </div>
                 <% }) %>
-              </tbody>
-            </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. VISTA: TABLA DETALLADA -->
+          <div id="cview-tabla" style="display:none; padding: 0 1.25rem 1.25rem 1.25rem;">
+            <div class="table-wrapper" style="border:none; background:transparent;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Actividad</th>
+                    <th>Fase</th>
+                    <th>Responsable</th>
+                    <th>Fechas</th>
+                    <th>Estado</th>
+                    <th>Avance</th>
+                    <th style="text-align:right;">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% cronograma.forEach(a => {
+                    let estBadge = 'badge-slate';
+                    if (a.estado === 'Completado') estBadge = 'badge-green';
+                    else if (a.estado === 'En Progreso') estBadge = 'badge-blue';
+                    else if (a.estado === 'Bloqueado') estBadge = 'badge-red';
+                    else if (a.estado === 'Pendiente') estBadge = 'badge-yellow';
+                  %>
+                  <tr class="activity-row">
+                    <td>
+                      <div style="font-size:0.83rem; font-weight:600; color:var(--text-primary);">
+                        <%= a.nombre %>
+                        <% if (a.es_reportable) { %><span class="badge badge-teal" style="font-size:0.58rem; margin-left:0.3rem;">Reportable</span><% } %>
+                      </div>
+                      <% if (a.descripcion) { %>
+                      <div style="font-size:0.7rem; color:var(--text-muted); margin-top:0.1rem; max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><%= a.descripcion %></div>
+                      <% } %>
+                      <% if (a.entregable_ticket_id) { %>
+                      <div style="font-size:0.68rem; color:var(--accent); margin-top:0.15rem;">🎫 <%= a.entregable_ticket_id %> — <%= a.entregable_titulo ? a.entregable_titulo.substring(0,30) : '' %></div>
+                      <% } %>
+                    </td>
+                    <td style="font-size:0.78rem; color:var(--text-secondary);">
+                      <% if (a.etapa_nombre) { %><div style="font-size:0.68rem; color:var(--text-muted);"><%= a.etapa_nombre %></div><% } %>
+                      <%= a.fase_nombre || '—' %>
+                    </td>
+                    <td style="font-size:0.78rem;">
+                      <% if (a.asignado_nombre) { %>
+                      <div style="display:flex; align-items:center; gap:0.35rem;">
+                        <div style="width:24px; height:24px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:0.6rem; font-weight:700; color:white; flex-shrink:0;">
+                          <%= a.asignado_nombre.slice(0,2).toUpperCase() %>
+                        </div>
+                        <span style="color:var(--text-secondary);"><%= a.asignado_nombre.split(' ')[0] %></span>
+                      </div>
+                      <% } else { %>
+                      <span style="color:var(--text-muted);">—</span>
+                      <% } %>
+                    </td>
+                    <td style="font-size:0.75rem; color:var(--text-muted); white-space:nowrap;">
+                      <% if (a.fecha_inicio) { %><div>📅 <%= new Date(a.fecha_inicio).toLocaleDateString('es-MX', {day:'2-digit',month:'short'}) %></div><% } %>
+                      <% if (a.fecha_fin) { %><div>🏁 <%= new Date(a.fecha_fin).toLocaleDateString('es-MX', {day:'2-digit',month:'short'}) %></div><% } %>
+                    </td>
+                    <td><span class="badge <%= estBadge %>" style="font-size:0.65rem;"><%= a.estado %></span></td>
+                    <td style="min-width:100px;">
+                      <div style="display:flex; align-items:center; gap:0.4rem;">
+                        <div class="qa-bar" style="flex:1;">
+                          <div class="qa-bar-fill" style="width:<%= a.porcentaje_avance || 0 %>%;"></div>
+                        </div>
+                        <span style="font-size:0.72rem; font-weight:700; color:var(--accent); min-width:30px;"><%= a.porcentaje_avance || 0 %>%</span>
+                      </div>
+                    </td>
+                    <td style="text-align:right;">
+                      <div style="display:flex; gap:0.35rem; justify-content:flex-end;">
+                        <button class="btn btn-ghost btn-sm" onclick="abrirModalVersiones(<%= a.id_actividad %>, '<%= a.nombre.replace(/'/g, "\\'") %>')" title="Versiones">🗂️</button>
+                        <button class="btn btn-ghost btn-sm" onclick='editarActividad(<%= JSON.stringify(a) %>)' title="Editar">✏️</button>
+                        <button class="btn btn-danger btn-sm" onclick="eliminarActividad(<%= a.id_actividad %>)" title="Eliminar">🗑️</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
           </div>
           <% } %>
         </div>
@@ -832,11 +1021,15 @@
         <!-- Fechas -->
         <div class="form-group">
           <label class="form-label">Fecha Inicio *</label>
-          <input type="date" name="fecha_inicio" id="act-fecha-inicio" class="form-control" required onclick="this.showPicker()" onfocus="this.showPicker()">
+          <input type="date" name="fecha_inicio" id="act-fecha-inicio" class="form-control" required onclick="this.showPicker()" onfocus="this.showPicker()"
+            min="<%= proyecto.fecha_inicio ? new Date(proyecto.fecha_inicio).toISOString().substring(0,10) : '' %>"
+            max="<%= proyecto.fecha_fin ? new Date(proyecto.fecha_fin).toISOString().substring(0,10) : '' %>">
         </div>
         <div class="form-group">
           <label class="form-label">Fecha Fin *</label>
-          <input type="date" name="fecha_fin" id="act-fecha-fin" class="form-control" required onclick="this.showPicker()" onfocus="this.showPicker()">
+          <input type="date" name="fecha_fin" id="act-fecha-fin" class="form-control" required onclick="this.showPicker()" onfocus="this.showPicker()"
+            min="<%= proyecto.fecha_inicio ? new Date(proyecto.fecha_inicio).toISOString().substring(0,10) : '' %>"
+            max="<%= proyecto.fecha_fin ? new Date(proyecto.fecha_fin).toISOString().substring(0,10) : '' %>">
         </div>
         <!-- Estado y Avance -->
         <div class="form-group">
@@ -953,6 +1146,141 @@
 <script>
   const PROYECTO_ID = <%= proyecto.id_proyecto %>;
   const PROYECTO_GITHUB_REPO = '<%= proyecto.github_repo || "" %>';
+  const ACTIVIDADES_CRONOGRAMA = <%- JSON.stringify(cronograma) %>;
+  const TODOS_USUARIOS = <%- JSON.stringify(todosUsuarios) %>;
+  const PROYECTO_FECHA_INICIO = '<%= proyecto.fecha_inicio ? new Date(proyecto.fecha_inicio).toISOString().substring(0,10) : "" %>';
+  const PROYECTO_FECHA_FIN = '<%= proyecto.fecha_fin ? new Date(proyecto.fecha_fin).toISOString().substring(0,10) : "" %>';
+
+  // ─── Cargar Equipo/Clientes Predeterminados del Sistema ──────────────────────
+  async function agregarEquipoPredeterminado() {
+    const mapeoPredeterminado = {
+      'sergio@upt.pe': 'Gestor de Configuración',
+      'diego@upt.pe': 'Líder Técnico',
+      'gregory@upt.pe': 'Desarrollador Asignado',
+      'cesar@upt.pe': 'Equipo QA / Tester',
+      'director@upt.pe': 'Director',
+      'ccb@upt.pe': 'Comité de Control (CCB)'
+    };
+
+    const usuariosParaAgregar = [];
+
+    // Filtrar los usuarios globales que coincidan con los correos del equipo de demo
+    TODOS_USUARIOS.forEach(u => {
+      const rolProyecto = mapeoPredeterminado[u.correo];
+      if (rolProyecto) {
+        usuariosParaAgregar.push({
+          id_usuario: u.id,
+          rol_en_proyecto: rolProyecto,
+          nombre: u.nombre
+        });
+      }
+    });
+
+    if (usuariosParaAgregar.length === 0) {
+      alert('No se encontraron los usuarios de demostración predefinidos en la base de datos.');
+      return;
+    }
+
+    if (!confirm(`¿Deseas agregar automáticamente a los ${usuariosParaAgregar.length} miembros predefinidos con sus roles en el proyecto?`)) {
+      return;
+    }
+
+    let agregados = 0;
+    let errores = [];
+
+    for (const usr of usuariosParaAgregar) {
+      try {
+        const res = await fetch(`/api/admin/proyectos/${PROYECTO_ID}/equipo`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            id_usuario: usr.id_usuario,
+            rol_en_proyecto: usr.rol_en_proyecto
+          })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          agregados++;
+        } else {
+          // Ignorar duplicados
+          if (data.error && (data.error.includes('duplicate') || data.error.includes('ya existe') || data.error.includes('repetido') || data.error.includes('Miembro ya registrado'))) {
+            // Ya registrado
+          } else {
+            errores.push(`${usr.nombre}: ${data.error || 'Error'}`);
+          }
+        }
+      } catch (err) {
+        errores.push(`${usr.nombre}: ${err.message}`);
+      }
+    }
+
+    if (errores.length > 0) {
+      alert(`Se agregaron ${agregados} miembros. Hubo algunos detalles:\n` + errores.join('\n'));
+    } else {
+      alert(`¡Se agregaron con éxito ${agregados} miembros al equipo del proyecto!`);
+    }
+    location.reload();
+  }
+
+  async function agregarClientesPredeterminados() {
+    const correosPredeterminados = ['docente@upt.pe'];
+    const usuariosParaAgregar = [];
+
+    TODOS_USUARIOS.forEach(u => {
+      if (correosPredeterminados.includes(u.correo)) {
+        usuariosParaAgregar.push({
+          id_usuario: u.id,
+          nombre: u.nombre
+        });
+      }
+    });
+
+    if (usuariosParaAgregar.length === 0) {
+      alert('No se encontró el cliente predefinido (docente@upt.pe) en la base de datos.');
+      return;
+    }
+
+    if (!confirm(`¿Deseas agregar automáticamente a los clientes predefinidos (docente@upt.pe)?`)) {
+      return;
+    }
+
+    let agregados = 0;
+    let errores = [];
+
+    for (const usr of usuariosParaAgregar) {
+      try {
+        const res = await fetch(`/api/admin/proyectos/${PROYECTO_ID}/clientes`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            id_usuario: usr.id_usuario
+          })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          agregados++;
+        } else {
+          if (data.error && (data.error.includes('duplicate') || data.error.includes('ya existe') || data.error.includes('registrado'))) {
+            // Ya registrado
+          } else {
+            errores.push(`${usr.nombre}: ${data.error || 'Error'}`);
+          }
+        }
+      } catch (err) {
+        errores.push(`${usr.nombre}: ${err.message}`);
+      }
+    }
+
+    if (errores.length > 0) {
+      alert(`Se agregaron ${agregados} clientes. Detalles:\n` + errores.join('\n'));
+    } else {
+      alert(`¡Se agregaron con éxito ${agregados} clientes al proyecto!`);
+    }
+    location.reload();
+  }
+
+  let cronYear = new Date().getFullYear();
+  let cronMonth = new Date().getMonth();
 
   // ─── Tabs ───────────────────────────────────────────────────────────────────
   function switchTab(panelId, btn) {
@@ -963,10 +1291,20 @@
     
     // Guardar pestaña activa
     localStorage.setItem('activeTab_' + PROYECTO_ID, panelId);
+
+    // Si entramos a la pestaña del cronograma, inicializar el calendario si no está inicializado
+    if (panelId === 'tab-cronograma') {
+      const savedView = localStorage.getItem('cronogramaView_' + PROYECTO_ID) || 'calendario';
+      switchCronogramaView(savedView);
+    }
   }
 
   // Restaurar pestaña activa al cargar la página
   document.addEventListener('DOMContentLoaded', () => {
+    initCronogramaCalendar();
+    const savedView = localStorage.getItem('cronogramaView_' + PROYECTO_ID) || 'calendario';
+    switchCronogramaView(savedView);
+
     // 1. Verificar si hay pestaña especificada en la URL (ej: ?tab=tickets)
     const urlParams = new URLSearchParams(window.location.search);
     const urlTab = urlParams.get('tab');
@@ -987,6 +1325,197 @@
       }
     }
   });
+
+  // ─── Calendario Mensual del Cronograma ──────────────────────────────────────
+  function switchCronogramaView(view) {
+    const calendarView = document.getElementById('cview-calendario');
+    const ganttView = document.getElementById('cview-gantt');
+    const tablaView = document.getElementById('cview-tabla');
+    
+    if (!calendarView || !ganttView || !tablaView) return;
+
+    // Ocultar todas
+    calendarView.style.display = 'none';
+    ganttView.style.display = 'none';
+    tablaView.style.display = 'none';
+    
+    // Quitar active de botones
+    const btnCal = document.getElementById('subbtn-calendario');
+    const btnGantt = document.getElementById('subbtn-gantt');
+    const btnTabla = document.getElementById('subbtn-tabla');
+
+    if (btnCal) { btnCal.classList.remove('active'); btnCal.style.color = 'var(--text-muted)'; }
+    if (btnGantt) { btnGantt.classList.remove('active'); btnGantt.style.color = 'var(--text-muted)'; }
+    if (btnTabla) { btnTabla.classList.remove('active'); btnTabla.style.color = 'var(--text-muted)'; }
+
+    // Mostrar la seleccionada
+    if (view === 'calendario') {
+      calendarView.style.display = 'block';
+      if (btnCal) { btnCal.classList.add('active'); btnCal.style.color = 'var(--accent)'; }
+      renderCronogramaCalendar();
+    } else if (view === 'gantt') {
+      ganttView.style.display = 'block';
+      if (btnGantt) { btnGantt.classList.add('active'); btnGantt.style.color = 'var(--accent)'; }
+    } else {
+      tablaView.style.display = 'block';
+      if (btnTabla) { btnTabla.classList.add('active'); btnTabla.style.color = 'var(--accent)'; }
+    }
+    localStorage.setItem('cronogramaView_' + PROYECTO_ID, view);
+  }
+
+  function initCronogramaCalendar() {
+    const minD = PROYECTO_FECHA_INICIO;
+    if (minD) {
+      const parts = minD.split('-');
+      cronYear = parseInt(parts[0]);
+      cronMonth = parseInt(parts[1]) - 1;
+    } else if (ACTIVIDADES_CRONOGRAMA.length > 0) {
+      const parts = ACTIVIDADES_CRONOGRAMA[0].fecha_inicio.split('-');
+      cronYear = parseInt(parts[0]);
+      cronMonth = parseInt(parts[1]) - 1;
+    }
+  }
+
+  function renderCronogramaCalendar() {
+    const MESES_NOMBRES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                           'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    
+    const tituloEl = document.getElementById('cron-cal-titulo');
+    if (tituloEl) tituloEl.textContent = `${MESES_NOMBRES[cronMonth]} ${cronYear}`;
+    
+    const grid = document.getElementById('cron-cal-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    
+    // Primer día del mes
+    const primero = new Date(cronYear, cronMonth, 1);
+    // Lunes = 0, ..., Domingo = 6
+    let offset = primero.getDay() - 1;
+    if (offset < 0) offset = 6;
+    
+    // Total de días del mes
+    const totalDias = new Date(cronYear, cronMonth + 1, 0).getDate();
+    // Total de días del mes anterior
+    const totalDiasAnt = new Date(cronYear, cronMonth, 0).getDate();
+    
+    // Celdas mes anterior
+    for (let i = offset - 1; i >= 0; i--) {
+      const d = totalDiasAnt - i;
+      grid.appendChild(crearCeldaCalendario(cronYear, cronMonth - 1, d, true));
+    }
+    
+    // Celdas mes actual
+    for (let d = 1; d <= totalDias; d++) {
+      grid.appendChild(crearCeldaCalendario(cronYear, cronMonth, d, false));
+    }
+    
+    // Celdas mes siguiente para completar la cuadrícula de 7 columnas
+    const totalCeldasActuales = offset + totalDias;
+    const celdasFaltantes = (7 - (totalCeldasActuales % 7)) % 7;
+    for (let d = 1; d <= celdasFaltantes; d++) {
+      grid.appendChild(crearCeldaCalendario(cronYear, cronMonth + 1, d, true));
+    }
+  }
+
+  // Helper para parsear fechas de forma segura sin desvíos de zona horaria (UTC/Local)
+  function parseLocalDate(dateInput) {
+    if (!dateInput) return null;
+    const str = (typeof dateInput === 'string') ? dateInput : new Date(dateInput).toISOString();
+    const datePart = str.substring(0, 10); // "YYYY-MM-DD"
+    const parts = datePart.split('-');
+    return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+  }
+
+  function crearCeldaCalendario(año, mes, dia, esOtroMes) {
+    const cell = document.createElement('div');
+    cell.className = 'calendar-cell' + (esOtroMes ? ' other-month' : '');
+    
+    const fecha = new Date(año, mes, dia);
+    fecha.setHours(0,0,0,0);
+    
+    // Obtener formato YYYY-MM-DD en hora local sin desvíos UTC
+    const yyyy = fecha.getFullYear();
+    const mm = String(fecha.getMonth() + 1).padStart(2, '0');
+    const dd = String(fecha.getDate()).padStart(2, '0');
+    const fechaStr = `${yyyy}-${mm}-${dd}`;
+    
+    const hoy = new Date();
+    hoy.setHours(0,0,0,0);
+    if (fecha.getTime() === hoy.getTime()) {
+      cell.classList.add('today-cell');
+    }
+    
+    const num = document.createElement('div');
+    num.className = 'calendar-day-num';
+    num.textContent = dia;
+    cell.appendChild(num);
+    
+    if (esOtroMes) {
+      cell.style.cursor = 'not-allowed';
+    } else {
+      cell.onclick = () => {
+        abrirNuevaActividadConFecha(fechaStr);
+      };
+    }
+    
+    // Buscar actividades activas en esta fecha
+    ACTIVIDADES_CRONOGRAMA.forEach(a => {
+      const ini = parseLocalDate(a.fecha_inicio);
+      const fin = parseLocalDate(a.fecha_fin);
+      if (!ini || !fin) return;
+      
+      if (fecha >= ini && fecha <= fin) {
+        const ev = document.createElement('div');
+        let estClass = 'event-pendiente';
+        if (a.estado === 'Completado') estClass = 'event-completado';
+        else if (a.estado === 'En Progreso') estClass = 'event-progreso';
+        else if (a.estado === 'Bloqueado') estClass = 'event-bloqueado';
+        
+        ev.className = `calendar-event ${estClass}`;
+        ev.textContent = `[${parseFloat(a.porcentaje_avance).toFixed(0)}%] ${a.nombre}`;
+        ev.title = `${a.nombre} (${a.estado} - ${parseFloat(a.porcentaje_avance).toFixed(0)}%)\nResponsable: ${a.asignado_nombre || 'Sin asignar'}`;
+        
+        ev.onclick = (e) => {
+          e.stopPropagation();
+          editarActividad(a);
+        };
+        
+        cell.appendChild(ev);
+      }
+    });
+    
+    return cell;
+  }
+
+  function navigateCronogramaCalendar(dir) {
+    cronMonth += dir;
+    if (cronMonth < 0)  { cronMonth = 11; cronYear--; }
+    if (cronMonth > 11) { cronMonth = 0;  cronYear++; }
+    renderCronogramaCalendar();
+  }
+
+  function goTodayCronogramaCalendar() {
+    const hoy = new Date();
+    cronYear = hoy.getFullYear();
+    cronMonth = hoy.getMonth();
+    renderCronogramaCalendar();
+  }
+
+  function abrirNuevaActividadConFecha(fechaStr) {
+    // Verificar límites del proyecto
+    if (PROYECTO_FECHA_INICIO && fechaStr < PROYECTO_FECHA_INICIO) {
+      alert(`La fecha seleccionada (${fechaStr}) es anterior a la fecha de inicio del proyecto (${PROYECTO_FECHA_INICIO}).`);
+      return;
+    }
+    if (PROYECTO_FECHA_FIN && fechaStr > PROYECTO_FECHA_FIN) {
+      alert(`La fecha seleccionada (${fechaStr}) es posterior a la fecha de fin del proyecto (${PROYECTO_FECHA_FIN}).`);
+      return;
+    }
+    
+    abrirNuevaActividad();
+    document.getElementById('act-fecha-inicio').value = fechaStr;
+    document.getElementById('act-fecha-fin').value = fechaStr;
+  }
 
   // ─── Accordion ─────────────────────────────────────────────────────────────
   function toggleAccordion(header) {
@@ -1113,6 +1642,7 @@
     if (!body.id_fase) delete body.id_fase;
     if (!body.id_usuario) delete body.id_usuario;
     if (!body.id_entregable) delete body.id_entregable;
+    
     // Validación de fechas en cliente
     if (body.fecha_inicio && body.fecha_fin && body.fecha_inicio > body.fecha_fin) {
       errEl.textContent = 'La fecha de inicio no puede ser posterior a la fecha de fin.';
@@ -1120,6 +1650,19 @@
       btn.textContent = 'Guardar Actividad'; btn.disabled = false;
       return;
     }
+    if (PROYECTO_FECHA_INICIO && body.fecha_inicio < PROYECTO_FECHA_INICIO) {
+      errEl.textContent = `La fecha de inicio (${body.fecha_inicio}) es anterior a la fecha de inicio del proyecto (${PROYECTO_FECHA_INICIO}).`;
+      errEl.style.display = 'flex';
+      btn.textContent = 'Guardar Actividad'; btn.disabled = false;
+      return;
+    }
+    if (PROYECTO_FECHA_FIN && body.fecha_fin > PROYECTO_FECHA_FIN) {
+      errEl.textContent = `La fecha de fin (${body.fecha_fin}) es posterior a la fecha de fin del proyecto (${PROYECTO_FECHA_FIN}).`;
+      errEl.style.display = 'flex';
+      btn.textContent = 'Guardar Actividad'; btn.disabled = false;
+      return;
+    }
+
     const id = body.id_actividad;
     const url = id ? `/api/admin/proyectos/${PROYECTO_ID}/cronograma/${id}` : `/api/admin/proyectos/${PROYECTO_ID}/cronograma`;
     const method = id ? 'PUT' : 'POST';

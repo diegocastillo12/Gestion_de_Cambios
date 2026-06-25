@@ -222,7 +222,28 @@ exports.crearProyecto = asyncH(async (req, res) => {
     idAdmin: user.id, idMetodologia: id_metodologia || null, githubRepo: finalRepo
   });
   const idProyecto = result.insertId;
-  return res.json({ success: true, id_proyecto: idProyecto });
+
+  // ── FASE 1: Generar cronograma automático si tiene metodología y fechas ──
+  let cronogramaGenerado = 0;
+  if (id_metodologia && fecha_inicio && fecha_fin) {
+    try {
+      const metodologia = await MetodologiaModel.findById(id_metodologia);
+      if (metodologia) {
+        const actInsertadas = await CronogramaModel.generarCronogramaAutomatico(
+          idProyecto,
+          metodologia.nombre,
+          fecha_inicio,
+          fecha_fin,
+          id_metodologia
+        );
+        cronogramaGenerado = actInsertadas.length;
+      }
+    } catch (cronErr) {
+      console.warn('⚠️ Error al generar cronograma automático:', cronErr.message);
+    }
+  }
+
+  return res.json({ success: true, id_proyecto: idProyecto, cronograma_generado: cronogramaGenerado });
 });
 
 exports.mostrarEditarProyecto = asyncH(async (req, res) => {

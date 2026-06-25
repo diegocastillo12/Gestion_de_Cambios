@@ -71,6 +71,42 @@ router.get('/proyectos/:id/avance', auth.requireAuth, async (req, res) => {
   } catch(e) { res.status(500).json({ success: false, error: e.message }); }
 });
 
+// Estructura metodológica del proyecto (etapas → fases → ECMs) para vincular tickets
+router.get('/proyectos/:id/estructura', auth.requireAuth, async (req, res) => {
+  try {
+    const { query: dbQuery } = require('../config/db');
+    const idProyecto = req.params.id;
+
+    const etapas = await dbQuery(
+      `SELECT e.id_etapa, e.nombre AS etapa_nombre, e.orden
+       FROM etapas e
+       JOIN proyectos p ON p.id_metodologia = e.id_metodologia
+       WHERE p.id_proyecto = ?
+       ORDER BY e.orden ASC, e.id_etapa ASC`,
+      [idProyecto]
+    );
+
+    for (const et of etapas) {
+      et.fases = await dbQuery(
+        `SELECT f.id_fase, f.nombre AS fase_nombre, f.orden
+         FROM fases f WHERE f.id_etapa = ? ORDER BY f.orden ASC`,
+        [et.id_etapa]
+      );
+      for (const fa of et.fases) {
+        fa.ecms = await dbQuery(
+          `SELECT id_ecm, nombre, tipo
+           FROM elementos_config_metodologia WHERE id_fase = ? ORDER BY id_ecm ASC`,
+          [fa.id_fase]
+        );
+      }
+    }
+
+    res.json({ success: true, etapas });
+  } catch(e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
 // ─── CRONOGRAMA / ACTIVIDADES (prefijo estándar) ──────────────────────────────
 router.post('/actividades',            auth.requireAuth, proy.crearActividad);
 router.put('/actividades/:id',         auth.requireAuth, proy.actualizarActividad);

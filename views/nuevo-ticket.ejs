@@ -16,7 +16,7 @@
 
     <div class="page-container">
 
-      <div style="max-width: 740px; margin: 0 auto;">
+      <div style="max-width: 760px; margin: 0 auto;">
 
         <div style="margin-bottom:1.5rem;">
           <h2 style="font-size:1.4rem; margin-bottom:0.3rem;">➕ Solicitar Cambio</h2>
@@ -28,8 +28,10 @@
         <% } %>
 
         <div class="card">
-          <form action="/api/tickets" method="POST" onsubmit="crearTicket(event)">
-            <% if (id_proyecto) { 
+          <form action="/api/tickets" method="POST" onsubmit="crearTicket(event)" id="form-nuevo-ticket">
+
+            <%# ── Proyecto asociado ── %>
+            <% if (id_proyecto) {
               const selectedProj = proyectos.find(p => String(p.id_proyecto) === String(id_proyecto));
             %>
               <input type="hidden" name="id_proyecto" id="id_proyecto" value="<%= id_proyecto %>" />
@@ -40,7 +42,7 @@
             <% } else { %>
               <div class="form-group">
                 <label class="form-label" for="id_proyecto">Proyecto Asociado</label>
-                <select id="id_proyecto" name="id_proyecto" class="form-control">
+                <select id="id_proyecto" name="id_proyecto" class="form-control" onchange="cargarEstructura(this.value)">
                   <option value="">— Seleccionar Proyecto (Opcional) —</option>
                   <% proyectos.forEach(p => { %>
                     <option value="<%= p.id_proyecto %>"><%= p.nombre %></option>
@@ -60,6 +62,12 @@
               <label class="form-label" for="descripcion">Descripción Detallada <span style="color:var(--red);">*</span></label>
               <textarea id="descripcion" name="descripcion" class="form-control" rows="5"
                 placeholder="Describe el problema, la necesidad y el contexto del cambio…" required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="justificacion_tecnica">Justificación Técnica</label>
+              <textarea id="justificacion_tecnica" name="justificacion_tecnica" class="form-control" rows="2"
+                placeholder="¿Por qué es necesario este cambio desde el punto de vista técnico?"></textarea>
             </div>
 
             <div class="grid-2" style="gap:1rem;">
@@ -83,18 +91,6 @@
               </div>
             </div>
 
-            <div class="form-group">
-              <label class="form-label" for="impacto">Análisis de Impacto</label>
-              <textarea id="impacto" name="impacto" class="form-control" rows="2"
-                placeholder="¿A quién o qué afecta este cambio? ¿Cuál es el alcance del impacto?"></textarea>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="riesgo">Evaluación de Riesgo</label>
-              <textarea id="riesgo" name="riesgo" class="form-control" rows="2"
-                placeholder="¿Cuáles son los riesgos de implementar o no implementar este cambio?"></textarea>
-            </div>
-
             <div class="grid-2" style="gap:1rem;">
               <div class="form-group">
                 <label class="form-label" for="estimacionHoras">Estimación (horas)</label>
@@ -107,6 +103,68 @@
                   class="form-control" placeholder="backend, seguridad, frontend…" />
                 <span class="form-hint">Separadas por comas</span>
               </div>
+            </div>
+
+            <%# ─────────────────────────────────────────────────────────────────── %>
+            <%# FASE 2 — VÍNCULO CON LA ESTRUCTURA DEL PROYECTO                    %>
+            <%# ─────────────────────────────────────────────────────────────────── %>
+            <div class="divider"></div>
+
+            <div id="seccion-vinculo" style="<%= (estructuraProyecto && estructuraProyecto.length > 0) ? '' : 'display:none;' %>">
+              <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem;">
+                <span style="font-size:1.1rem;">📎</span>
+                <div>
+                  <h3 style="font-size:1rem; margin:0; font-weight:600;">Vínculo con la Estructura del Proyecto</h3>
+                  <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Identifica a qué etapa, ECM o requisito afecta este cambio. Este vínculo conecta el ticket con el cronograma.</p>
+                </div>
+              </div>
+
+              <div class="grid-2" style="gap:1rem;">
+                <div class="form-group">
+                  <label class="form-label" for="id_etapa_afectada">Etapa Afectada</label>
+                  <select id="id_etapa_afectada" name="id_etapa_afectada" class="form-control" onchange="filtrarEcmsPorEtapa(this.value)">
+                    <option value="">— Seleccionar Etapa —</option>
+                    <%# Se llena dinámicamente por JS o por SSR si viene con id_proyecto %>
+                    <% if (estructuraProyecto && estructuraProyecto.length > 0) {
+                      estructuraProyecto.forEach(et => { %>
+                      <option value="<%= et.id_etapa %>"><%= et.etapa_nombre %></option>
+                    <% }) } %>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="id_ecm_afectado">ECM Afectado</label>
+                  <select id="id_ecm_afectado" name="id_ecm_afectado" class="form-control">
+                    <option value="">— Seleccionar ECM —</option>
+                    <%# Se llena dinámicamente por JS %>
+                    <% if (estructuraProyecto && estructuraProyecto.length > 0) {
+                      estructuraProyecto.forEach(et => {
+                        et.fases && et.fases.forEach(fa => {
+                          fa.ecms && fa.ecms.forEach(ecm => { %>
+                          <option value="<%= ecm.id_ecm %>" data-etapa="<%= et.id_etapa %>">
+                            [<%= ecm.tipo %>] <%= ecm.nombre %>
+                          </option>
+                      <% }) }) }) } %>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="requisito_afectado">Requisito / Módulo Afectado</label>
+                <input type="text" id="requisito_afectado" name="requisito_afectado"
+                  class="form-control" placeholder="Ej: RF-05 Autenticación, Módulo de Reportes, CU-12…" maxlength="400" />
+                <span class="form-hint">Especifica el requisito, caso de uso o módulo que se ve afectado por este cambio.</span>
+              </div>
+
+              <%# Badge de preview del vínculo %>
+              <div id="vinculo-preview" style="display:none; padding:0.75rem; background:var(--bg-tertiary); border:1px solid var(--border-default); border-radius:8px; font-size:0.82rem;">
+                <strong>🔗 Vínculo configurado:</strong>
+                <span id="vinculo-preview-text" style="color:var(--text-muted);"></span>
+              </div>
+            </div>
+
+            <div id="seccion-vinculo-placeholder" style="<%= (estructuraProyecto && estructuraProyecto.length > 0) ? 'display:none;' : '' %>; padding:0.75rem; background:var(--bg-tertiary); border:1px dashed var(--border-default); border-radius:8px; text-align:center; font-size:0.82rem; color:var(--text-muted);">
+              📎 Selecciona un proyecto con metodología configurada para vincular el ticket a una etapa o ECM específico.
             </div>
 
             <div class="divider"></div>
@@ -128,3 +186,176 @@
     <%- include('partials/footer') %>
   </div>
 </div>
+
+<%# ─── Datos de estructura embebidos (SSR) ─────────────────────────────────── %>
+<script>
+// Estructura pre-cargada desde el servidor (si vino con id_proyecto)
+let estructuraCache = {};
+<% if (estructuraProyecto && estructuraProyecto.length > 0) { %>
+  estructuraCache['<%= id_proyecto %>'] = <%- JSON.stringify(estructuraProyecto) %>;
+<% } %>
+
+// ── Cargar estructura vía AJAX al cambiar de proyecto ────────────────────────
+async function cargarEstructura(idProyecto) {
+  const seccion    = document.getElementById('seccion-vinculo');
+  const placeholder= document.getElementById('seccion-vinculo-placeholder');
+
+  // Resetear selects
+  document.getElementById('id_etapa_afectada').innerHTML = '<option value="">— Seleccionar Etapa —</option>';
+  document.getElementById('id_ecm_afectado').innerHTML   = '<option value="">— Seleccionar ECM —</option>';
+  ocultarPreviewVinculo();
+
+  if (!idProyecto) {
+    seccion.style.display    = 'none';
+    placeholder.style.display = '';
+    return;
+  }
+
+  // Usar caché si ya está cargado
+  if (estructuraCache[idProyecto]) {
+    poblarEstructura(estructuraCache[idProyecto]);
+    return;
+  }
+
+  try {
+    const resp = await fetch(`/api/proyectos/${idProyecto}/estructura`);
+    const data = await resp.json();
+    if (data.success && data.etapas && data.etapas.length > 0) {
+      estructuraCache[idProyecto] = data.etapas;
+      poblarEstructura(data.etapas);
+    } else {
+      seccion.style.display    = 'none';
+      placeholder.style.display = '';
+    }
+  } catch(e) {
+    console.warn('Error cargando estructura:', e);
+    seccion.style.display    = 'none';
+    placeholder.style.display = '';
+  }
+}
+
+// ── Poblar selects con la estructura cargada ─────────────────────────────────
+function poblarEstructura(etapas) {
+  const selEtapa = document.getElementById('id_etapa_afectada');
+  const selEcm   = document.getElementById('id_ecm_afectado');
+  const seccion  = document.getElementById('seccion-vinculo');
+  const placeholder = document.getElementById('seccion-vinculo-placeholder');
+
+  // Guardar todos los ECMs con su etapa para el filtrado
+  window._todosEcms = [];
+
+  etapas.forEach(et => {
+    const opt = document.createElement('option');
+    opt.value = et.id_etapa;
+    opt.textContent = et.etapa_nombre;
+    selEtapa.appendChild(opt);
+
+    (et.fases || []).forEach(fa => {
+      (fa.ecms || []).forEach(ecm => {
+        window._todosEcms.push({ id: ecm.id_ecm, nombre: ecm.nombre, tipo: ecm.tipo, idEtapa: et.id_etapa });
+        const optE = document.createElement('option');
+        optE.value = ecm.id_ecm;
+        optE.textContent = `[${ecm.tipo}] ${ecm.nombre}`;
+        optE.dataset.etapa = et.id_etapa;
+        selEcm.appendChild(optE);
+      });
+    });
+  });
+
+  seccion.style.display    = '';
+  placeholder.style.display = 'none';
+}
+
+// ── Filtrar ECMs por etapa seleccionada ──────────────────────────────────────
+function filtrarEcmsPorEtapa(idEtapa) {
+  const selEcm = document.getElementById('id_ecm_afectado');
+  selEcm.innerHTML = '<option value="">— Seleccionar ECM —</option>';
+
+  const fuente = window._todosEcms || [];
+  fuente.forEach(ecm => {
+    if (!idEtapa || String(ecm.idEtapa) === String(idEtapa)) {
+      const opt = document.createElement('option');
+      opt.value = ecm.id;
+      opt.textContent = `[${ecm.tipo}] ${ecm.nombre}`;
+      selEcm.appendChild(opt);
+    }
+  });
+  actualizarPreviewVinculo();
+}
+
+// ── Preview del vínculo en tiempo real ───────────────────────────────────────
+function actualizarPreviewVinculo() {
+  const etapa    = document.getElementById('id_etapa_afectada');
+  const ecm      = document.getElementById('id_ecm_afectado');
+  const requisito= document.getElementById('requisito_afectado');
+  const preview  = document.getElementById('vinculo-preview');
+  const previewTxt = document.getElementById('vinculo-preview-text');
+
+  const partes = [];
+  if (etapa.value) partes.push(`Etapa: "${etapa.options[etapa.selectedIndex].text}"`);
+  if (ecm.value)   partes.push(`ECM: "${ecm.options[ecm.selectedIndex].text}"`);
+  if (requisito.value.trim()) partes.push(`Requisito: "${requisito.value.trim()}"`);
+
+  if (partes.length > 0) {
+    previewTxt.textContent = ' ' + partes.join(' • ');
+    preview.style.display  = '';
+  } else {
+    ocultarPreviewVinculo();
+  }
+}
+
+function ocultarPreviewVinculo() {
+  document.getElementById('vinculo-preview').style.display = 'none';
+}
+
+// Listeners para actualizar el preview automáticamente
+document.addEventListener('DOMContentLoaded', () => {
+  ['id_etapa_afectada','id_ecm_afectado'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', actualizarPreviewVinculo);
+  });
+  const req = document.getElementById('requisito_afectado');
+  if (req) req.addEventListener('input', actualizarPreviewVinculo);
+});
+
+// ── Crear ticket vía fetch ────────────────────────────────────────────────────
+async function crearTicket(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btn-crear');
+  btn.disabled = true;
+  btn.textContent = '⏳ Creando…';
+
+  try {
+    const form = document.getElementById('form-nuevo-ticket');
+    const fd = new FormData(form);
+    const body = Object.fromEntries(fd.entries());
+
+    // Limpiar campos opcionales vacíos para evitar problemas con tipos en BD
+    if (!body.estimacionHoras) delete body.estimacionHoras;
+    if (!body.id_proyecto) delete body.id_proyecto;
+    if (!body.id_ecm_afectado) delete body.id_ecm_afectado;
+    if (!body.id_etapa_afectada) delete body.id_etapa_afectada;
+
+    const resp = await fetch('/api/tickets', {
+      method: 'POST',
+      headers: { 
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body),
+    });
+    const json = await resp.json();
+    if (json.success && json.ticket) {
+      window.location.href = `/tickets/${json.ticket.id}`;
+    } else {
+      alert('Error: ' + (json.error || 'No se pudo crear el ticket.'));
+      btn.disabled = false;
+      btn.innerHTML = '<span>🚀</span> Crear Ticket de Cambio';
+    }
+  } catch(err) {
+    alert('Error de red: ' + err.message);
+    btn.disabled = false;
+    btn.innerHTML = '<span>🚀</span> Crear Ticket de Cambio';
+  }
+}
+</script>

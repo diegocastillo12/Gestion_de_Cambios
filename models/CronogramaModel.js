@@ -157,6 +157,209 @@ class CronogramaModel {
     return rows[0] || { total: 0, promedio: 0, completadas: 0, en_progreso: 0, bloqueadas: 0, pendientes: 0 };
   }
 
+  /**
+   * Generar cronograma automático a partir de metodología y fechas del proyecto.
+   * Scrum → sprints de 2 semanas con actividades estándar.
+   * RUP   → 4 fases proporcionales con actividades por fase.
+   * @param {number} idProyecto
+   * @param {string} metodologiaNombre  Nombre de la metodología (insensitive)
+   * @param {string} fechaInicio        YYYY-MM-DD
+   * @param {string} fechaFin           YYYY-MM-DD
+   * @param {number|null} idMetodologia BD id para vincular fases
+   * @returns {Promise<Array>} actividades creadas
+   */
+  async generarCronogramaAutomatico(idProyecto, metodologiaNombre, fechaInicio, fechaFin, idMetodologia) {
+    if (!fechaInicio || !fechaFin) return [];
+
+    const inicio = new Date(fechaInicio);
+    const fin    = new Date(fechaFin);
+    if (inicio >= fin) return [];
+
+    // Obtener fases de la metodología para vincularlas
+    let fasesMap = {}; // nombre normalizado → id_fase
+    if (idMetodologia) {
+      const fasesRows = await query(`
+        SELECT f.id_fase, f.nombre AS fase_nombre, e.nombre AS etapa_nombre
+        FROM fases f
+        JOIN etapas e ON f.id_etapa = e.id_etapa
+        WHERE e.id_metodologia = ?
+        ORDER BY e.orden ASC, f.orden ASC
+      `, [idMetodologia]);
+      fasesRows.forEach(f => {
+        fasesMap[f.fase_nombre.toLowerCase()] = f.id_fase;
+        fasesMap[f.etapa_nombre.toLowerCase()] = f.id_fase; // fallback a etapa
+      });
+    }
+
+    const nombre = (metodologiaNombre || '').toLowerCase();
+    const actividades = [];
+
+    if (nombre.includes('scrum')) {
+      // ── SCRUM: sprints de 2 semanas ──────────────────────────────────────
+      const SPRINT_DAYS = 14;
+      let sprintNum = 1;
+      let sprintInicio = new Date(inicio);
+
+      while (sprintInicio < fin) {
+        let sprintFin = new Date(sprintInicio);
+        sprintFin.setDate(sprintFin.getDate() + SPRINT_DAYS - 1);
+        if (sprintFin > fin) sprintFin = new Date(fin);
+
+        const fi = sprintInicio.toISOString().split('T')[0];
+        const ff = sprintFin.toISOString().split('T')[0];
+
+        // Día 1 del sprint → Planning
+        const planningFin = new Date(sprintInicio);
+        planningFin.setDate(planningFin.getDate() + 1);
+        actividades.push({
+          nombre:      `Sprint ${sprintNum} — Sprint Planning`,
+          descripcion: `Planificación del Sprint ${sprintNum}: definir objetivos y tareas del backlog a abordar.`,
+          fechaInicio: fi,
+          fechaFin:    planningFin.toISOString().split('T')[0],
+          idFase:      fasesMap['sprint planning'] || fasesMap['planning'] || null,
+        });
+
+        // Cuerpo del sprint → Desarrollo
+        const devInicio = new Date(sprintInicio);
+        devInicio.setDate(devInicio.getDate() + 2);
+        const devFin = new Date(sprintFin);
+        devFin.setDate(devFin.getDate() - 2);
+        if (devInicio <= devFin) {
+          actividades.push({
+            nombre:      `Sprint ${sprintNum} — Desarrollo e Implementación`,
+            descripcion: `Ejecución de las tareas del Sprint ${sprintNum}: codificación, integración y pruebas unitarias.`,
+            fechaInicio: devInicio.toISOString().split('T')[0],
+            fechaFin:    devFin.toISOString().split('T')[0],
+            idFase:      fasesMap['desarrollo'] || fasesMap['implementación'] || null,
+          });
+        }
+
+        // Último día - 1 → Sprint Review
+        const reviewFin = new Date(sprintFin);
+        reviewFin.setDate(reviewFin.getDate() - 1);
+        const reviewInicio = new Date(reviewFin);
+        actividades.push({
+          nombre:      `Sprint ${sprintNum} — Sprint Review`,
+          descripcion: `Revisión del incremento del Sprint ${sprintNum} con el Product Owner y stakeholders.`,
+          fechaInicio: reviewInicio.toISOString().split('T')[0],
+          fechaFin:    reviewFin.toISOString().split('T')[0],
+          idFase:      fasesMap['sprint review'] || fasesMap['review'] || null,
+        });
+
+        // Último día → Retrospectiva
+        actividades.push({
+          nombre:      `Sprint ${sprintNum} — Retrospectiva`,
+          descripcion: `Retrospectiva del Sprint ${sprintNum}: analizar qué funcionó, qué mejorar y compromisos del equipo.`,
+          fechaInicio: sprintFin.toISOString().split('T')[0],
+          fechaFin:    sprintFin.toISOString().split('T')[0],
+          idFase:      fasesMap['retrospectiva'] || null,
+        });
+
+        sprintInicio.setDate(sprintInicio.getDate() + SPRINT_DAYS);
+        sprintNum++;
+      }
+
+    } else if (nombre.includes('rup')) {
+      // ── RUP: 4 fases proporcionales ──────────────────────────────────────
+      const totalMs = fin - inicio;
+      const proporciones = [
+        { pct: 0.10, etapa: 'inicio',        label: 'Inicio',        actividades: [
+          { n: 'Definición del alcance',         d: 'Establecer la visión del proyecto, alcance inicial y viabilidad.' },
+          { n: 'Análisis de riesgos iniciales',  d: 'Identificar y priorizar riesgos técnicos y de negocio.' },
+          { n: 'Modelo de negocio',              d: 'Documentar los procesos y actores del negocio.' },
+        ]},
+        { pct: 0.25, etapa: 'elaboración',   label: 'Elaboración',   actividades: [
+          { n: 'Arquitectura base del sistema',  d: 'Definir la arquitectura de referencia y patrones de diseño.' },
+          { n: 'Refinamiento de requisitos',     d: 'Especificar casos de uso principales y requisitos no funcionales.' },
+          { n: 'Prototipo arquitectónico',       d: 'Construir prototipo que valide decisiones de arquitectura.' },
+          { n: 'Plan de iteraciones',            d: 'Planificar las iteraciones de construcción.' },
+        ]},
+        { pct: 0.50, etapa: 'construcción',  label: 'Construcción',  actividades: [
+          { n: 'Implementación de componentes',  d: 'Codificación de módulos y componentes del sistema.' },
+          { n: 'Integración y pruebas unitarias',d: 'Integración continua y ejecución de pruebas unitarias.' },
+          { n: 'Pruebas de sistema',             d: 'Pruebas funcionales, de rendimiento y de regresión.' },
+          { n: 'Documentación técnica',          d: 'Elaboración de manuales técnicos y de usuario.' },
+        ]},
+        { pct: 0.15, etapa: 'transición',    label: 'Transición',    actividades: [
+          { n: 'Pruebas de aceptación (UAT)',    d: 'Validación del sistema con usuarios finales.' },
+          { n: 'Despliegue en producción',       d: 'Instalación y configuración del sistema en ambiente productivo.' },
+          { n: 'Capacitación de usuarios',       d: 'Entrenamiento a los usuarios finales del sistema.' },
+        ]},
+      ];
+
+      let cursor = new Date(inicio);
+      for (const fase of proporciones) {
+        const durMs  = Math.round(totalMs * fase.pct);
+        const faseInicio = new Date(cursor);
+        const faseFin    = new Date(cursor.getTime() + durMs);
+        if (faseFin > fin) faseFin.setTime(fin.getTime());
+
+        const durAct = Math.floor(durMs / fase.actividades.length);
+        let actCursor = new Date(faseInicio);
+
+        const idFaseVinculada = fasesMap[fase.etapa] || fasesMap[fase.label.toLowerCase()] || null;
+
+        for (let i = 0; i < fase.actividades.length; i++) {
+          const act = fase.actividades[i];
+          const actFin = i === fase.actividades.length - 1
+            ? new Date(faseFin)
+            : new Date(actCursor.getTime() + durAct);
+
+          actividades.push({
+            nombre:      `[${fase.label}] ${act.n}`,
+            descripcion: act.d,
+            fechaInicio: actCursor.toISOString().split('T')[0],
+            fechaFin:    (actFin > fin ? new Date(fin) : actFin).toISOString().split('T')[0],
+            idFase:      idFaseVinculada,
+          });
+          actCursor = new Date(actFin.getTime() + 86400000);
+        }
+
+        cursor = new Date(faseFin.getTime() + 86400000);
+      }
+    } else {
+      // ── Metodología genérica: actividades mensuales ───────────────────────
+      const totalDays = Math.round((fin - inicio) / 86400000);
+      const semanas   = Math.max(1, Math.ceil(totalDays / 7));
+      let cur = new Date(inicio);
+
+      for (let s = 1; s <= semanas; s++) {
+        const sf = new Date(cur);
+        sf.setDate(sf.getDate() + 6);
+        if (sf > fin) sf.setTime(fin.getTime());
+        actividades.push({
+          nombre:      `Semana ${s} — Actividad de proyecto`,
+          descripcion: `Actividad planificada para la semana ${s} del proyecto.`,
+          fechaInicio: cur.toISOString().split('T')[0],
+          fechaFin:    sf.toISOString().split('T')[0],
+          idFase:      null,
+        });
+        cur.setDate(cur.getDate() + 7);
+        if (cur > fin) break;
+      }
+    }
+
+    // Insertar todas las actividades en la BD
+    const insertadas = [];
+    for (const act of actividades) {
+      const result = await this.create({
+        idProyecto,
+        idFase:    act.idFase,
+        idUsuario: null,
+        nombre:    act.nombre,
+        descripcion: act.descripcion,
+        fechaInicio: act.fechaInicio,
+        fechaFin:    act.fechaFin,
+        esReportable: true,
+        idEntregable: null,
+        porcentaje_avance: 0,
+        estado: 'Pendiente',
+      });
+      insertadas.push(result);
+    }
+    return insertadas;
+  }
+
   /** Sincronizar el avance de la actividad vinculada a un ticket */
   async syncAvanceConTicket(idSc, nuevoEstado, idUsuarioCambio, idProyecto) {
     const mapped = {

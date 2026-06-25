@@ -138,7 +138,56 @@
             <% } %>
           </div>
 
+          <%# ─── VÍNCULO CON ESTRUCTURA DEL PROYECTO (Fase 2) ─────────────────── %>
+          <% if (ticket.id_ecm_afectado || ticket.id_etapa_afectada || ticket.requisito_afectado) { %>
+          <div class="card" style="border-left: 3px solid var(--accent);">
+            <div class="card-header">
+              <span class="card-title">📎 Vínculo con Estructura del Proyecto</span>
+              <span class="badge badge-green" style="font-size:0.68rem;">Conectado al Cronograma</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:0.75rem; font-size:0.85rem;">
+              <% if (ticket.etapaNombre) { %>
+              <div style="display:flex; align-items:flex-start; gap:0.75rem;">
+                <span style="font-size:1rem; flex-shrink:0; margin-top:1px;">🏗️</span>
+                <div>
+                  <div class="form-label mb-1">Etapa Afectada</div>
+                  <span style="background:var(--accent-subtle); color:var(--accent); padding:0.2rem 0.65rem; border-radius:999px; font-size:0.78rem; font-weight:600; border:1px solid var(--accent-border);">
+                    <%= ticket.etapaNombre %>
+                  </span>
+                </div>
+              </div>
+              <% } %>
+              <% if (ticket.ecmNombre) { %>
+              <div style="display:flex; align-items:flex-start; gap:0.75rem;">
+                <span style="font-size:1rem; flex-shrink:0; margin-top:1px;">📄</span>
+                <div>
+                  <div class="form-label mb-1">ECM Afectado</div>
+                  <div style="display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap;">
+                    <span style="background:var(--bg-tertiary); color:var(--text-secondary); padding:0.15rem 0.5rem; border-radius:4px; font-size:0.72rem; border:1px solid var(--border-default);">
+                      <%= ticket.ecmTipo || 'Documento' %>
+                    </span>
+                    <span style="color:var(--text-primary); font-weight:500;"><%= ticket.ecmNombre %></span>
+                  </div>
+                </div>
+              </div>
+              <% } %>
+              <% if (ticket.requisito_afectado) { %>
+              <div style="display:flex; align-items:flex-start; gap:0.75rem;">
+                <span style="font-size:1rem; flex-shrink:0; margin-top:1px;">📌</span>
+                <div>
+                  <div class="form-label mb-1">Requisito / Módulo</div>
+                  <code style="font-size:0.82rem; color:var(--blue); background:var(--blue-subtle); padding:0.2rem 0.65rem; border-radius:4px;">
+                    <%= ticket.requisito_afectado %>
+                  </code>
+                </div>
+              </div>
+              <% } %>
+            </div>
+          </div>
+          <% } %>
+
           <!-- RESULTADOS DE QA -->
+
           <% if (ticket.qaResultados) { %>
           <div class="card">
             <div class="card-header">

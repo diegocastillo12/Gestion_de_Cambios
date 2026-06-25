@@ -25,16 +25,24 @@ const BASE_QUERY = `
     sc.id_tester          AS testerId,
     sc.fecha_registro     AS fechaCreacion,
     sc.fecha_ultima_modificacion AS fechaActualizacion,
+    sc.id_ecm_afectado,
+    sc.id_etapa_afectada,
+    sc.requisito_afectado,
     u_sol.nombre_completo AS solicitanteNombre,
     u_sol.correo          AS solicitanteCorreo,
     u_dev.nombre_completo AS asignadoNombre,
     u_test.nombre_completo AS testerNombre,
-    p.nombre              AS proyectoNombre
+    p.nombre              AS proyectoNombre,
+    ecm.nombre            AS ecmNombre,
+    ecm.tipo              AS ecmTipo,
+    eta.nombre            AS etapaNombre
   FROM  solicitudes_cambio sc
   LEFT JOIN usuarios u_sol  ON sc.id_solicitante    = u_sol.id_usuario
   LEFT JOIN usuarios u_dev  ON sc.id_desarrollador  = u_dev.id_usuario
   LEFT JOIN usuarios u_test ON sc.id_tester         = u_test.id_usuario
   LEFT JOIN proyectos p     ON sc.id_proyecto       = p.id_proyecto
+  LEFT JOIN elementos_config_metodologia ecm ON sc.id_ecm_afectado = ecm.id_ecm
+  LEFT JOIN etapas eta      ON sc.id_etapa_afectada = eta.id_etapa
 `;
 
 class TicketModel {
@@ -101,11 +109,14 @@ class TicketModel {
    * @returns {Promise<Object>}
    */
   async create(ticketData) {
-    const { ticketId, titulo, descripcion, justificacion, tipo, prioridad, estimacionHoras, idSolicitante, idProyecto } = ticketData;
+    const { ticketId, titulo, descripcion, justificacion, tipo, prioridad, estimacionHoras,
+            idSolicitante, idProyecto, idEcmAfectado, idEtapaAfectada, requisitoAfectado } = ticketData;
     const sql = `
       INSERT INTO solicitudes_cambio
-        (id_proyecto, ticket_id, titulo, descripcion, justificacion_tecnica, tipo_cambio, impacto, estado_actual, horas_hombre_estimadas, id_solicitante)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 'Solicitado', ?, ?)
+        (id_proyecto, ticket_id, titulo, descripcion, justificacion_tecnica, tipo_cambio, impacto,
+         estado_actual, horas_hombre_estimadas, id_solicitante,
+         id_ecm_afectado, id_etapa_afectada, requisito_afectado)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'Solicitado', ?, ?, ?, ?, ?)
     `;
     return query(sql, [
       idProyecto || null,
@@ -116,7 +127,10 @@ class TicketModel {
       tipo,
       prioridad || 'Pendiente',
       parseInt(estimacionHoras) || 0,
-      idSolicitante
+      idSolicitante,
+      idEcmAfectado    || null,
+      idEtapaAfectada  || null,
+      requisitoAfectado || null,
     ]);
   }
 
@@ -250,6 +264,69 @@ class TicketModel {
       uatEstado || 'Pendiente',
       uatObservaciones || ''
     ]);
+  }
+
+  /**
+   * Obtener el vínculo de estructura de un ticket (ECM, Etapa, Requisito)
+   * @param {number} idSc
+   * @returns {Promise<Object|null>}
+   */
+  async getVinculoEstructura(idSc) {
+    const sql = `
+      SELECT
+        sc.id_ecm_afectado,
+        sc.id_etapa_afectada,
+        sc.requisito_afectado,
+        ecm.nombre  AS ecm_nombre,
+        ecm.tipo    AS ecm_tipo,
+        ecm.descripcion AS ecm_descripcion,
+        eta.nombre  AS etapa_nombre,
+        eta.descripcion AS etapa_descripcion,
+        f.nombre    AS fase_nombre
+      FROM solicitudes_cambio sc
+      LEFT JOIN elementos_config_metodologia ecm ON sc.id_ecm_afectado = ecm.id_ecm
+      LEFT JOIN etapas eta ON sc.id_etapa_afectada = eta.id_etapa
+      LEFT JOIN fases f ON ecm.id_fase = f.id_fase
+      WHERE sc.id_sc = ?
+    `;
+    const rows = await query(sql, [idSc]);
+    return rows.length > 0 ? rows[0] : null;
+  }
+
+  /**
+   * Sincronizar el ECM afectado al historial de auditoría cuando cambia el estado del ticket.
+   * Registra una entrada especial en historial_estados con el vínculo del ECM.
+   * @param {Object} ticket
+   * @param {string} nuevoEstado
+   * @param {string} usuarioNombre
+   * @param {string} usuarioRol
+   * @returns {Promise<void>}
+   */
+  async syncEcmAfectado(ticket, nuevoEstado, usuarioNombre, usuarioRol) {
+    if (!ticket.id_ecm_afectado && !ticket.id_etapa_afectada && !ticket.requisito_afectado) return;
+
+    // Obtener nombres del ECM y etapa para el comentario
+    const vinculo = await this.getVinculoEstructura(ticket.id_sc);
+    if (!vinculo) return;
+
+    const partes = [];
+    if (vinculo.ecm_nombre)          partes.push(`ECM: "${vinculo.ecm_nombre}" (${vinculo.ecm_tipo || 'Documento'})`);
+    if (vinculo.etapa_nombre)        partes.push(`Etapa: "${vinculo.etapa_nombre}"`);
+    if (vinculo.fase_nombre)         partes.push(`Fase: "${vinculo.fase_nombre}"`);
+    if (ticket.requisito_afectado)   partes.push(`Requisito: "${ticket.requisito_afectado}"`);
+
+    if (partes.length === 0) return;
+
+    const comentarioAuditoria = `[AUDITORÍA] Ticket avanzó a "${nuevoEstado}" — Estructura afectada → ${partes.join(' | ')}`;
+
+    await this.addHistorial({
+      idSc:           ticket.id_sc,
+      estadoAnterior: ticket.estado,
+      estadoNuevo:    nuevoEstado,
+      usuarioNombre,
+      usuarioRol:     'Sistema (Auto)',
+      comentario:     comentarioAuditoria,
+    });
   }
 }
 

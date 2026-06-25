@@ -189,6 +189,23 @@ Metodología  (Ej: RUP)
 
 ---
 
+## 📅 Calendario Mensual e Integración de Entregables
+
+Se ha implementado una interfaz interactiva de **Calendario Mensual** para visualizar de forma intuitiva las actividades del cronograma de cada proyecto:
+- **Vista Multi-Perfil**: Disponible tanto en la configuración del administrador (`proyecto-config.ejs`) como en el detalle del proyecto para el equipo técnico y clientes (`proyecto-detalle.ejs`).
+- **Navegación Completa**: Permite avanzar o retroceder entre meses o volver al día actual mediante botones de navegación rápida.
+- **Trazabilidad de Entregables (ECS)**: Cada celda muestra las tareas con colores según su estado (Completado, En Progreso, Pendiente, Bloqueado). Al hacer clic en un bloque de tarea, se despliega un panel de opciones para consultar detalles, reportar avance o abrir el visor comparador de versiones.
+- **Diseño Compacto y Fluido**: Optimizado mediante `minmax(0, 1fr)` en CSS Grid para evitar desbordes horizontales de texto en pantallas pequeñas, forzando a que las tareas muy largas se recorten limpiamente con puntos suspensivos (`...`).
+- **Zona Horaria Segura**: Utiliza parseo y formateo local de fechas (`parseLocalDate`) para prevenir desfases de fecha y distorsiones visuales por diferencias horarias (UTC/Local).
+
+## ⚡ Carga Rápida de Datos de Demostración
+
+Para agilizar la configuración inicial y las pruebas locales, se añadieron botones de carga rápida:
+- **Carga de Equipo Técnico**: Agrega automáticamente a los miembros de demostración (`sergio`, `diego`, `gregory`, `cesar`, `director`, `ccb`) asignándoles sus respectivos roles predefinidos en la base de datos.
+- **Carga de Clientes**: Vincula directamente a `docente@upt.pe` como stakeholder y cliente del proyecto con un solo clic.
+
+---
+
 ## 🗄️ Modelo de Base de Datos
 
 ### Tablas Principales

@@ -213,7 +213,7 @@ exports.mostrarTicket = asyncH(async (req, res) => {
   });
 });
 
-// ─── NUEVO TICKET (FORM) ──────────────────────────────────────────────────────
+// ── NUEVO TICKET (FORM) ──────────────────────────────────────────────────────
 exports.mostrarNuevoTicket = asyncH(async (req, res) => {
   const { id_proyecto } = req.query;
   const user = req.session.user;
@@ -225,6 +225,33 @@ exports.mostrarNuevoTicket = asyncH(async (req, res) => {
     proyectos = await ProyectoModel.findByMiembro(user.id);
   }
 
+  // Precargar estructura del proyecto si viene con id_proyecto
+  let estructuraProyecto = null;
+  if (id_proyecto) {
+    const { query: dbQuery } = require('../config/db');
+    const etapas = await dbQuery(
+      `SELECT e.id_etapa, e.nombre AS etapa_nombre, e.orden
+       FROM etapas e
+       JOIN proyectos p ON p.id_metodologia = e.id_metodologia
+       WHERE p.id_proyecto = ?
+       ORDER BY e.orden ASC, e.id_etapa ASC`,
+      [id_proyecto]
+    );
+    for (const et of etapas) {
+      et.fases = await dbQuery(
+        `SELECT f.id_fase, f.nombre AS fase_nombre, f.orden FROM fases f WHERE f.id_etapa = ? ORDER BY f.orden ASC`,
+        [et.id_etapa]
+      );
+      for (const fa of et.fases) {
+        fa.ecms = await dbQuery(
+          `SELECT id_ecm, nombre, tipo FROM elementos_config_metodologia WHERE id_fase = ? ORDER BY id_ecm ASC`,
+          [fa.id_fase]
+        );
+      }
+    }
+    estructuraProyecto = etapas;
+  }
+
   res.render('nuevo-ticket', {
     user,
     roles: ROLES,
@@ -232,6 +259,7 @@ exports.mostrarNuevoTicket = asyncH(async (req, res) => {
     prioridades: IMPACTOS,
     id_proyecto: id_proyecto || null,
     proyectos,
+    estructuraProyecto,
     error: null,
     title: 'Nueva Solicitud de Cambio',
   });
@@ -240,7 +268,10 @@ exports.mostrarNuevoTicket = asyncH(async (req, res) => {
 // ─── CREAR TICKET ─────────────────────────────────────────────────────────────
 exports.crearTicket = asyncH(async (req, res) => {
   const user = req.session.user;
-  const { titulo, descripcion, justificacion_tecnica, tipo, prioridad, estimacionHoras, id_proyecto } = req.body;
+  const {
+    titulo, descripcion, justificacion_tecnica, tipo, prioridad, estimacionHoras, id_proyecto,
+    id_ecm_afectado, id_etapa_afectada, requisito_afectado
+  } = req.body;
 
   if (!titulo || !descripcion || !tipo) {
     if (req.originalUrl.startsWith('/api') || req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {
@@ -274,7 +305,10 @@ exports.crearTicket = asyncH(async (req, res) => {
         prioridad,
         estimacionHoras,
         idSolicitante: user.id,
-        idProyecto: id_proyecto || null,
+        idProyecto:        id_proyecto         || null,
+        idEcmAfectado:     id_ecm_afectado     || null,
+        idEtapaAfectada:   id_etapa_afectada   || null,
+        requisitoAfectado: requisito_afectado  || null,
       });
       inserted = true;
     } catch (err) {
@@ -392,6 +426,9 @@ exports.cambiarEstado = asyncH(async (req, res) => {
 
   // 4. Sincronizar automáticamente el porcentaje de avance de la actividad vinculada si existe
   await CronogramaModel.syncAvanceConTicket(ticket.id_sc, nuevoEstado, user.id, ticket.id_proyecto);
+
+  // 5. FASE 3: Sincronizar el ECM/Etapa afectado en el historial de auditoría
+  await TicketModel.syncEcmAfectado(ticket, nuevoEstado, user.nombre, user.rol);
 
   // Retornar éxito (tanto success como ok para evitar fallos de interfaz)
   return res.json({ success: true, ok: true, nuevoEstado, ticketId: id });

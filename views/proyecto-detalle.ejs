@@ -323,7 +323,145 @@
   border-radius: 99px; padding: 0.2rem 0.6rem; font-size: 0.72rem; font-weight: 500;
 }
 
-
+/* ─── CALENDARIO MENSUAL DE CRONOGRAMA ───────────────────────────────────── */
+.cronograma-calendar-container {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.25rem;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.calendar-grid-header {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-subtle);
+  font-weight: 600;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  text-align: center;
+}
+.calendar-grid-header div {
+  padding: 0.5rem 0;
+}
+.calendar-grid-body {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  background: var(--bg-primary);
+}
+.calendar-cell {
+  border-right: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  min-height: 70px;
+  padding: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  position: relative;
+  background: var(--bg-primary);
+  transition: background 0.15s;
+}
+.calendar-cell:hover {
+  background: var(--bg-hover, rgba(99, 102, 241, 0.02));
+}
+.calendar-cell:nth-child(7n) {
+  border-right: none;
+}
+.calendar-cell.other-month {
+  background: var(--bg-tertiary);
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.calendar-cell.today-cell {
+  background: rgba(var(--accent-rgb,99,102,241), 0.03);
+}
+.calendar-day-num {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 0.15rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+}
+.calendar-cell.today-cell .calendar-day-num {
+  background: var(--accent);
+  color: #fff;
+}
+.calendar-event {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: transform 0.1s;
+}
+.calendar-event:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+.calendar-btn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  height: 28px;
+}
+.calendar-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-default);
+}
+.calendar-btn-nav {
+  width: 28px;
+  padding: 0;
+  font-size: 0.95rem;
+}
+.event-completado {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.25);
+}
+.event-progreso {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+  border-color: rgba(59, 130, 246, 0.25);
+}
+.event-pendiente {
+  background: rgba(100, 116, 139, 0.12);
+  color: #64748b;
+  border-color: rgba(100, 116, 139, 0.25);
+}
+.event-bloqueado {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.25);
+}
 </style>
 
 <div class="app-wrapper">
@@ -397,7 +535,41 @@
         </div>
         <% if(cronograma && cronograma.length > 0) { %>
 
-        <!-- DIAGRAMA DE GANTT -->
+        <!-- SUB-NAVEGACIÓN INTERNA DEL CRONOGRAMA -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem; flex-wrap:wrap; gap:0.5rem; border-bottom:1px solid var(--border-subtle); padding-bottom:0.75rem; padding-left: 1rem; padding-right: 1rem;">
+          <div style="display:flex; gap:0.25rem; background:var(--bg-secondary); padding:0.25rem; border-radius:8px; border:1px solid var(--border-default);">
+            <button type="button" class="tab-btn active" id="subbtn-calendario" onclick="switchCronogramaView('calendario')" style="font-size:0.75rem; padding:0.4rem 0.85rem; border-radius:6px; border:none; background:transparent; font-weight:600; cursor:pointer; color:var(--accent);">📅 Calendario Grande</button>
+            <button type="button" class="tab-btn" id="subbtn-gantt" onclick="switchCronogramaView('gantt')" style="font-size:0.75rem; padding:0.4rem 0.85rem; border-radius:6px; border:none; background:transparent; font-weight:600; cursor:pointer; color:var(--text-muted);">📊 Línea de Tiempo (Gantt)</button>
+            <button type="button" class="tab-btn" id="subbtn-tabla" onclick="switchCronogramaView('tabla')" style="font-size:0.75rem; padding:0.4rem 0.85rem; border-radius:6px; border:none; background:transparent; font-weight:600; cursor:pointer; color:var(--text-muted);">📋 Tabla Detallada</button>
+          </div>
+        </div>
+
+        <!-- 1. VISTA: CALENDARIO GRANDE -->
+        <div id="cview-calendario" style="display:block; padding: 0 1rem 1rem 1rem;">
+          <div class="cronograma-calendar-container">
+            <div class="calendar-header">
+              <button type="button" onclick="navigateCronogramaCalendar(-1)" class="calendar-btn calendar-btn-nav">‹</button>
+              <h3 id="cron-cal-titulo" style="font-weight:700; font-size:1rem; color:var(--text-primary); margin:0;"></h3>
+              <div style="display:flex; gap:0.5rem; align-items:center;">
+                <button type="button" onclick="goTodayCronogramaCalendar()" class="calendar-btn">Hoy</button>
+                <button type="button" onclick="navigateCronogramaCalendar(1)" class="calendar-btn calendar-btn-nav">›</button>
+              </div>
+            </div>
+            <div class="calendar-grid-header">
+              <div>Lunes</div>
+              <div>Martes</div>
+              <div>Miércoles</div>
+              <div>Jueves</div>
+              <div>Viernes</div>
+              <div>Sábado</div>
+              <div>Domingo</div>
+            </div>
+            <div id="cron-cal-grid" class="calendar-grid-body"></div>
+          </div>
+        </div>
+
+        <!-- 2. VISTA: DIAGRAMA DE GANTT -->
+        <div id="cview-gantt" style="display:none; padding: 0 1rem 1rem 1rem;">
         <%
           // Rango de fechas
           let minDate = null;
@@ -492,8 +664,11 @@
           </div>
 
         </div>
+      </div> <!-- End of cview-gantt -->
 
-        <table class="cronograma-table">
+        <!-- 3. VISTA: TABLA DETALLADA -->
+        <div id="cview-tabla" style="display:none; padding: 0 1rem 1rem 1rem;">
+          <table class="cronograma-table">
           <thead>
             <tr>
               <th>Actividad</th>
@@ -577,6 +752,7 @@
           <% }); %>
           </tbody>
         </table>
+        </div> <!-- End of cview-tabla -->
         <% } else { %>
         <div style="text-align:center;padding:3rem;color:var(--text-muted);">
           <div style="font-size:2.5rem;margin-bottom:0.75rem;">📅</div>
@@ -927,6 +1103,32 @@
   </div>
 </div>
 
+<!-- Modal: Opciones de Actividad -->
+<div class="modal-overlay" id="modalOpcionesActividad">
+  <div class="modal-box" style="width: 440px; max-width: 90vw; padding: 1.5rem; display: flex; flex-direction: column; gap: 0.85rem;">
+    <button class="modal-close" onclick="cerrarModal('modalOpcionesActividad')">✕</button>
+    <div class="modal-title" id="opciones-act-nombre">Actividad</div>
+    
+    <div style="font-size: 0.82rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.75rem; border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); padding: 0.75rem 0;">
+      <div><strong>Fase:</strong> <span id="opciones-act-fase" style="color:var(--text-secondary);"></span></div>
+      <div><strong>Responsable:</strong> <span id="opciones-act-responsable" style="color:var(--text-secondary);"></span></div>
+      <div><strong>Fechas:</strong> <span id="opciones-act-fechas" style="color:var(--text-secondary);"></span></div>
+      <div><strong>Estado:</strong> <span id="opciones-act-estado" style="font-size: 0.65rem;"></span></div>
+      <div><strong>Avance:</strong> <span id="opciones-act-avance" style="font-weight: 700; color: var(--accent);"></span>%</div>
+      <div id="opciones-act-desc-container" style="margin-top:0.4rem; display:none;">
+        <strong>Descripción:</strong>
+        <p id="opciones-act-descripcion" style="margin-top: 0.2rem; color: var(--text-secondary); line-height: 1.4; white-space: pre-wrap; font-style: italic;"></p>
+      </div>
+    </div>
+    
+    <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+      <button class="btn btn-ghost" onclick="cerrarModal('modalOpcionesActividad')">Cerrar</button>
+      <button class="btn-reporte" id="opciones-btn-reportar">📝 Reportar</button>
+      <button class="btn-reporte" id="opciones-btn-versiones" style="background: var(--bg-hover, #2d3748); border: 1px solid var(--border-subtle, #4a5568); color: var(--text-secondary, #e2e8f0);">🗂️ Versiones</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/5.2.0/diff.min.js"></script>
 <!-- mammoth.js para convertir Word a HTML en el navegador -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
@@ -945,6 +1147,12 @@ let vistaComparacion      = 'sidebyside';
 
 const PROYECTO_ID          = <%= proyecto.id_proyecto %>;
 const PROYECTO_GITHUB_REPO = '<%= proyecto.github_repo || "" %>';
+const ACTIVIDADES_CRONOGRAMA = <%- JSON.stringify(cronograma) %>;
+const PROYECTO_FECHA_INICIO = '<%= proyecto.fecha_inicio ? new Date(proyecto.fecha_inicio).toISOString().substring(0,10) : "" %>';
+const PROYECTO_FECHA_FIN = '<%= proyecto.fecha_fin ? new Date(proyecto.fecha_fin).toISOString().substring(0,10) : "" %>';
+
+let cronYear = new Date().getFullYear();
+let cronMonth = new Date().getMonth();
 
 // ─── TABS PRINCIPALES ─────────────────────────────────────────────────────────
 function switchTab(name, btn) {
@@ -953,15 +1161,243 @@ function switchTab(name, btn) {
   document.getElementById('tab-' + name).classList.add('active');
   btn.classList.add('active');
   localStorage.setItem('activeTab_' + PROYECTO_ID, name);
+
+  // Si entramos a la pestaña del cronograma, inicializar el calendario si no está inicializado
+  if (name === 'cronograma') {
+    const savedView = localStorage.getItem('cronogramaView_' + PROYECTO_ID) || 'calendario';
+    switchCronogramaView(savedView);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  initCronogramaCalendar();
+  const savedView = localStorage.getItem('cronogramaView_' + PROYECTO_ID) || 'calendario';
+  switchCronogramaView(savedView);
+
   const activeTab = localStorage.getItem('activeTab_' + PROYECTO_ID);
   if (activeTab) {
     const btn = document.getElementById('btn-tab-' + activeTab);
     if (btn) switchTab(activeTab, btn);
   }
 });
+
+// ─── Calendario Mensual del Cronograma ──────────────────────────────────────
+function switchCronogramaView(view) {
+  const calendarView = document.getElementById('cview-calendario');
+  const ganttView = document.getElementById('cview-gantt');
+  const tablaView = document.getElementById('cview-tabla');
+  
+  if (!calendarView || !ganttView || !tablaView) return;
+
+  calendarView.style.display = 'none';
+  ganttView.style.display = 'none';
+  tablaView.style.display = 'none';
+  
+  const btnCal = document.getElementById('subbtn-calendario');
+  const btnGantt = document.getElementById('subbtn-gantt');
+  const btnTabla = document.getElementById('subbtn-tabla');
+
+  if (btnCal) { btnCal.classList.remove('active'); btnCal.style.color = 'var(--text-muted)'; }
+  if (btnGantt) { btnGantt.classList.remove('active'); btnGantt.style.color = 'var(--text-muted)'; }
+  if (btnTabla) { btnTabla.classList.remove('active'); btnTabla.style.color = 'var(--text-muted)'; }
+
+  if (view === 'calendario') {
+    calendarView.style.display = 'block';
+    if (btnCal) { btnCal.classList.add('active'); btnCal.style.color = 'var(--accent)'; }
+    renderCronogramaCalendar();
+  } else if (view === 'gantt') {
+    ganttView.style.display = 'block';
+    if (btnGantt) { btnGantt.classList.add('active'); btnGantt.style.color = 'var(--accent)'; }
+  } else {
+    tablaView.style.display = 'block';
+    if (btnTabla) { btnTabla.classList.add('active'); btnTabla.style.color = 'var(--accent)'; }
+  }
+  localStorage.setItem('cronogramaView_' + PROYECTO_ID, view);
+}
+
+function initCronogramaCalendar() {
+  const minD = PROYECTO_FECHA_INICIO;
+  if (minD) {
+    const parts = minD.split('-');
+    cronYear = parseInt(parts[0]);
+    cronMonth = parseInt(parts[1]) - 1;
+  } else if (ACTIVIDADES_CRONOGRAMA.length > 0) {
+    const parts = ACTIVIDADES_CRONOGRAMA[0].fecha_inicio.split('-');
+    cronYear = parseInt(parts[0]);
+    cronMonth = parseInt(parts[1]) - 1;
+  }
+}
+
+function renderCronogramaCalendar() {
+  const MESES_NOMBRES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                         'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  
+  const tituloEl = document.getElementById('cron-cal-titulo');
+  if (tituloEl) tituloEl.textContent = `${MESES_NOMBRES[cronMonth]} ${cronYear}`;
+  
+  const grid = document.getElementById('cron-cal-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  
+  const primero = new Date(cronYear, cronMonth, 1);
+  let offset = primero.getDay() - 1;
+  if (offset < 0) offset = 6;
+  
+  const totalDias = new Date(cronYear, cronMonth + 1, 0).getDate();
+  const totalDiasAnt = new Date(cronYear, cronMonth, 0).getDate();
+  
+  for (let i = offset - 1; i >= 0; i--) {
+    const d = totalDiasAnt - i;
+    grid.appendChild(crearCeldaCalendario(cronYear, cronMonth - 1, d, true));
+  }
+  
+  for (let d = 1; d <= totalDias; d++) {
+    grid.appendChild(crearCeldaCalendario(cronYear, cronMonth, d, false));
+  }
+  
+  const totalCeldasActuales = offset + totalDias;
+  const celdasFaltantes = (7 - (totalCeldasActuales % 7)) % 7;
+  for (let d = 1; d <= celdasFaltantes; d++) {
+    grid.appendChild(crearCeldaCalendario(cronYear, cronMonth + 1, d, true));
+  }
+}
+
+function parseLocalDate(dateInput) {
+  if (!dateInput) return null;
+  const str = (typeof dateInput === 'string') ? dateInput : new Date(dateInput).toISOString();
+  const datePart = str.substring(0, 10);
+  const parts = datePart.split('-');
+  return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+}
+
+function crearCeldaCalendario(año, mes, dia, esOtroMes) {
+  const cell = document.createElement('div');
+  cell.className = 'calendar-cell' + (esOtroMes ? ' other-month' : '');
+  
+  const fecha = new Date(año, mes, dia);
+  fecha.setHours(0,0,0,0);
+  
+  const hoy = new Date();
+  hoy.setHours(0,0,0,0);
+  if (fecha.getTime() === hoy.getTime()) {
+    cell.classList.add('today-cell');
+  }
+  
+  const num = document.createElement('div');
+  num.className = 'calendar-day-num';
+  num.textContent = dia;
+  cell.appendChild(num);
+  
+  if (esOtroMes) {
+    cell.style.cursor = 'not-allowed';
+  }
+  
+  ACTIVIDADES_CRONOGRAMA.forEach(a => {
+    const ini = parseLocalDate(a.fecha_inicio);
+    const fin = parseLocalDate(a.fecha_fin);
+    if (!ini || !fin) return;
+    
+    if (fecha >= ini && fecha <= fin) {
+      const ev = document.createElement('div');
+      let estClass = 'event-pendiente';
+      if (a.estado === 'Completado') estClass = 'event-completado';
+      else if (a.estado === 'En Progreso') estClass = 'event-progreso';
+      else if (a.estado === 'Bloqueado') estClass = 'event-bloqueado';
+      
+      ev.className = `calendar-event ${estClass}`;
+      ev.textContent = `[${parseFloat(a.porcentaje_avance).toFixed(0)}%] ${a.nombre}`;
+      ev.title = `${a.nombre} (${a.estado} - ${parseFloat(a.porcentaje_avance).toFixed(0)}%)\nResponsable: ${a.asignado_nombre || 'Sin asignar'}`;
+      
+      ev.onclick = (e) => {
+        e.stopPropagation();
+        mostrarOpcionesActividad(a);
+      };
+      
+      cell.appendChild(ev);
+    }
+  });
+  
+  return cell;
+}
+
+function navigateCronogramaCalendar(dir) {
+  cronMonth += dir;
+  if (cronMonth < 0)  { cronMonth = 11; cronYear--; }
+  if (cronMonth > 11) { cronMonth = 0;  cronYear++; }
+  renderCronogramaCalendar();
+}
+
+function goTodayCronogramaCalendar() {
+  const hoy = new Date();
+  cronYear = hoy.getFullYear();
+  cronMonth = hoy.getMonth();
+  renderCronogramaCalendar();
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+
+function mostrarOpcionesActividad(a) {
+  document.getElementById('opciones-act-nombre').textContent = a.nombre;
+  document.getElementById('opciones-act-fase').textContent = a.fase_nombre || '—';
+  document.getElementById('opciones-act-responsable').textContent = a.asignado_nombre || 'Sin asignar';
+  
+  const fIni = a.fecha_inicio ? new Date(a.fecha_inicio).toLocaleDateString('es-PE') : '—';
+  const fFin = a.fecha_fin ? new Date(a.fecha_fin).toLocaleDateString('es-PE') : '—';
+  document.getElementById('opciones-act-fechas').textContent = `${fIni} al ${fFin}`;
+  
+  const estEl = document.getElementById('opciones-act-estado');
+  estEl.textContent = a.estado;
+  estEl.className = 'badge ' + (
+    a.estado === 'Completado' ? 'badge-teal' :
+    a.estado === 'En Progreso' ? 'badge-orange' :
+    a.estado === 'Bloqueado' ? 'badge-red' : 'badge-slate'
+  );
+  
+  document.getElementById('opciones-act-avance').textContent = parseFloat(a.porcentaje_avance || 0).toFixed(0);
+  
+  const descEl = document.getElementById('opciones-act-descripcion');
+  const descContainer = document.getElementById('opciones-act-desc-container');
+  if (a.descripcion && a.descripcion.trim()) {
+    descEl.textContent = a.descripcion;
+    descContainer.style.display = 'block';
+  } else {
+    descContainer.style.display = 'none';
+  }
+  
+  // Configurar botones
+  const btnReportar = document.getElementById('opciones-btn-reportar');
+  const btnVersiones = document.getElementById('opciones-btn-versiones');
+  
+  // Determinar permisos para reportar
+  const userSessionId = <%= user.id %>;
+  const userSessionRol = '<%= user.rol %>';
+  const userMiRolEnProyecto = '<%= miRolEnProyecto %>';
+  
+  const puedeReportar = a.es_reportable && (
+    userSessionId === a.id_usuario ||
+    userSessionRol === 'Administrador' ||
+    userMiRolEnProyecto === 'Líder Técnico'
+  );
+  
+  if (puedeReportar && userSessionRol !== 'Solicitante') {
+    btnReportar.style.display = '';
+    btnReportar.onclick = () => {
+      cerrarModal('modalOpcionesActividad');
+      abrirModalReporte(a.id_actividad, a.nombre, a.porcentaje_avance);
+    };
+  } else {
+    btnReportar.style.display = 'none';
+  }
+  
+  btnVersiones.onclick = () => {
+    cerrarModal('modalOpcionesActividad');
+    abrirModalVersiones(a.id_actividad, a.nombre, puedeReportar && userSessionRol !== 'Solicitante');
+  };
+  
+  openModal('modalOpcionesActividad');
+}
 
 function toggleEtapa(header) {
   const body  = header.nextElementSibling;
@@ -1489,6 +1925,9 @@ document.getElementById('modalReporte').addEventListener('click', function(e) {
 });
 document.getElementById('modalVersiones').addEventListener('click', function(e) {
   if (e.target === this) cerrarModal('modalVersiones');
+});
+document.getElementById('modalOpcionesActividad').addEventListener('click', function(e) {
+  if (e.target === this) cerrarModal('modalOpcionesActividad');
 });
 </script>
 
