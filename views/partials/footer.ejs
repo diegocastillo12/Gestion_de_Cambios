@@ -1,32 +1,51 @@
-  <!-- ═══ FOOTER ══════════════════════════════════════════════════════════════ -->
-  <footer style="
-    border-top: 1px solid var(--border-subtle);
-    padding: 1rem 2.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 0.72rem;
-    color: var(--text-muted);
-  ">
-    <div style="display:flex; align-items:center; gap:0.5rem;">
-      <span style="color:var(--accent);">⚙️</span>
-      <span><strong style="color:var(--text-secondary);">GestioCambios G04</strong> &nbsp;—&nbsp; Sistema de Gestión de Cambios SCM</span>
+  <!-- Footer -->
+  <footer class="page-footer">
+    <div style="display:flex; align-items:center; gap:6px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-accent);"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span><strong style="color:var(--text-secondary); font-weight:500;">GestioCambios G04</strong> &nbsp;— Sistema de Gestion de Cambios SCM</span>
     </div>
-    <div style="display:flex; align-items:center; gap:1.25rem;">
+    <div style="display:flex; align-items:center; gap:12px;">
       <span>Grupo 04 · 2026</span>
-      <span style="
-        padding: 0.15rem 0.6rem;
-        background: var(--accent-subtle);
-        border: 1px solid var(--accent-border);
-        border-radius: 999px;
-        color: var(--accent);
-        font-weight: 600;
-        font-size: 0.65rem;
-      ">v1.0.0</span>
+      <span class="badge badge-slate" style="font-size:10px;">v1.0.0</span>
     </div>
   </footer>
 
   <!-- Scripts -->
   <script src="/js/sidebar.js"></script>
+
+  <!-- Script tema claro/oscuro -->
+  <script>
+  (function() {
+    const btn = document.getElementById('theme-toggle-btn');
+    const iconSun  = document.getElementById('theme-icon-sun');
+    const iconMoon = document.getElementById('theme-icon-moon');
+    const label    = document.getElementById('theme-toggle-text');
+
+    function updateThemeUI(theme) {
+      if (theme === 'dark') {
+        if (iconSun)  iconSun.style.display  = 'flex';
+        if (iconMoon) iconMoon.style.display = 'none';
+        if (label)    label.textContent = 'Modo Claro';
+      } else {
+        if (iconSun)  iconSun.style.display  = 'none';
+        if (iconMoon) iconMoon.style.display = 'flex';
+        if (label)    label.textContent = 'Modo Oscuro';
+      }
+    }
+
+    const saved = localStorage.getItem('theme') || 'light';
+    updateThemeUI(saved);
+
+    if (btn) {
+      btn.addEventListener('click', function() {
+        const current = document.documentElement.getAttribute('data-theme') || 'light';
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+        updateThemeUI(next);
+      });
+    }
+  })();
+  </script>
 </body>
 </html>

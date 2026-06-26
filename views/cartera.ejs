@@ -1,252 +1,117 @@
 <%- include('partials/head') %>
 
-<style>
-  .cartera-hero {
-    background: linear-gradient(135deg, var(--accent) 0%, #7c3aed 100%);
-    border-radius: 16px;
-    padding: 2rem 2.5rem;
-    margin-bottom: 2rem;
-    color: white;
-    position: relative;
-    overflow: hidden;
-  }
-  .cartera-hero::before {
-    content: '💼';
-    position: absolute;
-    right: 2rem;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 5rem;
-    opacity: 0.15;
-  }
-  .cartera-hero h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem; }
-  .cartera-hero p  { opacity: 0.85; font-size: 0.95rem; }
-
-  .proyectos-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 1.5rem;
-  }
-
-  .proyecto-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 1.5rem;
-    transition: all 0.25s ease;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    text-decoration: none;
-    color: inherit;
-    display: block;
-  }
-  .proyecto-card:hover {
-    border-color: var(--accent);
-    transform: translateY(-3px);
-    box-shadow: 0 12px 40px rgba(99,102,241,0.18);
-  }
-  .proyecto-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--accent), #7c3aed);
-    opacity: 0;
-    transition: opacity 0.25s;
-  }
-  .proyecto-card:hover::before { opacity: 1; }
-
-  .proyecto-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
-    gap: 0.75rem;
-  }
-  .proyecto-card-title {
-    font-size: 1.05rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    line-height: 1.3;
-  }
-  .proyecto-card-desc {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    margin-bottom: 1.25rem;
-    line-height: 1.5;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .progreso-label {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    margin-bottom: 0.4rem;
-  }
-  .progreso-label strong { color: var(--text-primary); }
-
-  .progress-bar-outer {
-    background: var(--bg-secondary);
-    border-radius: 99px;
-    height: 8px;
-    overflow: hidden;
-    margin-bottom: 1.25rem;
-  }
-  .progress-bar-inner {
-    height: 100%;
-    border-radius: 99px;
-    background: linear-gradient(90deg, var(--accent), #7c3aed);
-    transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
-    min-width: 2px;
-  }
-
-  .proyecto-card-meta {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    font-size: 0.78rem;
-    color: var(--text-muted);
-    border-top: 1px solid var(--border);
-    padding-top: 1rem;
-  }
-  .proyecto-card-meta span { display: flex; align-items: center; gap: 0.3rem; }
-
-  .badge-notif {
-    background: #ef4444;
-    color: white;
-    border-radius: 99px;
-    padding: 0.1rem 0.55rem;
-    font-size: 0.7rem;
-    font-weight: 700;
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
-    50%       { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
-  }
-
-  .empty-state {
-    text-align: center;
-    padding: 5rem 2rem;
-    color: var(--text-muted);
-  }
-  .empty-state .empty-icon { font-size: 4rem; margin-bottom: 1rem; opacity: 0.5; }
-  .empty-state p { font-size: 1rem; }
-
-  .estado-badge {
-    display: inline-block;
-    padding: 0.25rem 0.7rem;
-    border-radius: 99px;
-    font-size: 0.73rem;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-  .estado-Activo    { background: rgba(16,185,129,0.15); color: #10b981; }
-  .estado-Pausado   { background: rgba(245,158,11,0.15);  color: #f59e0b; }
-  .estado-Cerrado   { background: rgba(99,102,241,0.15);  color: #818cf8; }
-  .estado-Archivado { background: rgba(107,114,128,0.15); color: #9ca3af; }
-</style>
-
 <div class="app-wrapper">
   <%- include('partials/sidebar') %>
 
   <main class="main-content">
 
-    <!-- Hero -->
-    <div class="cartera-hero">
-      <h1>💼 Mi Cartera de Proyectos</h1>
-      <p>Bienvenido/a, <%= user.nombre %>. Aquí tienes todos tus proyectos asignados.</p>
-    </div>
+    <div class="page-container">
+      <!-- Hero -->
+      <div class="cartera-hero" style="margin-bottom: 20px;">
+        <h1>Mi Cartera de Proyectos</h1>
+        <p>Bienvenido/a, <%= user.nombre %>. Aqui tienes todos tus proyectos asignados.</p>
+      </div>
 
-    <% if (proyectos && proyectos.length > 0) { %>
-    <!-- Grid de proyectos -->
-    <div class="proyectos-grid">
-      <% proyectos.forEach(p => {
-        const avance = parseFloat(p.promedio_avance || 0);
-        const miAvance = p.mi_promedio_avance !== null ? parseFloat(p.mi_promedio_avance) : null;
-        const estadoClass = 'estado-' + (p.estado || 'Activo').replace(/\s/g,'');
-      %>
-      <a href="/proyectos/<%= p.id_proyecto %>" class="proyecto-card">
-        <div class="proyecto-card-header">
-          <div>
-            <div class="proyecto-card-title"><%= p.nombre %></div>
-            <% if (p.github_repo) { %>
-            <span class="badge badge-teal" style="font-size:0.65rem; padding:0.1rem 0.35rem; display:inline-flex; align-items:center; gap:0.15rem; background:#0d9488; color:white; border-radius:4px; margin-top:0.25rem;" title="Repositorio GitHub asociado">
-              🐙 <%= p.github_repo %>
+      <% if (proyectos && proyectos.length > 0) { %>
+      <div class="proyectos-grid">
+        <% proyectos.forEach(p => {
+          const avance = parseFloat(p.promedio_avance || 0);
+          const miAvance = p.mi_promedio_avance !== null ? parseFloat(p.mi_promedio_avance) : null;
+          const estadoClass = 'estado-' + (p.estado || 'Activo').replace(/\s/g,'');
+        %>
+        <a href="/proyectos/<%= p.id_proyecto %>" class="proyecto-card">
+          <div class="proyecto-card-header">
+            <div>
+              <div class="proyecto-card-title"><%= p.nombre %></div>
+              <% if (p.github_repo) { %>
+              <span class="badge badge-green" style="font-size:10px; margin-top:4px; display:inline-flex;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+                <%= p.github_repo %>
+              </span>
+              <% } %>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+              <span class="estado-badge <%= estadoClass %>"><%= p.estado %></span>
+              <% if (p.reportes_nuevos > 0) { %>
+              <span class="badge-notif"><%= p.reportes_nuevos %></span>
+              <% } %>
+            </div>
+          </div>
+
+          <p class="proyecto-card-desc"><%= p.descripcion || 'Sin descripcion.' %></p>
+
+          <!-- Barra de avance del proyecto (global) -->
+          <div class="progreso-label">
+            <span>Avance global del proyecto</span>
+            <strong><%= avance %>%</strong>
+          </div>
+          <div class="progress-bar-outer">
+            <div class="progress-bar-inner" style="width:<%= avance %>%"></div>
+          </div>
+
+          <!-- Actividades asignadas a este usuario -->
+          <% if (p.mis_actividades && p.mis_actividades.length > 0) { %>
+          <div style="margin-top:10px; padding:8px 10px; background:var(--bg-accent); border-radius:var(--radius-sm); border:0.5px solid var(--border-accent);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <span style="font-size:10px; font-weight:500; color:var(--text-accent); text-transform:uppercase; letter-spacing:0.06em;">Mis actividades (<%= p.mis_actividades.length %>)</span>
+              <% if (miAvance !== null) { %>
+              <span style="font-size:11px; font-weight:500; color:var(--text-accent);"><%= miAvance %>% mi avance</span>
+              <% } %>
+            </div>
+            <% p.mis_actividades.slice(0, 3).forEach(a => {
+              const aBadge = a.estado === 'Completado' ? 'var(--text-success)' : a.estado === 'En Progreso' ? 'var(--text-warning)' : 'var(--text-muted)';
+            %>
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:3px;">
+              <span style="width:6px; height:6px; border-radius:50%; background:<%= aBadge %>; flex-shrink:0;"></span>
+              <span style="font-size:11px; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><%= a.nombre %></span>
+              <span style="font-size:10px; font-weight:500; color:var(--text-accent);"><%= parseFloat(a.porcentaje_avance||0).toFixed(0) %>%</span>
+            </div>
+            <% }); %>
+            <% if (p.mis_actividades.length > 3) { %>
+            <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">+ <%= p.mis_actividades.length - 3 %> mas</div>
+            <% } %>
+          </div>
+          <% } %>
+
+          <div class="proyecto-card-meta">
+            <% if (p.fecha_inicio) { %>
+            <span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <%= new Date(p.fecha_inicio).toLocaleDateString('es-PE') %>
+            </span>
+            <% } %>
+            <% if (p.fecha_fin) { %>
+            <span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              <%= new Date(p.fecha_fin).toLocaleDateString('es-PE') %>
+            </span>
+            <% } %>
+            <span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+              <%= p.total_actividades || 0 %> actividades
+            </span>
+            <% if (p.metodologia_nombre) { %>
+            <span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+              <%= p.metodologia_nombre %>
             </span>
             <% } %>
           </div>
-          <div style="display:flex;align-items:center;gap:0.5rem;flex-shrink:0;">
-            <span class="estado-badge <%= estadoClass %>"><%= p.estado %></span>
-            <% if (p.reportes_nuevos > 0) { %>
-            <span class="badge-notif"><%= p.reportes_nuevos %></span>
-            <% } %>
-          </div>
-        </div>
+        </a>
+        <% }); %>
+      </div>
 
-        <p class="proyecto-card-desc"><%= p.descripcion || 'Sin descripción.' %></p>
+      <% } else { %>
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto; display:block; opacity:0.35;"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        </div>
+        <h3 style="margin-bottom:6px; font-size:14px; font-weight:500;">Sin proyectos asignados</h3>
+        <p>El administrador aun no te ha asignado a ningun proyecto.</p>
+      </div>
+      <% } %>
 
-        <!-- Barra de avance del proyecto (global) -->
-        <div class="progreso-label">
-          <span>Avance global del proyecto</span>
-          <strong><%= avance %>%</strong>
-        </div>
-        <div class="progress-bar-outer">
-          <div class="progress-bar-inner" style="width:<%= avance %>%"></div>
-        </div>
-
-        <!-- Actividades asignadas a este usuario -->
-        <% if (p.mis_actividades && p.mis_actividades.length > 0) { %>
-        <div style="margin-top:0.75rem; padding:0.65rem 0.75rem; background:rgba(99,102,241,0.07); border-radius:10px; border:1px solid rgba(99,102,241,0.15);">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
-            <span style="font-size:0.72rem; font-weight:600; color:var(--accent); text-transform:uppercase; letter-spacing:0.04em;">🎯 Mis actividades (<%= p.mis_actividades.length %>)</span>
-            <% if (miAvance !== null) { %>
-            <span style="font-size:0.8rem; font-weight:700; color:var(--accent);"><%= miAvance %>% mi avance</span>
-            <% } %>
-          </div>
-          <% p.mis_actividades.slice(0, 3).forEach(a => {
-            const aBadge = a.estado === 'Completado' ? '#10b981' : a.estado === 'En Progreso' ? '#f59e0b' : '#6b7280';
-          %>
-          <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.25rem;">
-            <span style="width:7px; height:7px; border-radius:50%; background:<%= aBadge %>; flex-shrink:0;"></span>
-            <span style="font-size:0.75rem; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><%= a.nombre %></span>
-            <span style="font-size:0.7rem; font-weight:600; color:var(--accent);"><%= parseFloat(a.porcentaje_avance||0).toFixed(0) %>%</span>
-          </div>
-          <% }); %>
-          <% if (p.mis_actividades.length > 3) { %>
-          <div style="font-size:0.7rem; color:var(--text-muted); margin-top:0.2rem;">+ <%= p.mis_actividades.length - 3 %> más</div>
-          <% } %>
-        </div>
-        <% } %>
-
-        <div class="proyecto-card-meta" style="margin-top:0.75rem;">
-          <% if (p.fecha_inicio) { %>
-          <span>📅 <%= new Date(p.fecha_inicio).toLocaleDateString('es-PE') %></span>
-          <% } %>
-          <% if (p.fecha_fin) { %>
-          <span>🏁 <%= new Date(p.fecha_fin).toLocaleDateString('es-PE') %></span>
-          <% } %>
-          <span>📋 <%= p.total_actividades || 0 %> actividades</span>
-          <% if (p.metodologia_nombre) { %>
-          <span>📐 <%= p.metodologia_nombre %></span>
-          <% } %>
-        </div>
-      </a>
-      <% }); %>
     </div>
-
-    <% } else { %>
-    <div class="empty-state">
-      <div class="empty-icon">📭</div>
-      <h3 style="margin-bottom:0.5rem;">Sin proyectos asignados</h3>
-      <p>El administrador aún no te ha asignado a ningún proyecto.</p>
-    </div>
-    <% } %>
 
   </main>
 </div>

@@ -7,126 +7,118 @@
 
     <!-- TOPBAR -->
     <header class="topbar">
-      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Abrir menú">☰</button>
-      <div class="topbar-title">
-        📊 Dashboard — <span style="color:var(--text-muted); font-weight:400;">Bienvenido, <strong style="color:var(--accent);"><%= user.nombre %></strong></span>
+      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Abrir menú">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="topbar-left">
+        <span class="topbar-title">Dashboard</span>
+        <span class="topbar-sub">Bienvenido, <%= user.nombre %></span>
       </div>
-      <div class="topbar-actions">
+      <div class="topbar-right">
         <% if ([roles.SOLICITANTE, roles.DIRECTOR_PROYECTO, roles.GESTOR_CONFIGURACION].includes(user.rol)) { %>
         <a href="/tickets/nuevo" class="btn btn-primary btn-sm">
-          <span>➕</span> Nuevo Ticket
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo Ticket
         </a>
         <% } %>
-        <span class="badge badge-green" style="font-size:0.72rem;">
-          <%= user.rol %>
-        </span>
+        <span class="badge-role"><%= user.rol %></span>
       </div>
     </header>
 
     <div class="page-container">
 
-      <!-- ─── ESTADÍSTICAS GLOBALES ─────────────────────────────────────────── -->
-      <div class="stats-grid" style="grid-template-columns: repeat(6, 1fr); gap: 0.65rem; margin-bottom: 1rem;">
+      <!-- ESTADÍSTICAS GLOBALES -->
+      <div class="stats-grid" style="grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 16px;">
 
         <div class="stat-card">
-          <div class="stat-card-glow" style="background: var(--accent);"></div>
           <div class="stat-value text-accent"><%= stats.total %></div>
-          <div class="stat-label">Total de Tickets</div>
-          <div class="stat-trend text-muted">📋 Todos los cambios registrados</div>
+          <div class="stat-label">Total Tickets</div>
+          <div class="stat-sub" style="font-size:11px; color:var(--text-muted); margin-top:4px;">Todos los cambios</div>
         </div>
 
         <div class="stat-card">
-          <div class="stat-card-glow" style="background: var(--yellow);"></div>
-          <div class="stat-value" style="color:var(--yellow);">
+          <div class="stat-value" style="color:var(--text-warning);">
             <%= (stats.porEstado['En Desarrollo'] || 0) + (stats.porEstado['En Análisis'] || 0) + (stats.porEstado['Pendiente de Aprobación'] || 0) + (stats.porEstado['Aprobado'] || 0) %>
           </div>
           <div class="stat-label">En Progreso</div>
-          <div class="stat-trend text-muted">⚙️ Análisis + Aprobación + Desarrollo</div>
+          <div class="stat-sub" style="font-size:11px; color:var(--text-muted); margin-top:4px;">Analisis + Desarrollo</div>
         </div>
 
         <div class="stat-card">
-          <div class="stat-card-glow" style="background: var(--pink);"></div>
-          <div class="stat-value" style="color:var(--pink);">
+          <div class="stat-value" style="color:var(--text-purple);">
             <%= (stats.porEstado['En Pruebas QA'] || 0) + (stats.porEstado['En Pruebas UAT'] || 0) + (stats.porEstado['Listo para Integración'] || 0) %>
           </div>
           <div class="stat-label">En QA / Pruebas</div>
-          <div class="stat-trend text-muted">🧪 QA + UAT + Integración</div>
+          <div class="stat-sub" style="font-size:11px; color:var(--text-muted); margin-top:4px;">QA + UAT + Integracion</div>
         </div>
 
         <div class="stat-card">
-          <div class="stat-card-glow" style="background: var(--accent);"></div>
           <div class="stat-value text-accent"><%= stats.porEstado['Liberado'] || 0 %></div>
           <div class="stat-label">Liberados</div>
-          <div class="stat-trend text-muted">🚀 Desplegados en producción</div>
+          <div class="stat-sub" style="font-size:11px; color:var(--text-muted); margin-top:4px;">En produccion</div>
         </div>
 
         <div class="stat-card">
-          <div class="stat-card-glow" style="background: var(--red);"></div>
-          <div class="stat-value" style="color:var(--red);"><%= stats.porEstado['Rechazado'] || 0 %></div>
+          <div class="stat-value" style="color:var(--text-danger);"><%= stats.porEstado['Rechazado'] || 0 %></div>
           <div class="stat-label">Rechazados</div>
-          <div class="stat-trend text-muted">❌ Descartados o pausados</div>
+          <div class="stat-sub" style="font-size:11px; color:var(--text-muted); margin-top:4px;">Descartados</div>
         </div>
 
         <div class="stat-card">
-          <div class="stat-card-glow" style="background: var(--purple);"></div>
-          <div class="stat-value" style="color:var(--purple);"><%= stats.porEstado['Solicitado'] || 0 %></div>
+          <div class="stat-value" style="color:var(--text-muted);"><%= stats.porEstado['Solicitado'] || 0 %></div>
           <div class="stat-label">Pendientes</div>
-          <div class="stat-trend text-muted">📋 Nuevos sin procesar</div>
+          <div class="stat-sub" style="font-size:11px; color:var(--text-muted); margin-top:4px;">Sin procesar</div>
         </div>
 
       </div>
 
-      <!-- ─── DISTRIBUCIÓN POR ESTADO ─────────────────────────────────────── -->
-      <div class="grid-2" style="gap: 0.75rem; margin-bottom: 1rem;">
+      <!-- BANDEJA + DISTRIBUCIÓN -->
+      <div class="grid-2" style="gap: 12px; margin-bottom: 16px;">
 
         <!-- Bandeja de tareas -->
         <div class="card">
           <div class="card-header">
-            <span class="card-title">🎯 Mi Bandeja de Tareas</span>
+            <span class="card-title">Mi Bandeja de Tareas</span>
             <span class="badge badge-green"><%= bandeja.length %> pendiente<%= bandeja.length !== 1 ? 's' : '' %></span>
           </div>
 
           <% if (bandeja.length === 0) { %>
-          <div style="text-align:center; padding:1rem; color:var(--text-muted);">
-            <div style="font-size:2.5rem; margin-bottom:0.75rem;">✅</div>
-            <p style="font-size:0.85rem;">Sin tareas pendientes para tu rol</p>
+          <div style="text-align:center; padding:20px; color:var(--text-muted);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 10px; display:block; opacity:0.4;"><polyline points="20 6 9 17 4 12"/></svg>
+            <p style="font-size:12px;">Sin tareas pendientes para tu rol</p>
           </div>
           <% } else { %>
-          <div style="display:flex; flex-direction:column; gap:0.4rem;">
+          <div style="display:flex; flex-direction:column; gap:4px;">
             <% bandeja.slice(0,6).forEach(t => { %>
             <a href="/tickets/<%= t.id %>" style="
-              display:flex; align-items:center; gap:0.75rem;
-              padding:0.65rem 0.85rem;
-              background: var(--bg-secondary);
-              border: 1px solid var(--border-subtle);
-              border-radius: var(--radius-md);
+              display:flex; align-items:center; gap:10px;
+              padding:8px 10px;
+              background: var(--surface-1);
+              border: 0.5px solid var(--border);
+              border-radius: var(--radius-sm);
               text-decoration:none;
-              transition: all 0.15s;
+              transition: border-color 0.1s, background 0.1s;
             "
-            onmouseover="this.style.borderColor='var(--accent)'; this.style.background='var(--bg-hover)';"
-            onmouseout="this.style.borderColor='var(--border-subtle)'; this.style.background='var(--bg-secondary)';"
+            onmouseover="this.style.borderColor='var(--border-accent)'; this.style.background='var(--bg-accent)';"
+            onmouseout="this.style.borderColor='var(--border)'; this.style.background='var(--surface-1)';"
             >
-              <span style="font-size:1.1rem;"><%= estadoMeta[t.estado] ? estadoMeta[t.estado].icon : '📋' %></span>
               <div style="flex:1; min-width:0;">
-                <div style="font-size:0.8rem; font-weight:600; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                <div style="font-size:12px; font-weight:500; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                   <%= t.titulo %>
                 </div>
-                <div style="font-size:0.7rem; color:var(--text-muted); margin-top:0.1rem;">
+                <div style="font-size:11px; color:var(--text-muted); margin-top:1px;">
                   <span class="font-mono"><%= t.id %></span> &nbsp;·&nbsp; <%= t.estado %>
                 </div>
               </div>
-              <% const pm = estadoMeta[t.prioridad === 'Crítica' ? 'dummy' : t.prioridad]; %>
               <span class="badge badge-prioridad-<%= t.prioridad.toLowerCase() %>" style="flex-shrink:0;">
                 <%= t.prioridad %>
               </span>
             </a>
             <% }) %>
             <% if (bandeja.length > 6) { %>
-            <a href="/tickets" style="
-              text-align:center; padding:0.5rem;
-              color:var(--accent); font-size:0.78rem; font-weight:500;
-              text-decoration:none;
-            ">Ver <%= bandeja.length - 6 %> más →</a>
+            <a href="/tickets" style="text-align:center; padding:6px; color:var(--text-accent); font-size:11px; font-weight:500; text-decoration:none;">
+              Ver <%= bandeja.length - 6 %> mas →
+            </a>
             <% } %>
           </div>
           <% } %>
@@ -135,9 +127,9 @@
         <!-- Distribución por estado -->
         <div class="card">
           <div class="card-header">
-            <span class="card-title">📊 Distribución por Estado</span>
+            <span class="card-title">Distribucion por Estado</span>
           </div>
-          <div style="display:flex; flex-direction:column; gap:0.45rem;">
+          <div style="display:flex; flex-direction:column; gap:8px;">
             <%
             const estadosOrdenados = Object.entries(estadoMeta)
               .filter(([estado]) => estado !== 'Descartado')
@@ -148,12 +140,12 @@
               const pct = stats.total > 0 ? Math.round((count / stats.total) * 100) : 0;
             %>
             <div>
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
-                <span class="badge <%= badge %>" style="font-size:0.68rem;"><%= estado %></span>
-                <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;"><%= count %></span>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <span class="badge <%= badge %>" style="font-size:10px;"><%= estado %></span>
+                <span style="font-size:11px; color:var(--text-muted); font-weight:500;"><%= count %></span>
               </div>
               <div class="qa-bar">
-                <div class="qa-bar-fill" style="width:<%= pct %>%; background: <%= estadoMeta[estado] ? estadoMeta[estado].color : 'var(--accent)' %>;"></div>
+                <div class="qa-bar-fill" style="width:<%= pct %>%; background: <%= estadoMeta[estado] ? estadoMeta[estado].color : 'var(--text-accent)' %>;"></div>
               </div>
             </div>
             <% }) %>
@@ -162,18 +154,18 @@
 
       </div>
 
-      <!-- ─── TICKETS RECIENTES ─────────────────────────────────────────────── -->
+      <!-- TICKETS RECIENTES -->
       <div class="card">
         <div class="card-header">
-          <span class="card-title">🕐 Tickets Recientes</span>
+          <span class="card-title">Tickets Recientes</span>
           <a href="/tickets" class="btn btn-secondary btn-sm">Ver todos →</a>
         </div>
 
         <% const recientes = tickets.sort((a,b) => new Date(b.fechaActualizacion) - new Date(a.fechaActualizacion)).slice(0, 8); %>
 
         <% if (recientes.length === 0) { %>
-        <div style="text-align:center; padding:2rem; color:var(--text-muted);">
-          <p>No hay tickets disponibles para tu rol.</p>
+        <div style="text-align:center; padding:24px; color:var(--text-muted);">
+          <p style="font-size:12px;">No hay tickets disponibles para tu rol.</p>
         </div>
         <% } else { %>
         <div class="table-wrapper" style="border:none; background:transparent;">
@@ -181,7 +173,7 @@
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Título</th>
+                <th>Titulo</th>
                 <th>Estado</th>
                 <th>Prioridad</th>
                 <th>Tipo</th>
@@ -197,14 +189,14 @@
                 </td>
                 <td>
                   <span class="badge <%= estadoMeta[t.estado] ? estadoMeta[t.estado].badge : 'badge-slate' %>">
-                    <%= estadoMeta[t.estado] ? estadoMeta[t.estado].icon : '' %> <%= t.estado %>
+                    <%= t.estado %>
                   </span>
                 </td>
                 <td>
                   <span class="badge badge-prioridad-<%= t.prioridad.toLowerCase() %>"><%= t.prioridad %></span>
                 </td>
-                <td style="color:var(--text-muted); font-size:0.8rem;"><%= t.tipo %></td>
-                <td style="color:var(--text-muted); font-size:0.78rem; white-space:nowrap;">
+                <td style="color:var(--text-muted); font-size:11px;"><%= t.tipo %></td>
+                <td style="color:var(--text-muted); font-size:11px; white-space:nowrap;">
                   <%= new Date(t.fechaActualizacion).toLocaleDateString('es-MX', {day:'2-digit',month:'short',year:'numeric'}) %>
                 </td>
               </tr>

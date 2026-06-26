@@ -2,58 +2,60 @@
 
 <style>
 .reporte-hero {
-  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
-  border-radius: 16px; padding: 2rem; margin-bottom: 2rem;
-  display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;
+  background: var(--surface-2);
+  border: 0.5px solid var(--border);
+  border-left: 2px solid var(--border-accent);
+  border-radius: var(--radius); padding: 20px 24px; margin-bottom: 16px;
+  display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
 }
-.reporte-hero h1 { font-size: 1.4rem; font-weight: 700; color: white; }
-.reporte-hero p  { color: rgba(255,255,255,0.7); font-size: 0.88rem; margin-top: 0.25rem; }
+.reporte-hero h1 { font-size: 15px; font-weight: 500; color: var(--text-primary); }
+.reporte-hero p  { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
 
 .informe-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;
 }
 @media (max-width: 900px) { .informe-grid { grid-template-columns: 1fr; } }
 
 .ranking-table { width: 100%; border-collapse: collapse; }
 .ranking-table th, .ranking-table td {
-  padding: 0.75rem 1rem; border-bottom: 1px solid var(--border);
-  font-size: 0.875rem; text-align: left;
+  padding: 8px 12px; border-bottom: 0.5px solid var(--border);
+  font-size: 12px; text-align: left;
 }
-.ranking-table th { color: var(--text-muted); font-weight: 500; font-size: 0.75rem; text-transform: uppercase; }
-.rank-pos { font-size: 1.25rem; text-align: center; }
+.ranking-table th { color: var(--text-muted); font-weight: 500; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
+.rank-pos { text-align: center; font-weight: 600; font-size: 13px; color: var(--text-accent); }
 
 .informe-row {
-  display: flex; align-items: center; gap: 1rem;
-  padding: 0.6rem 0; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 0; border-bottom: 0.5px solid var(--border);
 }
-.informe-nombre { flex: 1; font-weight: 500; font-size: 0.875rem; }
-.informe-meta   { font-size: 0.78rem; color: var(--text-muted); }
-.informe-pct    { font-weight: 700; color: var(--accent); width: 3rem; text-align: right; }
+.informe-nombre { flex: 1; font-weight: 500; font-size: 12px; }
+.informe-meta   { font-size: 11px; color: var(--text-muted); }
+.informe-pct    { font-weight: 600; color: var(--text-accent); width: 40px; text-align: right; font-size: 12px; }
 
 .log-entry {
-  display: flex; gap: 1rem; padding: 0.85rem 0;
-  border-bottom: 1px solid var(--border); align-items: flex-start;
+  display: flex; gap: 12px; padding: 10px 0;
+  border-bottom: 0.5px solid var(--border); align-items: flex-start;
 }
 .log-avatar {
-  width: 38px; height: 38px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), #7c3aed);
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--bg-accent);
+  border: 0.5px solid var(--border-accent);
   display: flex; align-items: center; justify-content: center;
-  font-size: 0.85rem; font-weight: 700; color: white; flex-shrink: 0;
+  font-size: 11px; font-weight: 600; color: var(--text-accent); flex-shrink: 0;
 }
 .log-content { flex: 1; }
-.log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem; }
-.log-nombre { font-weight: 600; font-size: 0.875rem; }
-.log-fecha  { font-size: 0.75rem; color: var(--text-muted); }
-.log-actividad { font-size: 0.8rem; color: var(--text-muted); }
-.log-pct { font-weight: 700; font-size: 1rem; color: var(--accent); flex-shrink: 0; }
+.log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
+.log-nombre { font-weight: 500; font-size: 12px; color: var(--text-primary); }
+.log-fecha  { font-size: 11px; color: var(--text-muted); }
+.log-actividad { font-size: 11px; color: var(--text-muted); }
+.log-pct { font-weight: 600; font-size: 13px; color: var(--text-accent); flex-shrink: 0; }
 
-.progress-mini-outer { background: var(--bg-secondary); border-radius: 99px; height: 6px; overflow: hidden; }
-.progress-mini-inner { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), #7c3aed); }
+.progress-mini-outer { background: var(--surface-1); border-radius: 99px; height: 5px; overflow: hidden; border: 0.5px solid var(--border); }
+.progress-mini-inner { height: 100%; border-radius: 99px; background: var(--text-accent); }
 
 .promedio-big {
-  font-size: 3.5rem; font-weight: 800;
-  background: linear-gradient(135deg, var(--accent), #7c3aed);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  font-size: 36px; font-weight: 600;
+  color: var(--text-accent);
   line-height: 1;
 }
 </style>
@@ -65,12 +67,12 @@
 
     <div class="reporte-hero">
       <div>
-        <h1>📊 Reportes de Avance</h1>
-        <p>Proyecto: <strong><%= proyecto.nombre %></strong></p>
+        <h1>Reportes de Avance</h1>
+        <p>Proyecto: <strong style="color:var(--text-primary);"><%= proyecto.nombre %></strong></p>
       </div>
       <div style="text-align:right;">
         <div class="promedio-big"><%= promedio %>%</div>
-        <div style="color:rgba(255,255,255,0.6);font-size:0.8rem;margin-top:0.25rem;">Avance promedio</div>
+        <div style="color:var(--text-muted);font-size:11px;margin-top:4px;">Avance promedio del proyecto</div>
       </div>
     </div>
 
@@ -78,15 +80,15 @@
 
       <!-- Ranking -->
       <div class="card">
-        <h2 style="font-size:1rem;font-weight:700;margin-bottom:1.25rem;">🏆 Ranking del Equipo</h2>
+        <h2 style="font-size:13px;font-weight:500;margin-bottom:16px;">Ranking del Equipo</h2>
         <% if(ranking && ranking.length > 0) { %>
-        <% const medallas = ['🥇','🥈','🥉']; %>
+        <% const medallas = ['1', '2', '3']; %>
         <table class="ranking-table">
           <thead><tr><th>#</th><th>Miembro</th><th>Rol</th><th>Reportes</th><th>Promedio</th></tr></thead>
           <tbody>
           <% ranking.forEach((m, i) => { %>
           <tr>
-            <td class="rank-pos"><%= medallas[i] || (i+1) %></td>
+            <td class="rank-pos">#<%= medallas[i] || (i+1) %></td>
             <td>
               <div style="font-weight:600;"><%= m.nombre %></div>
               <% if(m.ultimo_reporte) { %>
@@ -113,15 +115,15 @@
         </table>
         <% } else { %>
         <div style="text-align:center;padding:2rem;color:var(--text-muted);">
-          <div style="font-size:2rem;margin-bottom:0.5rem;">🏆</div>
-          <p>Sin reportes registrados.</p>
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 10px;display:block;opacity:0.4;"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+          <p style="font-size:12px;">Sin reportes registrados.</p>
         </div>
         <% } %>
       </div>
 
       <!-- Informe por actividad -->
       <div class="card">
-        <h2 style="font-size:1rem;font-weight:700;margin-bottom:1.25rem;">📋 Informe por Actividad</h2>
+        <h2 style="font-size:13px;font-weight:500;margin-bottom:16px;">Informe por Actividad</h2>
         <% if(informe && informe.length > 0) { %>
         <% informe.forEach(act => { %>
         <div class="informe-row">
@@ -144,8 +146,8 @@
         <% }); %>
         <% } else { %>
         <div style="text-align:center;padding:2rem;color:var(--text-muted);">
-          <div style="font-size:2rem;margin-bottom:0.5rem;">📋</div>
-          <p>Sin actividades.</p>
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 10px;display:block;opacity:0.4;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <p style="font-size:12px;">Sin actividades.</p>
         </div>
         <% } %>
       </div>
@@ -154,7 +156,7 @@
 
     <!-- Log de reportes -->
     <div class="card">
-      <h2 style="font-size:1rem;font-weight:700;margin-bottom:1.25rem;">📝 Historial de Reportes</h2>
+      <h2 style="font-size:13px;font-weight:500;margin-bottom:16px;">Historial de Reportes</h2>
       <% if(reportes && reportes.length > 0) { %>
       <% reportes.forEach(r => { %>
       <div class="log-entry">
@@ -166,7 +168,7 @@
               <%= new Date(r.fecha_reporte).toLocaleDateString('es-PE', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) %>
             </span>
           </div>
-          <div class="log-actividad">📅 <%= r.actividad_nombre %></div>
+          <div class="log-actividad"><%= r.actividad_nombre %></div>
           <% if(r.comentario) { %><div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.25rem;">"<%= r.comentario %>"</div><% } %>
         </div>
         <div class="log-pct"><%= r.porcentaje %>%</div>
@@ -174,8 +176,8 @@
       <% }); %>
       <% } else { %>
       <div style="text-align:center;padding:3rem;color:var(--text-muted);">
-        <div style="font-size:2.5rem;margin-bottom:0.75rem;">📊</div>
-        <p>No hay reportes de avance registrados.</p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 12px;display:block;opacity:0.4;"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <p style="font-size:12px;">No hay reportes de avance registrados.</p>
       </div>
       <% } %>
     </div>

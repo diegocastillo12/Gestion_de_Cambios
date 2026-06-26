@@ -49,33 +49,9 @@
   });
 
   // ─── TEMA CLARO / OSCURO ────────────────────────────────────────────────────
-  const themeToggleBtn = document.getElementById('theme-toggle-btn');
-  const themeToggleIcon = document.getElementById('theme-toggle-icon');
-  const themeToggleText = document.getElementById('theme-toggle-text');
-
-  function updateThemeUI(theme) {
-    if (theme === 'light') {
-      if (themeToggleIcon) themeToggleIcon.textContent = '🌙';
-      if (themeToggleText) themeToggleText.textContent = 'Modo Oscuro';
-    } else {
-      if (themeToggleIcon) themeToggleIcon.textContent = '☀️';
-      if (themeToggleText) themeToggleText.textContent = 'Modo Claro';
-    }
-  }
-
-  // Inicializar UI al cargar
-  const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-  updateThemeUI(currentTheme);
-
-  if (themeToggleBtn) {
-    themeToggleBtn.addEventListener('click', () => {
-      const activeTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-      const newTheme = activeTheme === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', newTheme);
-      localStorage.setItem('theme', newTheme);
-      updateThemeUI(newTheme);
-    });
-  }
+  // Theme toggle is handled inline in footer.ejs — sidebar.js only syncs if needed
+  const _savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', _savedTheme);
 
   // ─── MODALES ────────────────────────────────────────────────────────────────
   window.openModal = function(id) {
@@ -219,33 +195,32 @@
     }
 
     const colors = {
-      success: { bg: 'rgba(74,222,128,0.12)', border: 'rgba(74,222,128,0.35)', text: '#4ade80', icon: '✓' },
-      error:   { bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.35)', text: '#f87171', icon: '✕' },
-      warning: { bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.35)', text: '#fbbf24', icon: '⚠' },
-      info:    { bg: 'rgba(96,165,250,0.12)', border: 'rgba(96,165,250,0.35)', text: '#60a5fa', icon: 'ℹ' },
+      success: { bg: 'var(--bg-success)', border: 'var(--border-success)', text: 'var(--text-success)', icon: '&#10003;' },
+      error:   { bg: 'var(--bg-danger)',  border: 'var(--border-danger)',  text: 'var(--text-danger)',  icon: '&#10005;' },
+      warning: { bg: 'var(--bg-warning)', border: 'var(--border-warning)', text: 'var(--text-warning)', icon: '!' },
+      info:    { bg: 'var(--bg-accent)',  border: 'var(--border-accent)',  text: 'var(--text-accent)',  icon: 'i' },
     };
     const c = colors[type] || colors.info;
 
     const toast = document.createElement('div');
     Object.assign(toast.style, {
       background: c.bg,
-      border: `1px solid ${c.border}`,
-      borderRadius: '10px',
-      padding: '0.75rem 1.1rem',
+      border: `0.5px solid ${c.border}`,
+      borderRadius: '6px',
+      padding: '10px 14px',
       display: 'flex',
       alignItems: 'center',
-      gap: '0.5rem',
-      backdropFilter: 'blur(12px)',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-      maxWidth: '360px',
-      animation: 'fadeInUp 0.3s ease both',
-      fontFamily: 'Inter, sans-serif',
-      fontSize: '0.85rem',
+      gap: '8px',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+      maxWidth: '340px',
+      animation: 'fadein 0.25s ease both',
+      fontFamily: 'Inter, system-ui, sans-serif',
+      fontSize: '13px',
     });
 
     toast.innerHTML = `
-      <span style="color:${c.text}; font-weight: 700; flex-shrink:0;">${c.icon}</span>
-      <span style="color:#e1e1e6;">${message}</span>
+      <span style="color:${c.text}; font-weight:600; flex-shrink:0; font-size:12px;">${c.icon}</span>
+      <span style="color:var(--text-primary);">${message}</span>
     `;
 
     container.appendChild(toast);
@@ -379,7 +354,7 @@
 
     const bellBtn = document.createElement('button');
     bellBtn.className = 'notification-bell-btn';
-    bellBtn.innerHTML = '🔔';
+    bellBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>';
 
     const badge = document.createElement('span');
     badge.className = 'notification-badge';
@@ -390,12 +365,12 @@
     const dropdown = document.createElement('div');
     dropdown.className = 'notification-dropdown';
     dropdown.innerHTML = `
-      <div style="font-weight: 700; font-size: 0.8rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.4rem; color: var(--text-primary);">
-        <span>🔔 Nuevas Solicitudes</span>
-        <span style="color: var(--accent); cursor: pointer; font-size: 0.7rem;" id="ver-todos-notif">Ver todas</span>
+      <div style="font-weight:500; font-size:12px; margin-bottom:8px; display:flex; justify-content:space-between; border-bottom:0.5px solid var(--border); padding-bottom:8px; color:var(--text-primary);">
+        <span>Nuevas Solicitudes</span>
+        <span style="color:var(--text-accent); cursor:pointer; font-size:11px;" id="ver-todos-notif">Ver todas</span>
       </div>
-      <div class="notification-list" style="display: flex; flex-direction: column; gap: 0.4rem; max-height: 250px; overflow-y: auto;">
-        <div style="text-align: center; color: var(--text-muted); font-size: 0.72rem; padding: 1rem 0;">Cargando solicitudes...</div>
+      <div class="notification-list" style="display:flex; flex-direction:column; gap:4px; max-height:250px; overflow-y:auto;">
+        <div style="text-align:center; color:var(--text-muted); font-size:11px; padding:16px 0;">Cargando...</div>
       </div>
     `;
     bellContainer.appendChild(dropdown);
@@ -471,18 +446,16 @@
           });
 
           item.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem;">
-              <span style="font-weight: 800; color: var(--accent); font-size: 0.72rem; letter-spacing: 0.02em;">${t.id}</span>
-              <span style="font-size: 0.65rem; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.12); padding: 0.1rem 0.4rem; border-radius: 99px; text-transform: uppercase;">Nuevo</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
+              <span style="font-weight:500; color:var(--text-accent); font-size:11px; font-family:monospace;">${t.id}</span>
+              <span class="badge badge-blue" style="font-size:10px;">Nuevo</span>
             </div>
-            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.35rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.78rem;">
+            <div style="font-weight:500; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:12px; margin-bottom:2px;">
               ${t.titulo}
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.68rem; color: var(--text-muted);">
-              <span>👤 ${t.solicitanteNombre || 'Cliente'}</span>
-              <span style="color: var(--text-secondary); max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${t.proyectoNombre || 'Global'}">
-                📁 ${t.proyectoNombre || 'Global'}
-              </span>
+            <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted);">
+              <span>${t.solicitanteNombre || 'Solicitante'}</span>
+              <span style="max-width:140px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${t.proyectoNombre || 'Global'}</span>
             </div>
           `;
           listContainer.appendChild(item);
@@ -500,8 +473,8 @@
       } else {
         badge.style.display = 'none';
         listContainer.innerHTML = `
-          <div style="text-align: center; color: var(--text-muted); font-size: 0.7rem; padding: 1.5rem 0;">
-            ☕ No hay nuevas solicitudes pendientes
+          <div style="text-align:center; color:var(--text-muted); font-size:11px; padding:20px 0;">
+            Sin nuevas solicitudes pendientes
           </div>
         `;
       }

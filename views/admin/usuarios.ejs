@@ -1,31 +1,5 @@
 <%- include('../partials/head') %>
 
-<style>
-  .user-avatar {
-    width: 38px; height: 38px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--purple), var(--blue));
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.72rem; font-weight: 700; color: white;
-    flex-shrink: 0;
-  }
-  .search-input {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-md);
-    color: var(--text-primary);
-    padding: 0.45rem 0.85rem 0.45rem 2.25rem;
-    font-size: 0.84rem;
-    font-family: var(--font-sans);
-    outline: none;
-    width: 260px;
-    transition: border-color var(--transition-fast);
-  }
-  .search-input:focus { border-color: var(--accent); }
-  .search-wrapper { position: relative; }
-  .search-icon { position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); font-size: 0.85rem; color: var(--text-muted); pointer-events: none; }
-</style>
-
 <div class="app-wrapper">
   <%- include('../partials/sidebar', { user, roles }) %>
 
@@ -33,11 +7,18 @@
 
     <!-- TOPBAR -->
     <header class="topbar">
-      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Abrir menú">☰</button>
-      <div class="topbar-title">👥 Gestión de Usuarios</div>
-      <div class="topbar-actions">
-        <button class="btn btn-primary btn-sm" onclick="openModal('modal-crear')">➕ Nuevo Usuario</button>
-        <span class="badge badge-purple" style="font-size:0.72rem;"><%= user.rol %></span>
+      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Abrir menú">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="topbar-left">
+        <span class="topbar-title">Gestion de Usuarios</span>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary btn-sm" onclick="openModal('modal-crear')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo Usuario
+        </button>
+        <span class="badge-role"><%= user.rol %></span>
       </div>
     </header>
 
@@ -46,43 +27,40 @@
       <!-- Mensaje flash -->
       <% if (mensaje) { %>
       <div class="alert alert-success animate-fadein" id="flash-msg">
-        ✅ <%= mensaje %>
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        <%= mensaje %>
       </div>
       <% } %>
 
       <!-- Stats rápidas -->
-      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr); gap:0.65rem; margin-bottom:1rem;">
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:16px;">
         <% const rolCounts = {}; usuarios.forEach(u => { rolCounts[u.rol] = (rolCounts[u.rol] || 0) + 1; }); %>
         <div class="stat-card">
-          <div class="stat-card-glow" style="background:var(--accent);"></div>
           <div class="stat-value text-accent"><%= usuarios.length %></div>
           <div class="stat-label">Total Usuarios</div>
         </div>
         <div class="stat-card">
-          <div class="stat-card-glow" style="background:var(--purple);"></div>
-          <div class="stat-value" style="color:var(--purple);"><%= rolCounts['Administrador'] || 0 %></div>
+          <div class="stat-value" style="color:var(--text-purple);"><%= rolCounts['Administrador'] || 0 %></div>
           <div class="stat-label">Administradores</div>
         </div>
         <div class="stat-card">
-          <div class="stat-card-glow" style="background:var(--blue);"></div>
-          <div class="stat-value" style="color:var(--blue);"><%= rolCounts['Director de Proyecto'] || 0 %></div>
+          <div class="stat-value" style="color:var(--text-accent);"><%= rolCounts['Director de Proyecto'] || 0 %></div>
           <div class="stat-label">Directores</div>
         </div>
         <div class="stat-card">
-          <div class="stat-card-glow" style="background:var(--teal);"></div>
-          <div class="stat-value" style="color:var(--teal);"><%= rolCounts['Desarrollador'] || 0 %></div>
+          <div class="stat-value" style="color:var(--text-success);"><%= rolCounts['Desarrollador'] || 0 %></div>
           <div class="stat-label">Desarrolladores</div>
         </div>
       </div>
 
       <!-- Tabla de usuarios -->
       <div class="card">
-        <div class="card-header" style="flex-wrap:wrap; gap:0.75rem;">
-          <span class="card-title">🧑‍💻 Usuarios del Sistema</span>
-          <div style="display:flex; gap:0.65rem; align-items:center;">
-            <div class="search-wrapper">
-              <span class="search-icon">🔍</span>
-              <input type="text" class="search-input" id="search-usuarios" placeholder="Buscar usuarios..." oninput="filtrarUsuarios()">
+        <div class="card-header" style="flex-wrap:wrap; gap:10px;">
+          <span class="card-title">Usuarios del Sistema</span>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <div style="position:relative;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute; left:8px; top:50%; transform:translateY(-50%); color:var(--text-muted);"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" class="form-control" id="search-usuarios" placeholder="Buscar usuarios..." oninput="filtrarUsuarios()" style="padding-left:28px; width:220px;" />
             </div>
           </div>
         </div>
@@ -104,27 +82,31 @@
                 if (u.rol === 'Administrador') rolBadge = 'badge-purple';
                 else if (u.rol === 'Director de Proyecto') rolBadge = 'badge-blue';
                 else if (u.rol === 'Gestor de Configuración') rolBadge = 'badge-orange';
-                else if (u.rol === 'Desarrollador') rolBadge = 'badge-teal';
-                else if (u.rol === 'Analista QA') rolBadge = 'badge-pink';
+                else if (u.rol === 'Desarrollador') rolBadge = 'badge-green';
+                else if (u.rol === 'Analista QA') rolBadge = 'badge-purple';
                 else if (u.rol === 'Solicitante') rolBadge = 'badge-yellow';
               %>
               <tr class="usuario-row" data-nombre="<%= u.nombre.toLowerCase() %>" data-correo="<%= u.correo.toLowerCase() %>" data-rol="<%= u.rol.toLowerCase() %>">
                 <td>
-                  <div style="display:flex; align-items:center; gap:0.65rem;">
-                    <div class="user-avatar"><%= initials %></div>
+                  <div style="display:flex; align-items:center; gap:10px;">
+                    <div class="sidebar-avatar"><%= initials %></div>
                     <div>
-                      <div style="font-size:0.84rem; font-weight:600; color:var(--text-primary);"><%= u.nombre %></div>
-                      <div style="font-size:0.7rem; color:var(--text-muted);">ID: <%= u.id %></div>
+                      <div style="font-size:13px; font-weight:500; color:var(--text-primary);"><%= u.nombre %></div>
+                      <div style="font-size:11px; color:var(--text-muted);">ID: <%= u.id %></div>
                     </div>
                   </div>
                 </td>
-                <td style="color:var(--text-secondary); font-size:0.83rem;"><%= u.correo %></td>
+                <td style="color:var(--text-secondary); font-size:12px;"><%= u.correo %></td>
                 <td><span class="badge <%= rolBadge %>"><%= u.rol %></span></td>
                 <td style="text-align:right;">
-                  <div style="display:flex; gap:0.4rem; justify-content:flex-end;">
-                    <button class="btn btn-ghost btn-sm" onclick='openEditModal(<%= JSON.stringify(u) %>)' title="Editar">✏️</button>
+                  <div style="display:flex; gap:4px; justify-content:flex-end;">
+                    <button class="btn btn-ghost btn-sm btn-icon" onclick='openEditModal(<%= JSON.stringify(u) %>)' title="Editar">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
                     <% if (u.id !== user.id) { %>
-                    <button class="btn btn-danger btn-sm" onclick="confirmarEliminar(<%= u.id %>, '<%= u.nombre.replace(/'/g, "\\'") %>')" title="Eliminar">🗑️</button>
+                    <button class="btn btn-danger btn-sm btn-icon" onclick="confirmarEliminar(<%= u.id %>, '<%= u.nombre.replace(/'/g, "\\'") %>')" title="Eliminar">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    </button>
                     <% } %>
                   </div>
                 </td>
@@ -135,9 +117,9 @@
         </div>
 
         <% if (usuarios.length === 0) { %>
-        <div style="text-align:center; padding:2rem; color:var(--text-muted);">
-          <div style="font-size:2.5rem; margin-bottom:0.75rem;">👤</div>
-          <p style="font-size:0.85rem;">No hay usuarios registrados aún.</p>
+        <div style="text-align:center; padding:24px; color:var(--text-muted);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 10px; display:block; opacity:0.4;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <p style="font-size:12px;">No hay usuarios registrados aun.</p>
         </div>
         <% } %>
       </div>
@@ -148,25 +130,27 @@
   </div><!-- /main-content -->
 </div><!-- /app-wrapper -->
 
-<!-- ═══ MODAL CREAR USUARIO ══════════════════════════════════════════════════ -->
+<!-- MODAL CREAR USUARIO -->
 <div class="modal-overlay" id="modal-crear">
   <div class="modal">
     <div class="modal-header">
-      <span class="modal-title">➕ Nuevo Usuario</span>
-      <button class="modal-close" onclick="closeModal('modal-crear')">✕</button>
+      <span class="modal-title">Nuevo Usuario</span>
+      <button class="modal-close" onclick="closeModal('modal-crear')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
     <form id="form-crear" onsubmit="crearUsuario(event)">
       <div class="form-group">
         <label class="form-label">Nombre completo *</label>
-        <input type="text" name="nombre" class="form-control" required placeholder="Ej: Juan Pérez">
+        <input type="text" name="nombre" class="form-control" required placeholder="Ej: Juan Perez">
       </div>
       <div class="form-group">
-        <label class="form-label">Correo electrónico *</label>
+        <label class="form-label">Correo electronico *</label>
         <input type="email" name="correo" class="form-control" required placeholder="correo@ejemplo.com">
       </div>
       <div class="form-group">
-        <label class="form-label">Contraseña *</label>
-        <input type="password" name="password" class="form-control" required placeholder="Mínimo 6 caracteres" minlength="6">
+        <label class="form-label">Contrasena *</label>
+        <input type="password" name="password" class="form-control" required placeholder="Minimo 6 caracteres" minlength="6">
       </div>
       <div class="form-group">
         <label class="form-label">Rol *</label>
@@ -178,20 +162,22 @@
         </select>
       </div>
       <div id="error-crear" style="display:none;" class="alert alert-error"></div>
-      <div style="display:flex; gap:0.75rem; justify-content:flex-end; margin-top:1rem;">
-        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-crear')">Cancelar</button>
-        <button type="submit" class="btn btn-primary" id="btn-crear">Crear Usuario</button>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:14px;">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="closeModal('modal-crear')">Cancelar</button>
+        <button type="submit" class="btn btn-primary btn-sm" id="btn-crear">Crear Usuario</button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- ═══ MODAL EDITAR USUARIO ═════════════════════════════════════════════════ -->
+<!-- MODAL EDITAR USUARIO -->
 <div class="modal-overlay" id="modal-editar">
   <div class="modal">
     <div class="modal-header">
-      <span class="modal-title">✏️ Editar Usuario</span>
-      <button class="modal-close" onclick="closeModal('modal-editar')">✕</button>
+      <span class="modal-title">Editar Usuario</span>
+      <button class="modal-close" onclick="closeModal('modal-editar')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
     <form id="form-editar" onsubmit="editarUsuario(event)">
       <input type="hidden" name="id" id="edit-id">
@@ -200,12 +186,12 @@
         <input type="text" name="nombre" id="edit-nombre" class="form-control" required>
       </div>
       <div class="form-group">
-        <label class="form-label">Correo electrónico *</label>
+        <label class="form-label">Correo electronico *</label>
         <input type="email" name="correo" id="edit-correo" class="form-control" required>
       </div>
       <div class="form-group">
-        <label class="form-label">Nueva contraseña <span style="color:var(--text-muted); font-weight:400;">(dejar vacío para no cambiar)</span></label>
-        <input type="password" name="password" class="form-control" placeholder="Nueva contraseña..." minlength="6">
+        <label class="form-label">Nueva contrasena <span style="color:var(--text-muted); text-transform:none; letter-spacing:0; font-weight:400;">(dejar vacio para no cambiar)</span></label>
+        <input type="password" name="password" class="form-control" placeholder="Nueva contrasena..." minlength="6">
       </div>
       <div class="form-group">
         <label class="form-label">Rol *</label>
@@ -216,34 +202,36 @@
         </select>
       </div>
       <div id="error-editar" style="display:none;" class="alert alert-error"></div>
-      <div style="display:flex; gap:0.75rem; justify-content:flex-end; margin-top:1rem;">
-        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-editar')">Cancelar</button>
-        <button type="submit" class="btn btn-primary" id="btn-editar">Guardar Cambios</button>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:14px;">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="closeModal('modal-editar')">Cancelar</button>
+        <button type="submit" class="btn btn-primary btn-sm" id="btn-editar">Guardar Cambios</button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- ═══ MODAL CONFIRMAR ELIMINACIÓN ══════════════════════════════════════════ -->
+<!-- MODAL CONFIRMAR ELIMINACIÓN -->
 <div class="modal-overlay" id="modal-eliminar">
   <div class="modal" style="max-width:420px;">
     <div class="modal-header">
-      <span class="modal-title" style="color:var(--red);">🗑️ Eliminar Usuario</span>
-      <button class="modal-close" onclick="closeModal('modal-eliminar')">✕</button>
+      <span class="modal-title" style="color:var(--text-danger);">Eliminar Usuario</span>
+      <button class="modal-close" onclick="closeModal('modal-eliminar')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
-    <p style="color:var(--text-secondary); margin-bottom:1rem;">
-      ¿Estás seguro de que deseas eliminar a <strong id="eliminar-nombre" style="color:var(--text-primary);"></strong>? Esta acción no se puede deshacer.
+    <p style="color:var(--text-secondary); margin-bottom:14px; font-size:13px;">
+      Estas seguro de que deseas eliminar a <strong id="eliminar-nombre" style="color:var(--text-primary);"></strong>? Esta accion no se puede deshacer.
     </p>
     <div id="error-eliminar" style="display:none;" class="alert alert-error"></div>
-    <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
-      <button class="btn btn-ghost" onclick="closeModal('modal-eliminar')">Cancelar</button>
-      <button class="btn btn-danger" id="btn-confirmar-eliminar">Eliminar</button>
+    <div style="display:flex; gap:8px; justify-content:flex-end;">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-eliminar')">Cancelar</button>
+      <button class="btn btn-danger btn-sm" id="btn-confirmar-eliminar">Eliminar</button>
     </div>
   </div>
 </div>
 
 <script>
-  // ─── Modales ───────────────────────────────────────────────────────────────
+  // Modales
   function openModal(id) {
     document.getElementById(id).classList.add('open');
   }
@@ -253,7 +241,7 @@
     if (errEl) { errEl.style.display='none'; errEl.textContent=''; }
   }
 
-  // ─── Buscar usuarios ───────────────────────────────────────────────────────
+  // Buscar usuarios
   function filtrarUsuarios() {
     const q = document.getElementById('search-usuarios').value.toLowerCase();
     document.querySelectorAll('.usuario-row').forEach(row => {
@@ -262,7 +250,7 @@
     });
   }
 
-  // ─── Crear usuario ─────────────────────────────────────────────────────────
+  // Crear usuario
   async function crearUsuario(e) {
     e.preventDefault();
     const btn = document.getElementById('btn-crear');
@@ -286,20 +274,19 @@
     }
   }
 
-  // ─── Abrir modal editar ────────────────────────────────────────────────────
+  // Abrir modal editar
   const rolesDisponibles = <%- JSON.stringify(rolesDisponibles) %>;
   function openEditModal(u) {
     document.getElementById('edit-id').value = u.id;
     document.getElementById('edit-nombre').value = u.nombre;
     document.getElementById('edit-correo').value = u.correo;
-    // Set rol by nombre_rol match
     const sel = document.getElementById('edit-rol');
     const rolMatch = rolesDisponibles.find(r => r.nombre_rol === u.rol);
     if (rolMatch) sel.value = rolMatch.id_rol;
     openModal('modal-editar');
   }
 
-  // ─── Editar usuario ────────────────────────────────────────────────────────
+  // Editar usuario
   async function editarUsuario(e) {
     e.preventDefault();
     const btn = document.getElementById('btn-editar');
@@ -325,7 +312,7 @@
     }
   }
 
-  // ─── Eliminar usuario ──────────────────────────────────────────────────────
+  // Eliminar usuario
   let eliminarId = null;
   function confirmarEliminar(id, nombre) {
     eliminarId = id;

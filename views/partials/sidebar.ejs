@@ -1,7 +1,7 @@
 <%
   /**
    * sidebar.ejs — Menú lateral adaptativo según el rol del usuario en sesión
-   * Soporta: Administrador, Solicitante, y todos los roles del equipo técnico
+   * Sin emojis. Iconos SVG Tabler inline.
    */
   const ROLES = locals.roles || {};
   const u = locals.user || {};
@@ -19,104 +19,108 @@
   const canViewQA        = [ROLES.TESTER, ROLES.LIDER_TECNICO].includes(rol);
 %>
 
-<!-- Overlay para movil -->
+<!-- Overlay para móvil -->
 <div id="sidebar-overlay"></div>
 
 <aside id="sidebar" class="sidebar">
 
   <!-- Logo -->
   <div class="sidebar-logo">
-    <div class="sidebar-logo-icon">⚙️</div>
+    <div class="sidebar-logo-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </div>
     <div class="sidebar-logo-text">
       <span class="sidebar-logo-title">GestioCambios</span>
-      <span class="sidebar-logo-sub">G04 · SCM System</span>
+      <span class="sidebar-logo-sub">G04 · SCM</span>
     </div>
   </div>
 
   <!-- Perfil del usuario -->
   <% if (u && u.nombre) { %>
-  <div class="sidebar-profile" style="display:flex; align-items:center; justify-content:space-between; width:100%; padding-right: 0.5rem;">
-    <div style="display:flex; align-items:center; gap:0.75rem;">
-      <div class="sidebar-avatar"><%= u.nombre.slice(0,2).toUpperCase() %></div>
-      <div class="sidebar-profile-info">
-        <div class="sidebar-profile-name"><%= u.nombre %></div>
-        <div class="sidebar-profile-role"><%= u.rol %></div>
-      </div>
+  <div class="sidebar-profile">
+    <div class="sidebar-avatar"><%= u.nombre.slice(0,2).toUpperCase() %></div>
+    <div class="sidebar-profile-info">
+      <div class="sidebar-profile-name"><%= u.nombre %></div>
+      <div class="sidebar-profile-role"><%= u.rol %></div>
     </div>
-    <button onclick="abrirModalGitHub()" title="Configuración de GitHub" style="background:transparent; border:none; color:var(--text-muted, #94a3b8); cursor:pointer; font-size:1.15rem; padding:0.25rem; display:flex; align-items:center; justify-content:center; transition: color 0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--text-muted, #94a3b8)'">⚙️</button>
+    <button onclick="abrirModalGitHub()" title="Configuración de GitHub" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; padding:2px; display:flex; align-items:center; transition:color 0.1s;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-muted)'">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
   </div>
   <% } %>
 
   <!-- Navegación -->
   <nav class="sidebar-nav">
 
-    <!-- ═══ ADMINISTRADOR ═══ -->
+    <!-- ADMINISTRADOR -->
     <% if (isAdministrador) { %>
     <div class="nav-section">
       <div class="nav-section-title">Panel Admin</div>
       <a href="/admin" class="nav-item<%= path === '/admin' ? ' active' : '' %>">
-        <span class="nav-item-icon">🏠</span>
+        <span class="nav-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
         <span>Inicio</span>
       </a>
       <a href="/admin/proyectos" class="nav-item<%= path.startsWith('/admin/proyectos') ? ' active' : '' %>">
-        <span class="nav-item-icon">📁</span>
+        <span class="nav-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
         <span>Proyectos</span>
       </a>
       <a href="/admin/usuarios" class="nav-item<%= path === '/admin/usuarios' ? ' active' : '' %>">
-        <span class="nav-item-icon">👥</span>
+        <span class="nav-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
         <span>Usuarios</span>
       </a>
       <a href="/admin/metodologias" class="nav-item<%= path === '/admin/metodologias' ? ' active' : '' %>">
-        <span class="nav-item-icon">📐</span>
-        <span>Metodologías</span>
+        <span class="nav-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>
+        <span>Metodologias</span>
       </a>
     </div>
     <div class="nav-section">
       <div class="nav-section-title">Tickets</div>
       <a href="/tickets" class="nav-item<%= path === '/tickets' ? ' active' : '' %>">
-        <span class="nav-item-icon">🎫</span>
+        <span class="nav-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span>
         <span>Todos los Tickets</span>
       </a>
     </div>
     <% } %>
 
-    <!-- ═══ SOLICITANTE ═══ -->
+    <!-- SOLICITANTE -->
     <% if (isSolicitante) { %>
     <div class="nav-section">
       <div class="nav-section-title">Mis Proyectos</div>
       <a href="/cartera" class="nav-item<%= path === '/cartera' ? ' active' : '' %>">
-        <span class="nav-item-icon">💼</span>
+        <span class="nav-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></span>
         <span>Mi Cartera</span>
       </a>
     </div>
     <div class="nav-section">
       <div class="nav-section-title">Solicitudes</div>
       <a href="/tickets" class="nav-item<%= path === '/tickets' ? ' active' : '' %>">
-        <span class="nav-item-icon">🎫</span>
+        <span class="nav-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/></svg></span>
         <span>Mis Tickets</span>
       </a>
       <a href="/tickets/nuevo" class="nav-item<%= path === '/tickets/nuevo' ? ' active' : '' %>">
-        <span class="nav-item-icon">➕</span>
+        <span class="nav-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
         <span>Nueva Solicitud</span>
       </a>
     </div>
     <% } %>
 
-    <!-- ═══ EQUIPO TÉCNICO ═══ -->
+    <!-- EQUIPO TÉCNICO -->
     <% if (isEquipo) { %>
     <div class="nav-section">
       <div class="nav-section-title">General</div>
       <a href="/dashboard" class="nav-item<%= path === '/dashboard' ? ' active' : '' %>">
-        <span class="nav-item-icon">📊</span>
+        <span class="nav-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
         <span>Dashboard</span>
       </a>
       <a href="/cartera" class="nav-item<%= path === '/cartera' ? ' active' : '' %>">
-        <span class="nav-item-icon">💼</span>
+        <span class="nav-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></span>
         <span>Mis Proyectos</span>
       </a>
       <% if (canCreateTicket) { %>
       <a href="/tickets/nuevo" class="nav-item<%= path === '/tickets/nuevo' ? ' active' : '' %>">
-        <span class="nav-item-icon">➕</span>
+        <span class="nav-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
         <span>Nuevo Ticket</span>
       </a>
       <% } %>
@@ -127,38 +131,38 @@
 
       <% if (canViewAnalysis) { %>
       <a href="/tickets?estado=Solicitado" class="nav-item">
-        <span class="nav-item-icon">📋</span>
+        <span class="nav-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
         <span>Solicitados</span>
       </a>
       <a href="/tickets?estado=En+An%C3%A1lisis" class="nav-item">
-        <span class="nav-item-icon">🔍</span>
-        <span>En Análisis</span>
+        <span class="nav-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+        <span>En Analisis</span>
       </a>
       <% } %>
 
       <% if (rol === ROLES.DIRECTOR || canViewCCB) { %>
       <a href="/tickets?estado=Pendiente+de+Aprobaci%C3%B3n" class="nav-item">
-        <span class="nav-item-icon">✅</span>
-        <span>Para Aprobación</span>
+        <span class="nav-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+        <span>Para Aprobacion</span>
       </a>
       <% } %>
 
       <% if (canViewDev) { %>
       <a href="/tickets?estado=En+Desarrollo" class="nav-item">
-        <span class="nav-item-icon">💻</span>
+        <span class="nav-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>
         <span>En Desarrollo</span>
       </a>
       <% } %>
 
       <% if (canViewQA) { %>
       <a href="/tickets?estado=En+Pruebas+QA" class="nav-item">
-        <span class="nav-item-icon">🧪</span>
+        <span class="nav-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v11m0 0h10a2 2 0 0 0 2-2V9M9 14H5a2 2 0 0 1-2-2V9m0 0h18"/></svg></span>
         <span>En Pruebas QA</span>
       </a>
       <% } %>
 
       <a href="/tickets" class="nav-item">
-        <span class="nav-item-icon">🎫</span>
+        <span class="nav-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/></svg></span>
         <span>Todos los Tickets</span>
       </a>
     </div>
@@ -167,49 +171,56 @@
   </nav>
 
   <!-- Footer sidebar -->
-  <div class="sidebar-footer" style="display:flex; flex-direction:column; gap:0.4rem;">
-    <button id="theme-toggle-btn" class="nav-item btn-ghost w-full" style="border:none; cursor:pointer; text-align:left;">
-      <span class="nav-item-icon" id="theme-toggle-icon">☀️</span>
-      <span id="theme-toggle-text">Modo Claro</span>
+  <div class="sidebar-footer">
+    <button id="theme-toggle-btn" class="nav-item w-full" style="border:none; cursor:pointer; background:transparent;">
+      <span class="nav-item-icon" id="theme-icon-sun" style="display:none;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </span>
+      <span class="nav-item-icon" id="theme-icon-moon" style="display:none;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </span>
+      <span id="theme-toggle-text">Modo Oscuro</span>
     </button>
-    <button id="logout-btn" class="nav-item btn-ghost w-full" style="border:none; cursor:pointer; text-align:left;">
-      <span class="nav-item-icon">🚪</span>
-      <span>Cerrar Sesión</span>
+    <button id="logout-btn" class="nav-item w-full" style="border:none; cursor:pointer; background:transparent;">
+      <span class="nav-item-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </span>
+      <span>Cerrar Sesion</span>
     </button>
   </div>
 
 </aside>
 
 <!-- Modal: Configuración Global de GitHub -->
-<div class="modal-overlay" id="modalGitHub" style="display:none; position:fixed; inset:0; z-index:999; background:rgba(0,0,0,0.65); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
-  <div class="modal-box" style="background:var(--bg-secondary, #1e1e2f); border:1px solid var(--border-subtle, #2d2d3f); border-radius:12px; width:450px; max-width:90%; padding:1.5rem; position:relative; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
-    <button onclick="cerrarModalGitHub()" style="position:absolute; top:0.75rem; right:0.75rem; background:transparent; border:none; color:var(--text-muted); font-size:1.1rem; cursor:pointer;">✕</button>
-    
-    <div style="font-size:1.15rem; font-weight:700; color:var(--text-primary, #ffffff); margin-bottom:0.5rem; display:flex; align-items:center; gap:0.5rem;">
-      <span>🐙 Conectar con GitHub</span>
+<div class="modal-overlay" id="modalGitHub" style="display:none;">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-header">
+      <span class="modal-title">Conectar con GitHub</span>
+      <button onclick="cerrarModalGitHub()" class="modal-close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
-    <p style="font-size:0.78rem; color:var(--text-muted, #94a3b8); margin-bottom:1.25rem; line-height:1.4;">
-      Vincula tu cuenta usando un <strong>Personal Access Token (PAT)</strong> para habilitar el versionado real y automático de tus entregables en repositorios de GitHub.
+
+    <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px; line-height:1.5;">
+      Vincula tu cuenta usando un <strong style="color:var(--text-secondary);">Personal Access Token (PAT)</strong> para habilitar el versionado real y automático de tus entregables en repositorios de GitHub.
     </p>
 
     <!-- Estado de la Conexión -->
-    <div id="github-estado-container" style="background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle, #2d2d3f); padding:0.75rem; border-radius:8px; margin-bottom:1.25rem; display:flex; align-items:center; justify-content:space-between;">
-      <span style="font-size:0.8rem; color:var(--text-secondary);">Estado de Conexión:</span>
-      <span id="github-estado-badge" class="badge badge-slate" style="font-size:0.72rem; font-weight:700;">Verificando...</span>
+    <div id="github-estado-container" style="background:var(--surface-1); border:0.5px solid var(--border); padding:10px 12px; border-radius:var(--radius-sm); margin-bottom:14px; display:flex; align-items:center; justify-content:space-between;">
+      <span style="font-size:12px; color:var(--text-muted);">Estado de Conexión:</span>
+      <span id="github-estado-badge" class="badge badge-slate" style="font-size:11px;">Verificando...</span>
     </div>
 
     <!-- Formulario de Token -->
-    <div class="form-group" style="margin-bottom:1.25rem;">
-      <label class="form-label" style="font-size:0.75rem; margin-bottom:0.4rem; display:block;">GitHub Personal Access Token (PAT)</label>
-      <input type="password" id="github-pat-input" class="form-input" placeholder="ghp_..." style="width:100%; padding:0.5rem; font-size:0.82rem; background:var(--bg-primary, #121214); border:1px solid var(--border-subtle, #2d2d3f); border-radius:6px; color:#ffffff;">
-      <small style="display:block; font-size:0.68rem; color:var(--text-muted); margin-top:0.35rem;">
-        * Requiere permisos de escritura en repositorios (<code>repo</code>). Tu token se almacena cifrado en la base de datos.
-      </small>
+    <div class="form-group" style="margin-bottom:14px;">
+      <label class="form-label">GitHub Personal Access Token (PAT)</label>
+      <input type="password" id="github-pat-input" class="form-control" placeholder="ghp_..." />
+      <span class="form-hint">Requiere permisos de escritura en repositorios (<code>repo</code>). Token almacenado cifrado.</span>
     </div>
 
-    <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
-      <button class="btn btn-ghost" onclick="cerrarModalGitHub()" style="padding:0.45rem 1rem; font-size:0.8rem;">Cerrar</button>
-      <button class="btn btn-primary" id="btn-guardar-github" onclick="guardarGitHubToken()" style="padding:0.45rem 1rem; font-size:0.8rem; background:var(--accent, #6366f1); color:#ffffff; border:none; border-radius:6px; font-weight:600; cursor:pointer;">Guardar Token</button>
+    <div style="display:flex; gap:8px; justify-content:flex-end;">
+      <button class="btn btn-ghost btn-sm" onclick="cerrarModalGitHub()">Cerrar</button>
+      <button class="btn btn-primary btn-sm" id="btn-guardar-github" onclick="guardarGitHubToken()">Guardar Token</button>
     </div>
   </div>
 </div>
@@ -218,16 +229,11 @@
 function abrirModalGitHub() {
   const modal = document.getElementById('modalGitHub');
   modal.style.display = 'flex';
-  setTimeout(() => modal.classList.add('open'), 10);
   verificarEstadoGitHub();
 }
 
 function cerrarModalGitHub() {
-  const modal = document.getElementById('modalGitHub');
-  modal.classList.remove('open');
-  setTimeout(() => {
-    modal.style.display = 'none';
-  }, 300);
+  document.getElementById('modalGitHub').style.display = 'none';
 }
 
 async function verificarEstadoGitHub() {
@@ -240,16 +246,12 @@ async function verificarEstadoGitHub() {
     const data = await res.json();
     
     if (data.success && data.conectado) {
-      badge.className = 'badge badge-teal';
-      badge.style.background = '#0d9488';
-      badge.style.color = '#ffffff';
-      badge.textContent = `🟢 Conectado (${data.username})`;
+      badge.className = 'badge badge-green';
+      badge.textContent = 'Conectado (' + data.username + ')';
       document.getElementById('github-pat-input').placeholder = '••••••••••••••••••••••••••••';
     } else {
       badge.className = 'badge badge-red';
-      badge.style.background = '#dc2626';
-      badge.style.color = '#ffffff';
-      badge.textContent = '🔴 Desconectado';
+      badge.textContent = 'Desconectado';
       document.getElementById('github-pat-input').placeholder = 'ghp_...';
     }
   } catch (err) {
@@ -289,7 +291,6 @@ async function guardarGitHubToken() {
 
 // Cargar estado inicial al cargar sidebar
 document.addEventListener('DOMContentLoaded', () => {
-  // Solo verificar si hay sesión activa de usuario
   <% if (u && u.nombre) { %>
     verificarEstadoGitHub();
   <% } %>

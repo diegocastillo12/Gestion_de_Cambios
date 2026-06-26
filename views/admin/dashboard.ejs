@@ -7,94 +7,84 @@
 
     <!-- TOPBAR -->
     <header class="topbar">
-      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Abrir menú">☰</button>
-      <div class="topbar-title">
-        🛡️ Panel de Administración — <span style="color:var(--text-muted); font-weight:400;">Bienvenido, <strong style="color:var(--accent);"><%= user.nombre %></strong></span>
+      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Abrir menú">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="topbar-left">
+        <span class="topbar-title">Panel de Administracion</span>
+        <span class="topbar-sub">Bienvenido, <%= user.nombre %></span>
       </div>
-      <div class="topbar-actions">
-        <a href="/admin/proyectos/nuevo" class="btn btn-primary btn-sm">➕ Nuevo Proyecto</a>
-        <span class="badge badge-purple" style="font-size:0.72rem;"><%= user.rol %></span>
+      <div class="topbar-right">
+        <a href="/admin/proyectos/nuevo" class="btn btn-primary btn-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo Proyecto
+        </a>
+        <span class="badge-role"><%= user.rol %></span>
       </div>
     </header>
 
     <div class="page-container">
 
-      <!-- ─── STATS GLOBALES ───────────────────────────────────────────────── -->
-      <div class="stats-grid" style="grid-template-columns: repeat(4,1fr); gap:0.65rem; margin-bottom:1rem;">
-
+      <!-- STATS GLOBALES -->
+      <div class="stats-grid" style="grid-template-columns: repeat(4,1fr); gap:8px; margin-bottom:16px;">
         <div class="stat-card">
-          <div class="stat-card-glow" style="background:var(--accent);"></div>
           <div class="stat-value text-accent"><%= statsGlobales.total_proyectos %></div>
           <div class="stat-label">Total Proyectos</div>
-          <div class="stat-trend text-muted">📁 Registrados en el sistema</div>
+          <div class="stat-trend">Registrados en el sistema</div>
         </div>
-
         <div class="stat-card">
-          <div class="stat-card-glow" style="background:var(--blue);"></div>
-          <div class="stat-value" style="color:var(--blue);"><%= statsGlobales.activos %></div>
+          <div class="stat-value" style="color:var(--text-accent);"><%= statsGlobales.activos %></div>
           <div class="stat-label">Proyectos Activos</div>
-          <div class="stat-trend text-muted">🚀 En ejecución actualmente</div>
+          <div class="stat-trend">En ejecucion actualmente</div>
         </div>
-
         <div class="stat-card">
-          <div class="stat-card-glow" style="background:var(--teal);"></div>
-          <div class="stat-value" style="color:var(--teal);"><%= statsGlobales.cerrados %></div>
+          <div class="stat-value" style="color:var(--text-success);"><%= statsGlobales.cerrados %></div>
           <div class="stat-label">Proyectos Cerrados</div>
-          <div class="stat-trend text-muted">✅ Finalizados con éxito</div>
+          <div class="stat-trend">Finalizados con exito</div>
         </div>
-
         <div class="stat-card">
-          <div class="stat-card-glow" style="background:var(--yellow);"></div>
-          <div class="stat-value" style="color:var(--yellow);"><%= statsGlobales.pausados %></div>
+          <div class="stat-value" style="color:var(--text-warning);"><%= statsGlobales.pausados %></div>
           <div class="stat-label">Proyectos Pausados</div>
-          <div class="stat-trend text-muted">⏸️ Temporalmente detenidos</div>
+          <div class="stat-trend">Temporalmente detenidos</div>
         </div>
-
       </div>
 
-      <!-- ─── STATS SECUNDARIAS ────────────────────────────────────────────── -->
-      <div class="stats-grid" style="grid-template-columns: repeat(3,1fr); gap:0.65rem; margin-bottom:1rem;">
-
+      <!-- STATS SECUNDARIAS -->
+      <div class="stats-grid" style="grid-template-columns: repeat(3,1fr); gap:8px; margin-bottom:16px;">
         <div class="stat-card">
-          <div class="stat-card-glow" style="background:var(--purple);"></div>
-          <div class="stat-value" style="color:var(--purple);"><%= usuarios.length %></div>
+          <div class="stat-value" style="color:var(--text-purple);"><%= usuarios.length %></div>
           <div class="stat-label">Usuarios Registrados</div>
-          <div class="stat-trend text-muted">👥 Total en el sistema</div>
+          <div class="stat-trend">Total en el sistema</div>
         </div>
-
         <div class="stat-card">
-          <div class="stat-card-glow" style="background:var(--orange);"></div>
-          <div class="stat-value" style="color:var(--orange);"><%= metodologias.length %></div>
-          <div class="stat-label">Metodologías</div>
-          <div class="stat-trend text-muted">📐 Marcos de trabajo disponibles</div>
+          <div class="stat-value" style="color:var(--text-warning);"><%= metodologias.length %></div>
+          <div class="stat-label">Metodologias</div>
+          <div class="stat-trend">Marcos de trabajo disponibles</div>
         </div>
-
         <div class="stat-card">
-          <div class="stat-card-glow" style="background:var(--pink);"></div>
           <%
             const promedioGlobal = proyectos.length > 0
               ? Math.round(proyectos.reduce((s,p) => s + parseFloat(p.promedio_avance || 0), 0) / proyectos.length)
               : 0;
           %>
-          <div class="stat-value" style="color:var(--pink);"><%= promedioGlobal %>%</div>
+          <div class="stat-value" style="color:var(--text-purple);"><%= promedioGlobal %>%</div>
           <div class="stat-label">Avance Promedio Global</div>
-          <div class="stat-trend text-muted">📊 Todos los proyectos activos</div>
+          <div class="stat-trend">Todos los proyectos activos</div>
         </div>
-
       </div>
 
-      <!-- ─── SECCIÓN DE GRÁFICOS INTERACTIVOS ─────────────────────────────── -->
-      <div class="grid-2" style="gap:0.75rem; margin-bottom:1rem;">
+      <!-- SECCIÓN DE GRÁFICOS -->
+      <div class="grid-2" style="gap:12px; margin-bottom:16px;">
         
         <!-- Avance por Proyecto -->
         <div class="card">
           <div class="card-header">
-            <span class="card-title">📊 Avance por Proyecto</span>
+            <span class="card-title">Avance por Proyecto</span>
           </div>
-          <div style="padding:1rem; position:relative; height:240px; display:flex; justify-content:center; align-items:center;">
+          <div style="padding:8px; position:relative; height:220px; display:flex; justify-content:center; align-items:center;">
             <% if (proyectos.length === 0) { %>
-            <div style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
-              <div style="font-size:2rem; margin-bottom:0.5rem;">📁</div>
+            <div style="text-align:center; color:var(--text-muted); font-size:12px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 8px; display:block; opacity:0.4;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
               Sin proyectos registrados en el sistema
             </div>
             <% } else { %>
@@ -106,12 +96,12 @@
         <!-- Distribución de Tickets -->
         <div class="card">
           <div class="card-header">
-            <span class="card-title">🔄 Estados de las Solicitudes (Tickets)</span>
+            <span class="card-title">Estados de las Solicitudes (Tickets)</span>
           </div>
-          <div style="padding:1rem; position:relative; height:240px; display:flex; justify-content:center; align-items:center;">
+          <div style="padding:8px; position:relative; height:220px; display:flex; justify-content:center; align-items:center;">
             <% if (ticketStats.length === 0) { %>
-            <div style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
-              <div style="font-size:2rem; margin-bottom:0.5rem;">🎫</div>
+            <div style="text-align:center; color:var(--text-muted); font-size:12px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 8px; display:block; opacity:0.4;"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/></svg>
               Sin solicitudes de cambio registradas
             </div>
             <% } else { %>
@@ -122,23 +112,22 @@
 
       </div>
 
-      <!-- ─── PROYECTOS + USUARIOS ─────────────────────────────────────────── -->
-      <div class="grid-2" style="gap:0.75rem; margin-bottom:1rem;">
+      <!-- PROYECTOS + USUARIOS -->
+      <div class="grid-2" style="gap:12px; margin-bottom:16px;">
 
         <!-- Proyectos con avance -->
         <div class="card">
           <div class="card-header">
-            <span class="card-title">📁 Proyectos — Avance</span>
+            <span class="card-title">Proyectos — Avance</span>
             <a href="/admin/proyectos" class="btn btn-secondary btn-sm">Ver todos →</a>
           </div>
 
           <% if (proyectos.length === 0) { %>
-          <div style="text-align:center; padding:1.5rem; color:var(--text-muted);">
-            <div style="font-size:2rem; margin-bottom:0.5rem;">📭</div>
-            <p style="font-size:0.85rem;">No hay proyectos registrados</p>
+          <div style="text-align:center; padding:16px; color:var(--text-muted);">
+            <p style="font-size:12px;">No hay proyectos registrados</p>
           </div>
           <% } else { %>
-          <div style="display:flex; flex-direction:column; gap:0.6rem;">
+          <div style="display:flex; flex-direction:column; gap:8px;">
             <% proyectos.slice(0,6).forEach(p => {
               const avance = p.promedio_avance || 0;
               let badgeClass = 'badge-slate';
@@ -146,30 +135,29 @@
               else if (p.estado === 'Cerrado') badgeClass = 'badge-green';
               else if (p.estado === 'Pausado') badgeClass = 'badge-yellow';
             %>
-            <div style="padding:0.65rem 0.75rem; background:var(--bg-tertiary); border:1px solid var(--border-subtle); border-radius:var(--radius-md);">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+            <div style="padding:8px 10px; background:var(--surface-1); border:0.5px solid var(--border); border-radius:var(--radius-sm);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                 <div>
-                  <a href="/admin/proyectos/<%= p.id_proyecto %>/config" style="font-size:0.82rem; font-weight:600; color:var(--text-primary); text-decoration:none;">
+                  <a href="/admin/proyectos/<%= p.id_proyecto %>/config" style="font-size:12px; font-weight:500; color:var(--text-primary); text-decoration:none;">
                     <%= p.nombre %>
                   </a>
-                  <div style="font-size:0.7rem; color:var(--text-muted); margin-top:0.1rem;">
-                    <%= p.total_actividades || 0 %> actividades · <%= p.metodologia_nombre || 'Sin metodología' %>
+                  <div style="font-size:10px; color:var(--text-muted); margin-top:1px;">
+                    <%= p.total_actividades || 0 %> actividades · <%= p.metodologia_nombre || 'Sin metodologia' %>
                   </div>
                 </div>
-                <div style="display:flex; align-items:center; gap:0.5rem;">
-                  <span class="badge <%= badgeClass %>" style="font-size:0.65rem;"><%= p.estado %></span>
-                  <span style="font-size:0.78rem; font-weight:700; color:var(--accent);"><%= avance %>%</span>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span class="badge <%= badgeClass %>" style="font-size:10px;"><%= p.estado %></span>
+                  <span style="font-size:11px; font-weight:500; color:var(--text-accent);"><%= avance %>%</span>
                 </div>
               </div>
-              <!-- Progress bar -->
               <div class="qa-bar">
-                <div class="qa-bar-fill" style="width:<%= avance %>%; background: <%= avance >= 80 ? 'var(--accent)' : avance >= 50 ? 'var(--blue)' : 'var(--orange)' %>;"></div>
+                <div class="qa-bar-fill" style="width:<%= avance %>%;"></div>
               </div>
             </div>
             <% }) %>
             <% if (proyectos.length > 6) { %>
-            <a href="/admin/proyectos" style="text-align:center; padding:0.4rem; color:var(--accent); font-size:0.78rem; font-weight:500;">
-              Ver <%= proyectos.length - 6 %> más →
+            <a href="/admin/proyectos" style="text-align:center; padding:4px; color:var(--text-accent); font-size:11px; font-weight:500; text-decoration:none;">
+              Ver <%= proyectos.length - 6 %> mas →
             </a>
             <% } %>
           </div>
@@ -179,39 +167,39 @@
         <!-- Usuarios registrados -->
         <div class="card">
           <div class="card-header">
-            <span class="card-title">👥 Usuarios del Sistema</span>
+            <span class="card-title">Usuarios del Sistema</span>
             <a href="/admin/usuarios" class="btn btn-secondary btn-sm">Gestionar →</a>
           </div>
 
           <% if (usuarios.length === 0) { %>
-          <div style="text-align:center; padding:1.5rem; color:var(--text-muted);">
-            <p style="font-size:0.85rem;">No hay usuarios registrados</p>
+          <div style="text-align:center; padding:16px; color:var(--text-muted);">
+            <p style="font-size:12px;">No hay usuarios registrados</p>
           </div>
           <% } else { %>
-          <div style="display:flex; flex-direction:column; gap:0.4rem;">
+          <div style="display:flex; flex-direction:column; gap:2px;">
             <% usuarios.slice(0,8).forEach(u => {
               const initials = u.nombre ? u.nombre.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() : '?';
               let rolBadge = 'badge-slate';
               if (u.rol === 'Administrador') rolBadge = 'badge-purple';
               else if (u.rol === 'Director de Proyecto') rolBadge = 'badge-blue';
               else if (u.rol === 'Gestor de Configuración') rolBadge = 'badge-orange';
-              else if (u.rol === 'Desarrollador') rolBadge = 'badge-teal';
-              else if (u.rol === 'Analista QA') rolBadge = 'badge-pink';
+              else if (u.rol === 'Desarrollador') rolBadge = 'badge-green';
+              else if (u.rol === 'Analista QA') rolBadge = 'badge-purple';
             %>
-            <div style="display:flex; align-items:center; gap:0.65rem; padding:0.5rem 0.6rem; border-radius:var(--radius-md); transition:background 0.15s;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='transparent'">
-              <div style="width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--purple),var(--blue)); display:flex; align-items:center; justify-content:center; font-size:0.65rem; font-weight:700; color:white; flex-shrink:0;">
+            <div style="display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:var(--radius-sm); transition:background 0.1s;" onmouseover="this.style.background='var(--surface-1)'" onmouseout="this.style.background='transparent'">
+              <div class="sidebar-avatar">
                 <%= initials %>
               </div>
               <div style="flex:1; min-width:0;">
-                <div style="font-size:0.8rem; font-weight:600; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><%= u.nombre %></div>
-                <div style="font-size:0.7rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><%= u.correo %></div>
+                <div style="font-size:12px; font-weight:500; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><%= u.nombre %></div>
+                <div style="font-size:10px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><%= u.correo %></div>
               </div>
-              <span class="badge <%= rolBadge %>" style="font-size:0.62rem; flex-shrink:0;"><%= u.rol %></span>
+              <span class="badge <%= rolBadge %>" style="font-size:10px; flex-shrink:0;"><%= u.rol %></span>
             </div>
             <% }) %>
             <% if (usuarios.length > 8) { %>
-            <a href="/admin/usuarios" style="text-align:center; padding:0.4rem; color:var(--accent); font-size:0.78rem; font-weight:500;">
-              Ver <%= usuarios.length - 8 %> más →
+            <a href="/admin/usuarios" style="text-align:center; padding:4px; color:var(--text-accent); font-size:11px; font-weight:500; text-decoration:none;">
+              Ver <%= usuarios.length - 8 %> mas →
             </a>
             <% } %>
           </div>
@@ -220,33 +208,35 @@
 
       </div>
 
-      <!-- ─── METODOLOGÍAS ─────────────────────────────────────────────────── -->
+      <!-- METODOLOGÍAS -->
       <div class="card">
         <div class="card-header">
-          <span class="card-title">📐 Metodologías Registradas</span>
+          <span class="card-title">Metodologias Registradas</span>
           <a href="/admin/metodologias" class="btn btn-secondary btn-sm">Gestionar →</a>
         </div>
 
         <% if (metodologias.length === 0) { %>
-        <div style="text-align:center; padding:1.5rem; color:var(--text-muted);">
-          <div style="font-size:2rem; margin-bottom:0.5rem;">📭</div>
-          <p style="font-size:0.85rem;">No hay metodologías registradas aún</p>
-          <a href="/admin/metodologias" class="btn btn-primary btn-sm" style="margin-top:0.75rem;">➕ Crear primera metodología</a>
+        <div style="text-align:center; padding:16px; color:var(--text-muted);">
+          <p style="font-size:12px;">No hay metodologias registradas aun</p>
+          <a href="/admin/metodologias" class="btn btn-primary btn-sm" style="margin-top:10px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Crear primera metodologia
+          </a>
         </div>
         <% } else { %>
-        <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap:0.65rem;">
-          <% metodologias.forEach((m, idx) => {
-            const colors = ['var(--accent)','var(--blue)','var(--purple)','var(--orange)','var(--pink)','var(--teal)'];
-            const col = colors[idx % colors.length];
+        <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap:8px;">
+          <% const accentColors = ['var(--text-accent)','var(--text-success)','var(--text-purple)','var(--text-warning)','var(--text-danger)'];
+          metodologias.forEach((m, idx) => {
+            const col = accentColors[idx % accentColors.length];
           %>
-          <div style="padding:0.85rem 1rem; background:var(--bg-tertiary); border:1px solid var(--border-subtle); border-radius:var(--radius-md); border-left:3px solid <%= col %>;">
-            <div style="font-size:0.85rem; font-weight:600; color:var(--text-primary); margin-bottom:0.25rem;"><%= m.nombre %></div>
-            <div style="font-size:0.72rem; color:var(--text-muted);">
+          <div style="padding:10px 12px; background:var(--surface-1); border:0.5px solid var(--border); border-radius:var(--radius-sm); border-left:2px solid <%= col %>;">
+            <div style="font-size:12px; font-weight:500; color:var(--text-primary); margin-bottom:3px;"><%= m.nombre %></div>
+            <div style="font-size:11px; color:var(--text-muted);">
               <%= m.etapas ? m.etapas.length : 0 %> etapas ·
               <%= m.etapas ? m.etapas.reduce((s, e) => s + (e.fases ? e.fases.length : 0), 0) : 0 %> fases
             </div>
             <% if (m.descripcion) { %>
-            <div style="font-size:0.72rem; color:var(--text-secondary); margin-top:0.35rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><%= m.descripcion %></div>
+            <div style="font-size:11px; color:var(--text-secondary); margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><%= m.descripcion %></div>
             <% } %>
           </div>
           <% }) %>
@@ -263,12 +253,13 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function() {
-    // Configuración de fuentes y colores globales de Chart.js
-    Chart.defaults.color = '#94a3b8'; // text-muted
-    Chart.defaults.font.family = 'Outfit, Inter, system-ui, sans-serif';
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#666660' : '#9a9993';
+    
+    Chart.defaults.color = textColor;
+    Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
     Chart.defaults.font.size = 10;
 
-    // 1. Gráfico de Avance de Proyectos
     const canvasAvance = document.getElementById('chartAvanceProyectos');
     if (canvasAvance) {
       const ctxAvance = canvasAvance.getContext('2d');
@@ -279,17 +270,17 @@
           datasets: [{
             label: 'Avance %',
             data: <%- JSON.stringify(proyectos.slice(0, 8).map(p => parseFloat(p.promedio_avance || 0))) %>,
-            backgroundColor: 'rgba(99, 102, 241, 0.45)', // accent light
-            borderColor: '#6366f1', // accent
-            borderWidth: 1.5,
-            borderRadius: 4,
-            barPercentage: 0.55
+            backgroundColor: 'rgba(24, 95, 165, 0.25)',
+            borderColor: '#185fa5',
+            borderWidth: 1,
+            borderRadius: 3,
+            barPercentage: 0.5
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          indexAxis: 'y', // Barras horizontales
+          indexAxis: 'y',
           plugins: {
             legend: { display: false }
           },
@@ -297,7 +288,7 @@
             x: {
               min: 0,
               max: 100,
-              grid: { color: 'rgba(255, 255, 255, 0.04)' },
+              grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' },
               ticks: { callback: val => val + '%' }
             },
             y: {
@@ -308,29 +299,28 @@
       });
     }
 
-    // 2. Gráfico de Estados de Tickets
     const canvasTickets = document.getElementById('chartEstadosTickets');
     if (canvasTickets) {
       const ctxTickets = canvasTickets.getContext('2d');
       const rawStats = <%- JSON.stringify(ticketStats) %>;
       
       const colorsMap = {
-        'Solicitado': '#64748b',
-        'En Análisis': '#f97316',
-        'Pendiente de Aprobación': '#3b82f6',
-        'Aprobado': '#8b5cf6',
-        'En Desarrollo': '#ec4899',
-        'En Pruebas QA': '#14b8a6',
-        'En Pruebas UAT': '#06b6d4',
-        'Listo para Integración': '#10b981',
-        'Liberado': '#22c55e',
-        'Rechazado': '#ef4444',
-        'Descartado': '#78716c'
+        'Solicitado': '#9a9993',
+        'En Análisis': '#854f0b',
+        'Pendiente de Aprobación': '#185fa5',
+        'Aprobado': '#185fa5',
+        'En Desarrollo': '#0f6e56',
+        'En Pruebas QA': '#534ab7',
+        'En Pruebas UAT': '#534ab7',
+        'Listo para Integración': '#3b6d11',
+        'Liberado': '#3b6d11',
+        'Rechazado': '#a32d2d',
+        'Descartado': '#5f5e5a'
       };
 
       const labels = rawStats.map(s => s.estado);
       const data = rawStats.map(s => s.cantidad);
-      const backgroundColors = labels.map(lbl => colorsMap[lbl] || '#94a3b8');
+      const backgroundColors = labels.map(lbl => colorsMap[lbl] || '#9a9993');
 
       new Chart(ctxTickets, {
         type: 'doughnut',
@@ -339,9 +329,9 @@
           datasets: [{
             data: data,
             backgroundColor: backgroundColors,
-            borderColor: '#1e1e2f', // matching card color
+            borderColor: isDark ? '#2c2c2a' : '#ffffff',
             borderWidth: 2,
-            hoverOffset: 4
+            hoverOffset: 3
           }]
         },
         options: {
@@ -352,12 +342,12 @@
               position: 'right',
               labels: {
                 boxWidth: 8,
-                padding: 6,
-                font: { size: 9 }
+                padding: 8,
+                font: { size: 10 }
               }
             }
           },
-          cutout: '60%'
+          cutout: '62%'
         }
       });
     }

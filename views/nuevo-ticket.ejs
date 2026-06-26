@@ -6,10 +6,12 @@
   <div class="main-content">
 
     <header class="topbar">
-      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Menú">☰</button>
-      <div class="topbar-title" style="display:flex; align-items:center; gap:0.75rem;">
+      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Menú">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="topbar-left">
         <a href="/tickets" class="btn btn-ghost btn-sm" style="color:var(--text-muted);">← Tickets</a>
-        <span style="color:var(--border-default);">/</span>
+        <span style="color:var(--border-strong);">/</span>
         <span>Nuevo Ticket de Cambio</span>
       </div>
     </header>
@@ -18,26 +20,29 @@
 
       <div style="max-width: 760px; margin: 0 auto;">
 
-        <div style="margin-bottom:1.5rem;">
-          <h2 style="font-size:1.4rem; margin-bottom:0.3rem;">➕ Solicitar Cambio</h2>
-          <p style="font-size:0.85rem;">Completa el formulario para iniciar el proceso de gestión de cambio. El ticket comenzará en estado <span class="badge badge-slate">Solicitado</span>.</p>
+        <div style="margin-bottom:16px;">
+          <h2 style="font-size:15px; font-weight:500; margin-bottom:4px;">Solicitar Cambio</h2>
+          <p style="font-size:12px; color:var(--text-muted);">Completa el formulario para iniciar el proceso de gestion de cambio. El ticket comenzara en estado <span class="badge badge-slate">Solicitado</span>.</p>
         </div>
 
         <% if (error) { %>
-        <div class="alert alert-error mb-4"><span>⚠️</span><span><%= error %></span></div>
+        <div class="alert alert-error mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span><%= error %></span>
+        </div>
         <% } %>
 
         <div class="card">
           <form action="/api/tickets" method="POST" onsubmit="crearTicket(event)" id="form-nuevo-ticket">
 
-            <%# ── Proyecto asociado ── %>
+            <%# Proyecto asociado %>
             <% if (id_proyecto) {
               const selectedProj = proyectos.find(p => String(p.id_proyecto) === String(id_proyecto));
             %>
               <input type="hidden" name="id_proyecto" id="id_proyecto" value="<%= id_proyecto %>" />
               <div class="form-group">
                 <label class="form-label">Proyecto Asociado</label>
-                <input type="text" class="form-control" value="<%= selectedProj ? selectedProj.nombre : 'Proyecto #' + id_proyecto %>" disabled style="opacity: 0.7; background: var(--bg-tertiary);" />
+                <input type="text" class="form-control" value="<%= selectedProj ? selectedProj.nombre : 'Proyecto #' + id_proyecto %>" disabled />
               </div>
             <% } else { %>
               <div class="form-group">
@@ -52,38 +57,38 @@
             <% } %>
 
             <div class="form-group">
-              <label class="form-label" for="titulo">Título del Cambio <span style="color:var(--red);">*</span></label>
+              <label class="form-label" for="titulo">Titulo del Cambio <span style="color:var(--text-danger);">*</span></label>
               <input type="text" id="titulo" name="titulo" class="form-control"
                 placeholder="Describe brevemente el cambio solicitado" required maxlength="200" />
-              <span class="form-hint">Máximo 200 caracteres. Sé descriptivo y conciso.</span>
+              <span class="form-hint">Maximo 200 caracteres. Se descriptivo y conciso.</span>
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="descripcion">Descripción Detallada <span style="color:var(--red);">*</span></label>
+              <label class="form-label" for="descripcion">Descripcion Detallada <span style="color:var(--text-danger);">*</span></label>
               <textarea id="descripcion" name="descripcion" class="form-control" rows="5"
-                placeholder="Describe el problema, la necesidad y el contexto del cambio…" required></textarea>
+                placeholder="Describe el problema, la necesidad y el contexto del cambio..." required></textarea>
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="justificacion_tecnica">Justificación Técnica</label>
+              <label class="form-label" for="justificacion_tecnica">Justificacion Tecnica</label>
               <textarea id="justificacion_tecnica" name="justificacion_tecnica" class="form-control" rows="2"
-                placeholder="¿Por qué es necesario este cambio desde el punto de vista técnico?"></textarea>
+                placeholder="Por que es necesario este cambio desde el punto de vista tecnico?"></textarea>
             </div>
 
-            <div class="grid-2" style="gap:1rem;">
+            <div class="grid-2" style="gap:12px;">
               <div class="form-group">
-                <label class="form-label" for="tipo">Tipo de Cambio <span style="color:var(--red);">*</span></label>
+                <label class="form-label" for="tipo">Tipo de Cambio <span style="color:var(--text-danger);">*</span></label>
                 <select id="tipo" name="tipo" class="form-control" required>
-                  <option value="">Selecciona un tipo…</option>
+                  <option value="">Selecciona un tipo...</option>
                   <% tiposCambio.forEach(t => { %>
                   <option value="<%= t %>"><%= t %></option>
                   <% }) %>
                 </select>
               </div>
               <div class="form-group">
-                <label class="form-label" for="prioridad">Prioridad <span style="color:var(--red);">*</span></label>
+                <label class="form-label" for="prioridad">Prioridad <span style="color:var(--text-danger);">*</span></label>
                 <select id="prioridad" name="prioridad" class="form-control" required>
-                  <option value="">Selecciona prioridad…</option>
+                  <option value="">Selecciona prioridad...</option>
                   <% prioridades.forEach(p => { %>
                   <option value="<%= p %>"><%= p %></option>
                   <% }) %>
@@ -91,40 +96,36 @@
               </div>
             </div>
 
-            <div class="grid-2" style="gap:1rem;">
+            <div class="grid-2" style="gap:12px;">
               <div class="form-group">
-                <label class="form-label" for="estimacionHoras">Estimación (horas)</label>
+                <label class="form-label" for="estimacionHoras">Estimacion (horas)</label>
                 <input type="number" id="estimacionHoras" name="estimacionHoras"
                   class="form-control" placeholder="0" min="0" max="9999" />
               </div>
               <div class="form-group">
                 <label class="form-label" for="etiquetas">Etiquetas</label>
                 <input type="text" id="etiquetas" name="etiquetas"
-                  class="form-control" placeholder="backend, seguridad, frontend…" />
+                  class="form-control" placeholder="backend, seguridad, frontend..." />
                 <span class="form-hint">Separadas por comas</span>
               </div>
             </div>
 
-            <%# ─────────────────────────────────────────────────────────────────── %>
-            <%# FASE 2 — VÍNCULO CON LA ESTRUCTURA DEL PROYECTO                    %>
-            <%# ─────────────────────────────────────────────────────────────────── %>
             <div class="divider"></div>
 
             <div id="seccion-vinculo" style="<%= (estructuraProyecto && estructuraProyecto.length > 0) ? '' : 'display:none;' %>">
-              <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem;">
-                <span style="font-size:1.1rem;">📎</span>
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-accent);"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
                 <div>
-                  <h3 style="font-size:1rem; margin:0; font-weight:600;">Vínculo con la Estructura del Proyecto</h3>
-                  <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">Identifica a qué etapa, ECM o requisito afecta este cambio. Este vínculo conecta el ticket con el cronograma.</p>
+                  <h3 style="font-size:13px; margin:0; font-weight:500;">Vinculo con la Estructura del Proyecto</h3>
+                  <p style="font-size:11px; color:var(--text-muted); margin:0;">Identifica a que etapa, ECM o requisito afecta este cambio.</p>
                 </div>
               </div>
 
-              <div class="grid-2" style="gap:1rem;">
+              <div class="grid-2" style="gap:12px;">
                 <div class="form-group">
                   <label class="form-label" for="id_etapa_afectada">Etapa Afectada</label>
                   <select id="id_etapa_afectada" name="id_etapa_afectada" class="form-control" onchange="filtrarEcmsPorEtapa(this.value)">
                     <option value="">— Seleccionar Etapa —</option>
-                    <%# Se llena dinámicamente por JS o por SSR si viene con id_proyecto %>
                     <% if (estructuraProyecto && estructuraProyecto.length > 0) {
                       estructuraProyecto.forEach(et => { %>
                       <option value="<%= et.id_etapa %>"><%= et.etapa_nombre %></option>
@@ -136,7 +137,6 @@
                   <label class="form-label" for="id_ecm_afectado">ECM Afectado</label>
                   <select id="id_ecm_afectado" name="id_ecm_afectado" class="form-control">
                     <option value="">— Seleccionar ECM —</option>
-                    <%# Se llena dinámicamente por JS %>
                     <% if (estructuraProyecto && estructuraProyecto.length > 0) {
                       estructuraProyecto.forEach(et => {
                         et.fases && et.fases.forEach(fa => {
@@ -150,29 +150,29 @@
               </div>
 
               <div class="form-group">
-                <label class="form-label" for="requisito_afectado">Requisito / Módulo Afectado</label>
+                <label class="form-label" for="requisito_afectado">Requisito / Modulo Afectado</label>
                 <input type="text" id="requisito_afectado" name="requisito_afectado"
-                  class="form-control" placeholder="Ej: RF-05 Autenticación, Módulo de Reportes, CU-12…" maxlength="400" />
-                <span class="form-hint">Especifica el requisito, caso de uso o módulo que se ve afectado por este cambio.</span>
+                  class="form-control" placeholder="Ej: RF-05 Autenticacion, Modulo de Reportes, CU-12..." maxlength="400" />
+                <span class="form-hint">Especifica el requisito, caso de uso o modulo que se ve afectado.</span>
               </div>
 
-              <%# Badge de preview del vínculo %>
-              <div id="vinculo-preview" style="display:none; padding:0.75rem; background:var(--bg-tertiary); border:1px solid var(--border-default); border-radius:8px; font-size:0.82rem;">
-                <strong>🔗 Vínculo configurado:</strong>
+              <div id="vinculo-preview" style="display:none; padding:10px; background:var(--surface-1); border:0.5px solid var(--border); border-radius:var(--radius-sm); font-size:12px;">
+                <strong style="color:var(--text-primary);">Vinculo configurado:</strong>
                 <span id="vinculo-preview-text" style="color:var(--text-muted);"></span>
               </div>
             </div>
 
-            <div id="seccion-vinculo-placeholder" style="<%= (estructuraProyecto && estructuraProyecto.length > 0) ? 'display:none;' : '' %>; padding:0.75rem; background:var(--bg-tertiary); border:1px dashed var(--border-default); border-radius:8px; text-align:center; font-size:0.82rem; color:var(--text-muted);">
-              📎 Selecciona un proyecto con metodología configurada para vincular el ticket a una etapa o ECM específico.
+            <div id="seccion-vinculo-placeholder" style="<%= (estructuraProyecto && estructuraProyecto.length > 0) ? 'display:none;' : '' %>; padding:10px; background:var(--surface-1); border:0.5px dashed var(--border-strong); border-radius:var(--radius-sm); text-align:center; font-size:12px; color:var(--text-muted);">
+              Selecciona un proyecto con metodologia configurada para vincular el ticket a una etapa o ECM especifico.
             </div>
 
             <div class="divider"></div>
 
-            <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
-              <a href="/tickets" class="btn btn-secondary">Cancelar</a>
-              <button type="submit" class="btn btn-primary" id="btn-crear">
-                <span>🚀</span> Crear Ticket de Cambio
+            <div style="display:flex; gap:8px; justify-content:flex-end;">
+              <a href="/tickets" class="btn btn-secondary btn-sm">Cancelar</a>
+              <button type="submit" class="btn btn-primary btn-sm" id="btn-crear">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Crear Ticket de Cambio
               </button>
             </div>
 
@@ -187,7 +187,7 @@
   </div>
 </div>
 
-<%# ─── Datos de estructura embebidos (SSR) ─────────────────────────────────── %>
+<%# Datos de estructura embebidos (SSR) %>
 <script>
 // Estructura pre-cargada desde el servidor (si vino con id_proyecto)
 let estructuraCache = {};
@@ -195,12 +195,10 @@ let estructuraCache = {};
   estructuraCache['<%= id_proyecto %>'] = <%- JSON.stringify(estructuraProyecto) %>;
 <% } %>
 
-// ── Cargar estructura vía AJAX al cambiar de proyecto ────────────────────────
 async function cargarEstructura(idProyecto) {
   const seccion    = document.getElementById('seccion-vinculo');
   const placeholder= document.getElementById('seccion-vinculo-placeholder');
 
-  // Resetear selects
   document.getElementById('id_etapa_afectada').innerHTML = '<option value="">— Seleccionar Etapa —</option>';
   document.getElementById('id_ecm_afectado').innerHTML   = '<option value="">— Seleccionar ECM —</option>';
   ocultarPreviewVinculo();
@@ -211,7 +209,6 @@ async function cargarEstructura(idProyecto) {
     return;
   }
 
-  // Usar caché si ya está cargado
   if (estructuraCache[idProyecto]) {
     poblarEstructura(estructuraCache[idProyecto]);
     return;
@@ -234,14 +231,12 @@ async function cargarEstructura(idProyecto) {
   }
 }
 
-// ── Poblar selects con la estructura cargada ─────────────────────────────────
 function poblarEstructura(etapas) {
   const selEtapa = document.getElementById('id_etapa_afectada');
   const selEcm   = document.getElementById('id_ecm_afectado');
   const seccion  = document.getElementById('seccion-vinculo');
   const placeholder = document.getElementById('seccion-vinculo-placeholder');
 
-  // Guardar todos los ECMs con su etapa para el filtrado
   window._todosEcms = [];
 
   etapas.forEach(et => {
@@ -266,7 +261,6 @@ function poblarEstructura(etapas) {
   placeholder.style.display = 'none';
 }
 
-// ── Filtrar ECMs por etapa seleccionada ──────────────────────────────────────
 function filtrarEcmsPorEtapa(idEtapa) {
   const selEcm = document.getElementById('id_ecm_afectado');
   selEcm.innerHTML = '<option value="">— Seleccionar ECM —</option>';
@@ -283,7 +277,6 @@ function filtrarEcmsPorEtapa(idEtapa) {
   actualizarPreviewVinculo();
 }
 
-// ── Preview del vínculo en tiempo real ───────────────────────────────────────
 function actualizarPreviewVinculo() {
   const etapa    = document.getElementById('id_etapa_afectada');
   const ecm      = document.getElementById('id_ecm_afectado');
@@ -297,7 +290,7 @@ function actualizarPreviewVinculo() {
   if (requisito.value.trim()) partes.push(`Requisito: "${requisito.value.trim()}"`);
 
   if (partes.length > 0) {
-    previewTxt.textContent = ' ' + partes.join(' • ');
+    previewTxt.textContent = ' ' + partes.join(' · ');
     preview.style.display  = '';
   } else {
     ocultarPreviewVinculo();
@@ -308,7 +301,6 @@ function ocultarPreviewVinculo() {
   document.getElementById('vinculo-preview').style.display = 'none';
 }
 
-// Listeners para actualizar el preview automáticamente
 document.addEventListener('DOMContentLoaded', () => {
   ['id_etapa_afectada','id_ecm_afectado'].forEach(id => {
     const el = document.getElementById(id);
@@ -318,19 +310,17 @@ document.addEventListener('DOMContentLoaded', () => {
   if (req) req.addEventListener('input', actualizarPreviewVinculo);
 });
 
-// ── Crear ticket vía fetch ────────────────────────────────────────────────────
 async function crearTicket(e) {
   e.preventDefault();
   const btn = document.getElementById('btn-crear');
   btn.disabled = true;
-  btn.textContent = '⏳ Creando…';
+  btn.textContent = 'Creando...';
 
   try {
     const form = document.getElementById('form-nuevo-ticket');
     const fd = new FormData(form);
     const body = Object.fromEntries(fd.entries());
 
-    // Limpiar campos opcionales vacíos para evitar problemas con tipos en BD
     if (!body.estimacionHoras) delete body.estimacionHoras;
     if (!body.id_proyecto) delete body.id_proyecto;
     if (!body.id_ecm_afectado) delete body.id_ecm_afectado;
@@ -350,12 +340,12 @@ async function crearTicket(e) {
     } else {
       alert('Error: ' + (json.error || 'No se pudo crear el ticket.'));
       btn.disabled = false;
-      btn.innerHTML = '<span>🚀</span> Crear Ticket de Cambio';
+      btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Crear Ticket de Cambio';
     }
   } catch(err) {
     alert('Error de red: ' + err.message);
     btn.disabled = false;
-    btn.innerHTML = '<span>🚀</span> Crear Ticket de Cambio';
+    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Crear Ticket de Cambio';
   }
 }
 </script>

@@ -1,33 +1,5 @@
 <%- include('../partials/head') %>
 
-<style>
-  .filter-bar {
-    display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap;
-  }
-  .filter-select {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-md);
-    color: var(--text-primary);
-    padding: 0.42rem 0.85rem;
-    font-size: 0.82rem;
-    font-family: var(--font-sans);
-    outline: none;
-    cursor: pointer;
-    transition: border-color var(--transition-fast);
-  }
-  .filter-select:focus { border-color: var(--accent); }
-  .proyecto-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-lg);
-    padding: 1rem 1.1rem;
-    transition: all var(--transition-fast);
-    display: flex; flex-direction: column; gap: 0.6rem;
-  }
-  .proyecto-card:hover { border-color: var(--border-default); box-shadow: var(--shadow-md); transform: translateY(-2px); }
-</style>
-
 <div class="app-wrapper">
   <%- include('../partials/sidebar', { user, roles }) %>
 
@@ -35,18 +7,25 @@
 
     <!-- TOPBAR -->
     <header class="topbar">
-      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Abrir menú">☰</button>
-      <div class="topbar-title">📁 Gestión de Proyectos</div>
-      <div class="topbar-actions">
-        <a href="/admin/proyectos/nuevo" class="btn btn-primary btn-sm">➕ Nuevo Proyecto</a>
-        <span class="badge badge-purple" style="font-size:0.72rem;"><%= user.rol %></span>
+      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Abrir menú">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="topbar-left">
+        <span class="topbar-title">Gestion de Proyectos</span>
+      </div>
+      <div class="topbar-right">
+        <a href="/admin/proyectos/nuevo" class="btn btn-primary btn-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo Proyecto
+        </a>
+        <span class="badge-role"><%= user.rol %></span>
       </div>
     </header>
 
     <div class="page-container">
 
       <!-- Stats rápidas -->
-      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr); gap:0.65rem; margin-bottom:1rem;">
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:16px;">
         <%
           const totProyectos = proyectos.length;
           const activos = proyectos.filter(p => p.estado === 'Activo').length;
@@ -54,83 +33,91 @@
           const pausados = proyectos.filter(p => p.estado === 'Pausado').length;
         %>
         <div class="stat-card">
-          <div class="stat-card-glow" style="background:var(--accent);"></div>
           <div class="stat-value text-accent"><%= totProyectos %></div>
           <div class="stat-label">Total Proyectos</div>
         </div>
         <div class="stat-card">
-          <div class="stat-card-glow" style="background:var(--blue);"></div>
-          <div class="stat-value" style="color:var(--blue);"><%= activos %></div>
+          <div class="stat-value" style="color:var(--text-accent);"><%= activos %></div>
           <div class="stat-label">Activos</div>
         </div>
         <div class="stat-card">
-          <div class="stat-card-glow" style="background:var(--teal);"></div>
-          <div class="stat-value" style="color:var(--teal);"><%= cerrados %></div>
+          <div class="stat-value" style="color:var(--text-success);"><%= cerrados %></div>
           <div class="stat-label">Cerrados</div>
         </div>
         <div class="stat-card">
-          <div class="stat-card-glow" style="background:var(--yellow);"></div>
-          <div class="stat-value" style="color:var(--yellow);"><%= pausados %></div>
+          <div class="stat-value" style="color:var(--text-warning);"><%= pausados %></div>
           <div class="stat-label">Pausados</div>
         </div>
       </div>
 
       <!-- Filtros -->
-      <div class="card" style="margin-bottom:1rem; padding:0.75rem 1rem;">
-        <div class="filter-bar">
-          <span style="font-size:0.82rem; font-weight:600; color:var(--text-secondary);">🔍 Filtrar:</span>
-          <form method="GET" action="/admin/proyectos" style="display:flex; gap:0.65rem; align-items:center; flex-wrap:wrap;">
-            <input type="text" name="busqueda" class="filter-select" placeholder="Buscar proyecto..." value="<%= filtros.busqueda || '' %>" style="width:200px;">
-            <select name="estado" class="filter-select">
+      <div class="card" style="margin-bottom:16px; padding:10px 14px;">
+        <form method="GET" action="/admin/proyectos" style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap;">
+          <div>
+            <label class="form-label" style="margin-bottom:4px; display:block;">Buscar</label>
+            <input type="text" name="busqueda" class="form-control" placeholder="Buscar proyecto..." value="<%= filtros.busqueda || '' %>" style="width:200px; margin:0;" />
+          </div>
+          <div>
+            <label class="form-label" style="margin-bottom:4px; display:block;">Estado</label>
+            <select name="estado" class="form-control" style="margin:0;">
               <option value="">Todos los estados</option>
               <% estadosProyecto.forEach(e => { %>
               <option value="<%= e %>" <%= filtros.estado === e ? 'selected' : '' %>><%= e %></option>
               <% }) %>
             </select>
-            <select name="metodologia" class="filter-select">
-              <option value="">Todas las metodologías</option>
+          </div>
+          <div>
+            <label class="form-label" style="margin-bottom:4px; display:block;">Metodologia</label>
+            <select name="metodologia" class="form-control" style="margin:0;">
+              <option value="">Todas las metodologias</option>
               <% metodologias.forEach(m => { %>
               <option value="<%= m.id_metodologia %>" <%= String(filtros.metodologia) === String(m.id_metodologia) ? 'selected' : '' %>><%= m.nombre %></option>
               <% }) %>
             </select>
+          </div>
+          <div style="display:flex; gap:6px; align-self:flex-end;">
             <button type="submit" class="btn btn-secondary btn-sm">Filtrar</button>
             <a href="/admin/proyectos" class="btn btn-ghost btn-sm">Limpiar</a>
-          </form>
-        </div>
+          </div>
+        </form>
       </div>
 
       <!-- Proyectos -->
       <% if (proyectos.length === 0) { %>
-      <div class="card" style="text-align:center; padding:3rem;">
-        <div style="font-size:3rem; margin-bottom:1rem;">📭</div>
-        <h3 style="margin-bottom:0.5rem;">No se encontraron proyectos</h3>
-        <p style="color:var(--text-muted); margin-bottom:1.25rem;">Intenta cambiar los filtros o crea un nuevo proyecto.</p>
-        <a href="/admin/proyectos/nuevo" class="btn btn-primary">➕ Crear Primer Proyecto</a>
+      <div class="card" style="text-align:center; padding:40px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 12px; display:block; color:var(--text-muted); opacity:0.5;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        <h3 style="margin-bottom:6px; font-size:14px; font-weight:500;">No se encontraron proyectos</h3>
+        <p style="color:var(--text-muted); font-size:12px; margin-bottom:16px;">Intenta cambiar los filtros o crea un nuevo proyecto.</p>
+        <a href="/admin/proyectos/nuevo" class="btn btn-primary btn-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Crear Primer Proyecto
+        </a>
       </div>
       <% } else { %>
-      <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(340px,1fr)); gap:0.75rem;">
+      <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px,1fr)); gap:10px;">
         <% proyectos.forEach(p => {
           let badgeClass = 'badge-slate';
-          let accentColor = 'var(--slate)';
-          if (p.estado === 'Activo') { badgeClass = 'badge-blue'; accentColor = 'var(--blue)'; }
-          else if (p.estado === 'Cerrado') { badgeClass = 'badge-green'; accentColor = 'var(--accent)'; }
-          else if (p.estado === 'Pausado') { badgeClass = 'badge-yellow'; accentColor = 'var(--yellow)'; }
-          else if (p.estado === 'Cancelado') { badgeClass = 'badge-red'; accentColor = 'var(--red)'; }
+          let accentColor = 'var(--border-strong)';
+          if (p.estado === 'Activo') { badgeClass = 'badge-blue'; accentColor = 'var(--border-accent)'; }
+          else if (p.estado === 'Cerrado') { badgeClass = 'badge-green'; accentColor = 'var(--border-success)'; }
+          else if (p.estado === 'Pausado') { badgeClass = 'badge-yellow'; accentColor = 'var(--border-warning)'; }
+          else if (p.estado === 'Cancelado') { badgeClass = 'badge-red'; accentColor = 'var(--border-danger)'; }
         %>
-        <div class="proyecto-card" style="border-left: 3px solid <%= accentColor %>;">
+        <div style="background:var(--surface-2); border:0.5px solid var(--border); border-left:2px solid <%= accentColor %>; border-radius:var(--radius); padding:14px 16px; display:flex; flex-direction:column; gap:8px;">
           <!-- Header -->
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
             <div style="flex:1; min-width:0;">
-              <h4 style="font-size:0.9rem; font-weight:700; color:var(--text-primary); margin-bottom:0.2rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+              <h4 style="font-size:13px; font-weight:500; color:var(--text-primary); margin-bottom:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
                 <%= p.nombre %>
               </h4>
-              <div style="font-size:0.72rem; color:var(--text-muted); display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap; margin-top:0.15rem;">
+              <div style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin-top:2px;">
                 <span>ID: <span class="font-mono"><%= p.id_proyecto %></span></span>
-                <% if (p.metodologia_nombre) { %><span>· 📐 <%= p.metodologia_nombre %></span><% } %>
+                <% if (p.metodologia_nombre) { %><span>· <%= p.metodologia_nombre %></span><% } %>
                 <% if (p.github_repo) { %>
                 <span>·</span>
-                <a href="https://github.com/<%= p.github_repo %>" target="_blank" class="badge badge-teal" style="font-size:0.65rem; padding:0.1rem 0.35rem; display:inline-flex; align-items:center; gap:0.15rem; background:#0d9488; color:white; border-radius:4px; text-decoration:none;" title="Ver repositorio en GitHub">
-                  🐙 <%= p.github_repo %>
+                <a href="https://github.com/<%= p.github_repo %>" target="_blank" class="badge badge-green" style="font-size:10px; text-decoration:none;" title="Ver repositorio en GitHub">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+                  <%= p.github_repo %>
                 </a>
                 <% } %>
               </div>
@@ -140,30 +127,42 @@
 
           <!-- Descripción -->
           <% if (p.descripcion) { %>
-          <p style="font-size:0.78rem; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; margin:0;">
+          <p style="font-size:11px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; margin:0; line-height:1.4;">
             <%= p.descripcion %>
           </p>
           <% } %>
 
           <!-- Fechas -->
-          <div style="display:flex; gap:1rem; font-size:0.72rem; color:var(--text-muted);">
+          <div style="display:flex; gap:12px; font-size:11px; color:var(--text-muted);">
             <% if (p.fecha_inicio) { %>
-            <span>📅 Inicio: <strong style="color:var(--text-secondary);"><%= new Date(p.fecha_inicio).toLocaleDateString('es-MX', {day:'2-digit',month:'short',year:'numeric'}) %></strong></span>
+            <span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              Inicio: <strong style="color:var(--text-secondary);"><%= new Date(p.fecha_inicio).toLocaleDateString('es-MX', {day:'2-digit',month:'short',year:'numeric'}) %></strong>
+            </span>
             <% } %>
             <% if (p.fecha_fin) { %>
-            <span>🏁 Fin: <strong style="color:var(--text-secondary);"><%= new Date(p.fecha_fin).toLocaleDateString('es-MX', {day:'2-digit',month:'short',year:'numeric'}) %></strong></span>
+            <span>Fin: <strong style="color:var(--text-secondary);"><%= new Date(p.fecha_fin).toLocaleDateString('es-MX', {day:'2-digit',month:'short',year:'numeric'}) %></strong></span>
             <% } %>
           </div>
 
           <!-- Acciones -->
-          <div style="display:flex; gap:0.5rem; align-items:center; padding-top:0.4rem; border-top:1px solid var(--border-subtle);">
-            <a href="/admin/proyectos/<%= p.id_proyecto %>/config" class="btn btn-secondary btn-sm" style="flex:1; justify-content:center;">⚙️ Configurar</a>
+          <div style="display:flex; gap:6px; align-items:center; padding-top:6px; border-top:0.5px solid var(--border);">
+            <a href="/admin/proyectos/<%= p.id_proyecto %>/config" class="btn btn-secondary btn-sm" style="flex:1; justify-content:center;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              Configurar
+            </a>
             <% if (p.total_actividades > 0) { %>
-            <button class="btn btn-ghost btn-sm" disabled title="No se puede editar: el cronograma ya tiene actividades" style="opacity:0.4; cursor:not-allowed;">✏️</button>
+            <button class="btn btn-ghost btn-sm btn-icon" disabled title="No se puede editar: el cronograma ya tiene actividades" style="opacity:0.4; cursor:not-allowed;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
             <% } else { %>
-            <a href="/admin/proyectos/<%= p.id_proyecto %>/editar" class="btn btn-ghost btn-sm" title="Editar proyecto">✏️</a>
+            <a href="/admin/proyectos/<%= p.id_proyecto %>/editar" class="btn btn-ghost btn-sm btn-icon" title="Editar proyecto">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </a>
             <% } %>
-            <button class="btn btn-danger btn-sm" onclick="confirmarEliminar(<%= p.id_proyecto %>, '<%= p.nombre.replace(/'/g, "\\'") %>')">🗑️</button>
+            <button class="btn btn-danger btn-sm btn-icon" onclick="confirmarEliminar(<%= p.id_proyecto %>, '<%= p.nombre.replace(/'/g, "\\'") %>')" title="Eliminar">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            </button>
           </div>
         </div>
         <% }) %>
@@ -176,20 +175,22 @@
   </div><!-- /main-content -->
 </div><!-- /app-wrapper -->
 
-<!-- ═══ MODAL CONFIRMAR ELIMINACIÓN ══════════════════════════════════════════ -->
+<!-- MODAL CONFIRMAR ELIMINACIÓN -->
 <div class="modal-overlay" id="modal-eliminar">
   <div class="modal" style="max-width:420px;">
     <div class="modal-header">
-      <span class="modal-title" style="color:var(--red);">🗑️ Eliminar Proyecto</span>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <span class="modal-title" style="color:var(--text-danger);">Eliminar Proyecto</span>
+      <button class="modal-close" onclick="closeModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
-    <p style="color:var(--text-secondary); margin-bottom:1rem;">
-      ¿Eliminar el proyecto <strong id="proj-nombre-del" style="color:var(--text-primary);"></strong>? Esta acción es permanente y eliminará todos los datos asociados.
+    <p style="color:var(--text-secondary); margin-bottom:14px; font-size:13px;">
+      Eliminar el proyecto <strong id="proj-nombre-del" style="color:var(--text-primary);"></strong>? Esta accion es permanente y eliminara todos los datos asociados.
     </p>
     <div id="error-del" style="display:none;" class="alert alert-error"></div>
-    <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
-      <button class="btn btn-danger" id="btn-del">Eliminar Proyecto</button>
+    <div style="display:flex; gap:8px; justify-content:flex-end;">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-danger btn-sm" id="btn-del">Eliminar Proyecto</button>
     </div>
   </div>
 </div>

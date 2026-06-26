@@ -1,33 +1,39 @@
 <%- include('partials/head') %>
 
-<!-- ═══ LOGIN PAGE ═══════════════════════════════════════════════════════════ -->
+<!-- LOGIN PAGE -->
 <div class="login-page">
-  <div class="login-bg-grid"></div>
-  <div class="login-bg-glow"></div>
-
   <div class="login-card animate-fadein">
 
-    <!-- Logo -->
+    <!-- Header / Logo -->
     <div class="login-logo">
-      <div class="login-logo-icon">⚙️</div>
+      <div class="login-logo-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </div>
       <div class="login-logo-text">
         <h1>GestioCambios</h1>
         <p>Sistema SCM · Grupo G04</p>
       </div>
     </div>
 
+    <div class="login-form-header">
+      <h2>Iniciar Sesión</h2>
+      <p>Introduce tus credenciales para acceder al panel.</p>
+    </div>
+
     <!-- Alerta de error -->
     <% if (error) { %>
-    <div class="alert alert-error mb-4" role="alert">
-      <span>⚠️</span>
+    <div class="alert alert-error mb-4" role="alert" style="margin-top:1.25rem;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       <span><%= error %></span>
     </div>
     <% } %>
 
     <!-- Formulario de login -->
-    <form action="/login" method="POST" autocomplete="off">
+    <form action="/login" method="POST" autocomplete="off" style="margin-top:1.5rem;">
 
-      <div class="form-group">
+      <div class="form-group" style="margin-bottom:1.25rem;">
         <label class="form-label" for="correo">Correo Electrónico</label>
         <input
           type="email"
@@ -38,10 +44,11 @@
           required
           autofocus
           autocomplete="username"
+          style="padding:0.65rem 0.85rem; font-size:0.85rem; border-radius:var(--radius-md);"
         />
       </div>
 
-      <div class="form-group">
+      <div class="form-group" style="margin-bottom:1.5rem;">
         <label class="form-label" for="password">Contraseña</label>
         <input
           type="password"
@@ -51,60 +58,60 @@
           placeholder="••••••••"
           required
           autocomplete="current-password"
+          style="padding:0.65rem 0.85rem; font-size:0.85rem; border-radius:var(--radius-md);"
         />
       </div>
 
-      <button type="submit" class="btn btn-primary w-full" id="login-submit-btn" style="margin-top:0.5rem; padding:0.75rem; font-size:0.9rem; justify-content:center;">
-        <span>🔐</span> Ingresar al Sistema
+      <button type="submit" class="btn btn-primary w-full" id="login-submit-btn" style="padding:0.7rem; justify-content:center; font-size:0.88rem; border-radius:var(--radius-md);">
+        Ingresar al Sistema
       </button>
     </form>
 
     <!-- Credenciales de demostración -->
     <div class="login-roles-hint">
-      <p style="color: var(--text-secondary); font-weight: 600; margin-bottom: 0.75rem;">
-        👥 Credenciales de demostración <span style="color:var(--text-muted);">(contraseña: <code>123</code>)</span>
+      <p style="font-size:12px; color:var(--text-secondary); font-weight:500; margin-bottom:10px;">
+        Credenciales de demostración <span style="color:var(--text-muted); font-weight:400;">(contraseña: <code>123</code>)</span>
       </p>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.4rem;">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
         <% const demoUsers = [
-          { correo: 'docente@upt.pe',   label: '1. Solicitante',    icon: '👤' },
-          { correo: 'director@upt.pe',  label: '2. Director',       icon: '👔' },
-          { correo: 'sergio@upt.pe',    label: '3. Gestor SCM',     icon: '🔧' },
-          { correo: 'diego@upt.pe',     label: '4. Líder Técnico',  icon: '🎯' },
-          { correo: 'ccb@upt.pe',       label: '5. Comité CCB',     icon: '⚖️' },
-          { correo: 'gregory@upt.pe',   label: '6. Desarrollador',  icon: '💻' },
-          { correo: 'cesar@upt.pe',     label: '7. Tester / QA',    icon: '🧪' },
-          { correo: 'admin@upt.pe',     label: '8. Administrador',  icon: '🔑' },
+          { correo: 'docente@upt.pe',   label: '1. Solicitante'   },
+          { correo: 'director@upt.pe',  label: '2. Director'      },
+          { correo: 'sergio@upt.pe',    label: '3. Gestor SCM'    },
+          { correo: 'diego@upt.pe',     label: '4. Lider Técnico' },
+          { correo: 'ccb@upt.pe',       label: '5. Comité CCB'    },
+          { correo: 'gregory@upt.pe',   label: '6. Desarrollador' },
+          { correo: 'cesar@upt.pe',     label: '7. Tester QA'     },
+          { correo: 'admin@upt.pe',     label: '8. Administrador' },
         ]; %>
         <% demoUsers.forEach((u, idx) => { %>
         <button
           type="button"
           onclick="fillLogin('<%= u.correo %>')"
           style="
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-md);
-            padding: 0.35rem 0.6rem;
-            color: var(--text-secondary);
-            font-size: 0.72rem;
-            font-family: var(--font-sans);
+            background: var(--login-bg);
+            border: 1px solid var(--login-border);
+            border-radius: var(--radius-sm);
+            padding: 6px 8px;
+            color: var(--login-text-secondary);
+            font-size: 11px;
+            font-family: 'Inter', system-ui, sans-serif;
             cursor: pointer;
             text-align: left;
-            transition: all 0.15s;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
+            transition: border-color 0.15s, background 0.15s, color 0.15s;
           "
-          onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--accent)';"
-          onmouseout="this.style.borderColor='var(--border-subtle)'; this.style.color='var(--text-secondary)';"
+          onmouseover="this.style.borderColor='var(--login-accent)'; this.style.background='var(--login-accent-bg)'; this.style.color='var(--login-accent)';"
+          onmouseout="this.style.borderColor='var(--login-border)'; this.style.background='var(--login-bg)'; this.style.color='var(--login-text-secondary)';"
         >
-          <span><%= u.icon %></span>
-          <div>
-            <div style="font-weight:600;"><%= u.label %></div>
-            <code style="font-size:0.65rem; color:var(--text-muted);"><%= u.correo %></code>
-          </div>
+          <div style="font-weight:500; line-height:1.3;"><%= u.label %></div>
+          <code style="font-size:10px; color:var(--login-text-muted);"><%= u.correo %></code>
         </button>
         <% }) %>
       </div>
+    </div>
+
+    <!-- Academic Footer inside card -->
+    <div class="login-academic-footer">
+      UPT · Ingeniería de Sistemas · Gestión de Configuración de Software
     </div>
 
   </div>

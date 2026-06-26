@@ -10,9 +10,9 @@
       <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Abrir menú">☰</button>
       <div class="topbar-title">
         <% if (proyecto) { %>
-          ✏️ Editar Proyecto: <span style="color:var(--accent);"><%= proyecto.nombre %></span>
+          Editar Proyecto: <span style="color:var(--accent);"><%= proyecto.nombre %></span>
         <% } else { %>
-          ➕ Nuevo Proyecto
+          Nuevo Proyecto
         <% } %>
       </div>
       <div class="topbar-actions">
@@ -28,7 +28,7 @@
           <div class="card-header" style="margin-bottom:1.5rem;">
             <div>
               <h2 style="font-size:1.1rem; font-weight:700; margin-bottom:0.25rem;">
-                <% if (proyecto) { %>✏️ Editar Proyecto<% } else { %>➕ Crear Nuevo Proyecto<% } %>
+                <% if (proyecto) { %>Editar Proyecto<% } else { %>Crear Nuevo Proyecto<% } %>
               </h2>
               <p style="font-size:0.82rem; color:var(--text-muted); margin:0;">
                 <% if (proyecto) { %>Modifica los datos del proyecto.<% } else { %>Completa el formulario para crear un nuevo proyecto en el sistema.<% } %>
@@ -131,7 +131,8 @@
             <div class="form-group" id="auto-create-repo-group" style="display: none; margin-top: -0.5rem; margin-bottom: 1.25rem;">
               <label class="form-label" style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.85rem;">
                 <input type="checkbox" name="auto_crear_repo" id="auto_crear_repo" value="true" onchange="toggleGithubRepoInput()">
-                <span>📦 Auto-crear un nuevo repositorio en mi GitHub</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue); flex-shrink:0;"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+                <span>Auto-crear un nuevo repositorio en mi GitHub</span>
               </label>
               <span class="form-hint">Crea automáticamente un repositorio con el nombre del proyecto en tu cuenta de GitHub.</span>
             </div>
@@ -146,8 +147,14 @@
             <!-- Acciones -->
             <div style="display:flex; gap:0.75rem; justify-content:flex-end; align-items:center;">
               <a href="/admin/proyectos" class="btn btn-ghost">Cancelar</a>
-              <button type="submit" class="btn btn-primary" id="btn-submit">
-                <% if (proyecto) { %>💾 Guardar Cambios<% } else { %>➕ Crear Proyecto<% } %>
+              <button type="submit" class="btn btn-primary" id="btn-submit" style="display:inline-flex; align-items:center; gap:0.5rem;">
+                <% if (proyecto) { %>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                  Guardar Cambios
+                <% } else { %>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Crear Proyecto
+                <% } %>
               </button>
             </div>
 
@@ -156,22 +163,24 @@
 
         <!-- Info adicional si editando -->
         <% if (proyecto) { %>
-        <div class="card" style="margin-top:0.75rem; border-color:var(--border-subtle);">
-          <div class="card-header">
-            <span class="card-title">⚙️ Acciones del Proyecto</span>
+          <div class="card-header" style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span class="card-title" style="margin:0;">Acciones del Proyecto</span>
           </div>
           <div style="display:flex; gap:0.65rem; flex-wrap:wrap;">
-            <a href="/admin/proyectos/<%= proyecto.id_proyecto %>/config" class="btn btn-secondary btn-sm">
-              ⚙️ Ir a Configuración Completa
+            <a href="/admin/proyectos/<%= proyecto.id_proyecto %>/config" class="btn btn-secondary btn-sm" style="display:inline-flex; align-items:center; gap:0.4rem;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              Configuración Completa
             </a>
-            <a href="/admin/proyectos/<%= proyecto.id_proyecto %>/config#tab-equipo" class="btn btn-ghost btn-sm">
-              👥 Gestionar Equipo
+            <a href="/admin/proyectos/<%= proyecto.id_proyecto %>/config#tab-equipo" class="btn btn-ghost btn-sm" style="display:inline-flex; align-items:center; gap:0.4rem;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Gestionar Equipo
             </a>
-            <a href="/admin/proyectos/<%= proyecto.id_proyecto %>/config#tab-cronograma" class="btn btn-ghost btn-sm">
-              📅 Ver Cronograma
+            <a href="/admin/proyectos/<%= proyecto.id_proyecto %>/config#tab-cronograma" class="btn btn-ghost btn-sm" style="display:inline-flex; align-items:center; gap:0.4rem;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              Ver Cronograma
             </a>
           </div>
-        </div>
         <% } %>
       </div>
 
