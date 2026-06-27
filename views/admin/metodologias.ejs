@@ -118,7 +118,8 @@
             </div>
           </div>
           <div style="display:flex; gap:0.4rem; flex-shrink:0;">
-            <button class="btn btn-secondary btn-sm" onclick='openEditMet(<%= JSON.stringify(met) %>)' style="display:inline-flex; align-items:center; gap:0.25rem;"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Editar</button>
+            <button class="btn btn-secondary btn-sm" onclick='cargarEcmsPredeterminados(<%- JSON.stringify(met) %>)' style="display:inline-flex; align-items:center; gap:0.25rem; border: 1px solid var(--accent); background: rgba(var(--accent-rgb), 0.1);"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> + ECMs Predeterminados</button>
+            <button class="btn btn-secondary btn-sm" onclick='openEditMet(<%- JSON.stringify(met) %>)' style="display:inline-flex; align-items:center; gap:0.25rem;"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Editar</button>
             <button class="btn btn-ghost btn-sm" onclick="openModal('modal-etapa'); document.getElementById('etapa-met-id').value='<%= met.id_metodologia %>'" style="display:inline-flex; align-items:center; gap:0.25rem;"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Etapa</button>
             <button class="btn btn-danger btn-sm" onclick="eliminarMetodologia(<%= met.id_metodologia %>, '<%= met.nombre.replace(/'/g, "\\'") %>')" style="display:inline-flex; align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button>
           </div>
@@ -466,5 +467,68 @@
       if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
       location.reload();
     } catch(err) { alert('Error: ' + err.message); }
+  }
+
+  async function cargarEcmsPredeterminados(met) {
+    if (!met.etapas || met.etapas.length === 0) {
+      alert('La metodología debe tener al menos una etapa y una fase para agregar ECMs.');
+      return;
+    }
+
+    const fases = [];
+    met.etapas.forEach(et => {
+      if (et.fases) {
+        et.fases.forEach(fa => {
+          fases.push({
+            id_fase: fa.id_fase,
+            nombre_fase: fa.nombre,
+            nombre_etapa: et.nombre,
+            ecms_existentes: fa.ecm || []
+          });
+        });
+      }
+    });
+
+    if (fases.length === 0) {
+      alert('No se encontraron fases en ninguna de las etapas para agregar los ECMs.');
+      return;
+    }
+
+    if (!confirm(`¿Deseas agregar automáticamente los 4 ECMs predeterminados:\n- [Documento] Especificación de Requisitos\n- [Codigo] Módulo de Autenticación\n- [Diagrama] Diagrama de Clases\n- [Prueba] Plan de Pruebas\na las ${fases.length} fases de la metodología "${met.nombre}"?`)) {
+      return;
+    }
+
+    const ecmsPredeterminados = [
+      { nombre: 'Especificación de Requisitos', tipo: 'Documento', descripcion: 'Especificación de requisitos de software (SRS).' },
+      { nombre: 'Módulo de Autenticación', tipo: 'Codigo', descripcion: 'Código fuente del módulo de inicio de sesión y perfiles.' },
+      { nombre: 'Diagrama de Clases', tipo: 'Diagrama', descripcion: 'Diagrama UML de estructura de clases de la solución.' },
+      { nombre: 'Plan de Pruebas', tipo: 'Prueba', descripcion: 'Documento y casos de prueba QA.' }
+    ];
+
+    let agregados = 0;
+    try {
+      for (const fase of fases) {
+        for (const ecm of ecmsPredeterminados) {
+          const existe = fase.ecms_existentes.some(e => e.nombre.trim().toLowerCase() === ecm.nombre.trim().toLowerCase() && e.tipo === ecm.tipo);
+          if (existe) continue;
+
+          await fetch(`/api/admin/metodologias/fases/${fase.id_fase}/ecm`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              nombre: ecm.nombre,
+              tipo: ecm.tipo,
+              descripcion: ecm.descripcion
+            })
+          });
+          agregados++;
+        }
+      }
+
+      alert(`Se agregaron con éxito ${agregados} elementos de configuración (ECMs) predeterminados.`);
+      location.reload();
+    } catch (err) {
+      alert('Ocurrió un error al agregar los ECMs predeterminados: ' + err.message);
+    }
   }
 </script>

@@ -127,45 +127,66 @@ Un usuario puede tener un **rol diferente en cada proyecto**. El sistema valida 
 
 ## 🔄 Flujo del Ciclo de Vida de un Ticket
 
-Cada **Solicitud de Cambio (Ticket)** sigue una máquina de estados estricta. Solo el rol correcto puede ejecutar cada transición:
+El proceso de gestión de cambios en **GestioCambios** se rige por un flujo de trabajo (workflow) formal basado en las mejores prácticas de **SCM**. Cada **Solicitud de Cambio (Ticket)** progresa a través de una máquina de estados estricta y segura, donde cada transición es auditada.
 
-```
-📋 Solicitado
-    │
-    ▼ (Director evalúa la viabilidad)
-🔍 En Análisis
-    │
-    ▼ (Líder Técnico estima impacto y horas hombre)
-⏳ Pendiente de Aprobación
-    │
-    ├──→ ❌ Rechazado   (Director o CCB rechaza)
-    │
-    ▼ (Director o CCB aprueba formalmente)
-✅ Aprobado
-    │
-    ▼ (Gestor asigna desarrollador y tester, abre el ciclo de desarrollo)
-💻 En Desarrollo
-    │
-    ▼ (Desarrollador registra evidencias Git y reporta fin)
-🧪 En Pruebas QA
-    │
-    ▼ (Tester valida internamente)
-👥 En Pruebas UAT
-    │
-    ▼ (Cliente / Solicitante acepta el resultado)
-🔗 Listo para Integración
-    │
-    ▼ (Gestor de Configuración integra y despliega)
-🚀 Liberado
-```
+### 🗺️ Mapa del Flujo de Trabajo (Mermaid)
 
-**Reglas importantes del workflow:**
-- Cada transición es validada en el backend por `WorkflowService.js` según el rol del usuario autenticado.
-- Cada cambio de estado queda registrado en `historial_estados` con: usuario responsable, fecha y hora, estado anterior, estado nuevo y comentario justificativo.
-- Cuando un ticket avanza, el sistema actualiza automáticamente el `%` de avance de la actividad del cronograma vinculada.
-- El Administrador **no ejecuta transiciones** — solo visualiza y gestiona la estructura del proyecto.
+```mermaid
+graph TD
+    A["📋 Solicitado<br>(Creado por Cliente/Solicitante)"] --> B["🔍 En Análisis<br>(Evaluación por LT / GC / Dir)"]
+    
+    B -->|LT rechaza cambio| R["❌ Rechazado<br>(Estado Terminal)"]
+    B -->|LT/GC valida técnicamente| C["⏳ Pendiente de Aprobación<br>(Espera decisión del Comité)"]
+    
+    C -->|CCB/Dir rechaza| R
+    C -->|CCB/Dir descarta| D["🗑️ Descartado<br>(Estado Terminal)"]
+    C -->|CCB/Dir aprueba cambio| E["✅ Aprobado<br>(Listo para asignar)"]
+    
+    E -->|GC asigna personal| F["💻 En Desarrollo<br>(Construcción del cambio)"]
+    
+    F -->|Desarrollador registra Rama y PR| G["🧪 En Pruebas QA<br>(Control interno)"]
+    
+    G -->|QA detecta fallos| F
+    G -->|QA aprueba y pasa a UAT| H["👥 En Pruebas UAT<br>(Aceptación del Cliente)"]
+    G -->|QA aprueba directo a release| I["🔗 Listo para Integración"]
+    
+    H -->|Cliente detecta fallos| F
+    H -->|Cliente acepta conformidad| I["🔗 Listo para Integración<br>(Versión empaquetada)"]
+    
+    I -->|Líder/Gestor devuelve a dev| F
+    I -->|Gestor de Configuración despliega| J["🚀 Liberado<br>(Versión en Producción)"]
+```
 
 ---
+
+### 📝 Detalle de los Estados y Transiciones
+
+| Estado | Rol Responsable | Descripción de la Fase | Entregables / Evidencias Requeridas |
+| :--- | :--- | :--- | :--- |
+| **📋 Solicitado** | **Solicitante (Cliente)** | El usuario final detecta una anomalía o solicita una mejora. Describe el problema y el requisito afectado. | Título, descripción del cambio, tipo, prioridad y vinculación al ECS afectado. |
+| **🔍 En Análisis** | **Líder Técnico**, **Gestor**, **Director** | Se evalúa la viabilidad técnica y se determina el impacto sobre la estructura del proyecto. | Estimación inicial en Horas-Hombre y justificación técnica. |
+| **⏳ Pendiente de Aprobación** | **Director** / **Comité CCB** | Evaluación de impacto de negocio. Se autoriza formalmente el inicio de las tareas. | Comentario formal de aprobación, rechazo o descarte. |
+| **✅ Aprobado** | **Gestor de Configuración** | El ticket ingresa al backlog de desarrollo. Se asigna al programador y al tester QA. | Asignación de `Desarrollador` y `Tester` responsables del ticket. |
+| **💻 En Desarrollo** | **Desarrollador Asignado** | El programador asignado implementa los cambios en el código fuente. | Evidencias Git: nombre de la rama y URL del Pull Request (PR) o Merge Request. |
+| **🧪 En Pruebas QA** | **Equipo QA / Tester** | Se ejecutan pruebas de caja negra, funcionales y de regresión para validar el entregable. | Estado de QA (`Aprobado`/`Rechazado`), número de tests corridos y observaciones. |
+| **👥 En Pruebas UAT** | **Solicitante (Cliente)** | El cliente original prueba el entregable en un entorno de pruebas (Staging) para dar conformidad. | Comentarios de aceptación del usuario o reporte de incidentes (UAT). |
+| **🔗 Listo para Integración** | **Líder Técnico** o **Tester** | La versión es congelada (code freeze) y empaquetada. Se prepara el release. | Tag de versión SCM (ej: `v1.1.0`) y auditoría de la rama de integración. |
+| **🚀 Liberado** | **Gestor de Configuración** | El cambio se integra a la rama `main` y se despliega en producción. Se da por cerrado el ciclo. | Commit SHA final en GitHub y cierre de auditoría del Elemento de Configuración (ECS). |
+
+---
+
+### 🛡️ Reglas Críticas de Trazabilidad y SCM
+* **Validación en Servidor (RBAC)**: Ningún usuario puede saltarse pasos ni realizar cambios de estado que no correspondan a su rol. El backend (`WorkflowService.js`) intercepta y valida cada petición HTTP.
+* **Trazabilidad Completa**: Todo cambio de estado crea un registro en `historial_estados`, el cual guarda el estado anterior, el nuevo, el nombre del usuario, su rol y su justificación por escrito. Esto es inmutable.
+* **Sincronización Automática con el Cronograma**: A medida que un ticket avanza, el porcentaje de avance de la actividad del cronograma vinculada se actualiza automáticamente (`syncAvanceConTicket`):
+  * *En Análisis* → `10%`
+  * *En Desarrollo* → `50%`
+  * *En Pruebas QA* → `70%`
+  * *Liberado* → `100% (Completado)`
+  * *Rechazado* → `0% (Bloqueado)`
+* **Auditoría de Versiones de ECS**: Cuando el ticket llega al estado `Liberado`, el sistema actualiza automáticamente el historial del Elemento de Configuración del Software (ECS) afectado, registrando al responsable, el commit de Git y la nueva versión lógica de auditoría.
+* **Rol del Administrador**: El Administrador **no ejecuta transiciones** — solo visualiza y gestiona la estructura del proyecto.
+
 
 ## 📐 Modelo de Metodología SCM
 
@@ -203,6 +224,17 @@ Se ha implementado una interfaz interactiva de **Calendario Mensual** para visua
 Para agilizar la configuración inicial y las pruebas locales, se añadieron botones de carga rápida:
 - **Carga de Equipo Técnico**: Agrega automáticamente a los miembros de demostración (`sergio`, `diego`, `gregory`, `cesar`, `director`, `ccb`) asignándoles sus respectivos roles predefinidos en la base de datos.
 - **Carga de Clientes**: Vincula directamente a `docente@upt.pe` como stakeholder y cliente del proyecto con un solo clic.
+- **Carga de ECMs Predeterminados (Metodologías)**: Se añadió el botón `+ ECMs Predeterminados` que inserta en lote y de forma no duplicada los 4 entregables clave en todas las fases de la metodología (`Especificación de Requisitos` [Doc], `Módulo de Autenticación` [Código], `Diagrama de Clases` [Diag] y `Plan de Pruebas` [Prueba]).
+
+## 🛠️ Últimas Mejoras y Optimizaciones (Sesión de Pair Programming)
+
+En las últimas sesiones se implementaron optimizaciones clave tanto a nivel funcional como arquitectónico:
+
+* **Modal de Versiones Avanzado para Administradores**: El Administrador ahora cuenta con la misma suite completa de gestión de ECS que el Director. Incluye visualizadores de archivos PDF, Word (.docx con Mammoth) y Excel (.xlsx con SheetJS), comparación de código/texto línea por línea y análisis semántico asistido por **Gemini IA**.
+* **Robustez de la API de Gemini (Control de Sobrecargas)**: Se configuró el modelo `gemini-2.5-flash` sobre la API `v1beta`. Para contrarrestar la inestabilidad de la API gratuita, se programaron **3 reintentos automáticos** (con 4 segundos de retraso) y capturas específicas para errores de cuota (429) y caídas de servicio (503).
+* **Optimización del Ancho del Viewport (Diseño Premium 100%)**: Se modificaron las reglas CSS de `.page-container` (`max-width: 1400px` → `100%`) para eliminar espacios grises en pantallas de alta resolución. Ahora los gráficos del Dashboard y las tablas se redimensionan dinámicamente ocupando todo el ancho.
+* **Bugfix del Calendario Inundado**: Las actividades de cronograma autogeneradas al cambiar de estado un ticket ahora se limitan por defecto a la fecha actual (`CURDATE()`), resolviendo el error donde una sola tarea bloqueaba visualmente el calendario desde el inicio al fin del proyecto. Adicionalmente, se saneó la base de datos.
+* **Limpieza de selectores duplicados**: Se corrigió un bug en la inicialización en el lado del cliente del formulario de creación de tickets (`nuevo-ticket.ejs`), asegurando que las opciones de etapas y ECMs no se dupliquen al superponer el árbol JS sobre el SSR inicial.
 
 ---
 

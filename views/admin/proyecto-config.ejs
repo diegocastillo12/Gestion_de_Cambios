@@ -1065,84 +1065,112 @@
 
 <!-- Modal: Versiones de ECS -->
 <div class="modal-overlay" id="modal-versiones">
-  <div class="modal" style="max-width: 750px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; padding: 1.5rem;">
-    <div class="modal-header" style="margin-bottom:0.5rem; display:flex; justify-content:space-between; align-items:center;">
-      <span class="modal-title" style="display:inline-flex; align-items:center; gap:0.4rem;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> Versiones del ECS</span>
+  <div class="modal" id="modal-versiones-box" style="width:680px; max-width:96vw; max-height:96vh; display:flex; flex-direction:column; overflow:hidden; padding:1.25rem;">
+    <!-- Header -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+      <span class="modal-title" style="display:inline-flex; align-items:center; gap:0.4rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        Versiones del ECS
+      </span>
       <button class="modal-close" onclick="closeModal('modal-versiones')">✕</button>
     </div>
-    <p id="modal-versiones-actividad-nombre" style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1.25rem; font-weight: 500;"></p>
+    <p id="modal-versiones-actividad-nombre" style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1rem;font-weight:500;"></p>
 
-    <!-- Listado de Versiones -->
-    <div style="flex: 1; overflow-y: auto; margin-bottom: 1.25rem; padding-right: 0.5rem;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-        <h5 style="font-size: 0.82rem; font-weight: 700; text-transform: uppercase; color: var(--text-primary); margin: 0; letter-spacing: 0.05em;">Historial de Versiones</h5>
-        <button type="button" class="btn btn-primary" onclick="mostrarDiff()" style="padding: 0.35rem 0.65rem; font-size: 0.72rem; display: flex; align-items: center; gap: 0.25rem;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Comparar Seleccionados (Diff)
-        </button>
-      </div>
-      <table class="cronograma-table" style="font-size: 0.82rem; width: 100%; border-collapse: collapse;">
+    <!-- TABS internos -->
+    <div style="display:flex; gap:0.25rem; border-bottom:1px solid var(--border-subtle); margin-bottom:1rem;">
+      <button id="vtab-btn-historial" class="tab-btn active" onclick="switchVTabAdmin('historial')" style="font-size:0.8rem; padding:0.45rem 0.9rem; display:inline-flex; align-items:center; gap:0.3rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Historial
+      </button>
+      <button id="vtab-btn-comparar" class="tab-btn" onclick="switchVTabAdmin('comparar')" style="font-size:0.8rem; padding:0.45rem 0.9rem; display:inline-flex; align-items:center; gap:0.3rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Comparar Versiones
+      </button>
+    </div>
+
+    <!-- TAB: Historial -->
+    <div id="vtab-historial" style="flex:1; overflow-y:auto; min-height:0;">
+      <table class="cronograma-table" style="font-size:0.82rem; width:100%;">
         <thead>
-          <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-muted); text-align: left;">
-            <th style="padding: 0.5rem 0.25rem; width: 35px; text-align: center;"></th>
-            <th style="padding: 0.5rem 0.25rem; width: 70px;">Versión</th>
-            <th style="padding: 0.5rem 0.25rem;">Descripción del Cambio</th>
-            <th style="padding: 0.5rem 0.25rem; width: 100px;">Autor</th>
-            <th style="padding: 0.5rem 0.25rem; width: 120px;">Fecha</th>
-            <th style="padding: 0.5rem 0.25rem; width: 100px; text-align: right;">Documento</th>
+          <tr style="border-bottom:1px solid var(--border-subtle);">
+            <th style="padding:0.5rem 0.4rem; width:35px; text-align:center;">
+              <input type="checkbox" id="check-all-versions" onchange="toggleAllVersionCheckboxes(this)" title="Seleccionar todos">
+            </th>
+            <th style="padding:0.5rem 0.4rem; width:90px;">Versión</th>
+            <th style="padding:0.5rem 0.4rem;">Descripción del Cambio</th>
+            <th style="padding:0.5rem 0.4rem; width:110px;">Autor</th>
+            <th style="padding:0.5rem 0.4rem; width:120px;">Fecha</th>
+            <th style="padding:0.5rem 0.4rem; width:80px;">Tipo</th>
+            <th style="padding:0.5rem 0.4rem; width:80px; text-align:right;">Acción</th>
           </tr>
         </thead>
-        <tbody id="versiones-tabla-body">
-          <!-- Se inyecta dinámicamente -->
-        </tbody>
+        <tbody id="versiones-tabla-body"></tbody>
       </table>
-      <div id="versiones-vacio" style="text-align: center; padding: 2.5rem; color: var(--text-muted); display: none;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted); opacity:0.6; margin:0 auto 0.75rem;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-        <p style="margin-top: 0.5rem; font-size: 0.85rem;">No hay versiones registradas para este elemento de configuración.</p>
+      <div id="versiones-vacio" style="text-align:center; padding:2.5rem; color:var(--text-muted); display:none;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.6; margin:0 auto 0.75rem; display:block;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        <p style="font-size:0.85rem; margin-top:0.5rem;">No hay versiones registradas para este elemento de configuración.</p>
       </div>
-
-      <!-- Visualizador de Diff -->
-      <div id="diff-visualizador" style="background: var(--bg-tertiary, #1a1a24); color: var(--text-secondary, #e2e8f0); border-radius: 6px; font-family: monospace; font-size: 0.8rem; padding: 0.75rem; white-space: pre-wrap; border: 1px solid var(--border-subtle, #2d2d3d); display: none; max-height: 250px; overflow-y: auto; margin-top: 1rem;"></div>
+      <div style="margin-top:0.75rem; display:flex; justify-content:flex-end;">
+        <button class="btn btn-primary" onclick="switchVTabAdmin('comparar')" style="font-size:0.78rem; padding:0.4rem 1rem; display:inline-flex; align-items:center; gap:0.35rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Comparar seleccionados
+        </button>
+      </div>
     </div>
 
-    <!-- Formulario para Registrar Nueva Versión -->
-    <div id="seccion-nueva-version" style="border-top: 1px solid var(--border-subtle); padding-top: 1.25rem;">
-      <h5 style="font-size: 0.82rem; font-weight: 700; text-transform: uppercase; color: var(--text-primary); margin-bottom: 0.75rem; letter-spacing: 0.05em;">Registrar Nueva Versión (ECS)</h5>
-      <form id="form-nueva-version" onsubmit="enviarNuevaVersion(event)" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 0.75rem;">
-        <input type="hidden" id="version-id-actividad" name="idActividad">
-        <input type="hidden" id="version-id-proyecto" name="idProyecto" value="<%= proyecto.id_proyecto %>">
-        
-        <div style="display: flex; gap: 0.75rem;">
-          <div class="form-group" style="width: 140px; margin-bottom: 0;">
-            <label class="form-label" style="font-size: 0.72rem;">Versión (ej: 1.1)</label>
-            <input type="text" id="version-numero" name="versionNumero" class="form-input" placeholder="1.0" required style="padding: 0.45rem; font-size: 0.8rem;">
+    <!-- TAB: Comparar -->
+    <div id="vtab-comparar" style="display:none; flex:1; overflow:hidden; flex-direction:column; min-height:0;">
+      <div id="comparar-seleccion-msg" style="text-align:center; padding:2rem; color:var(--text-muted);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.6; margin:0 auto 0.5rem; display:block;"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <p style="font-size:0.85rem;">Selecciona exactamente <strong>2 versiones</strong> en el Historial y vuelve aquí para comparar.</p>
+      </div>
+      <div id="comparar-visor" style="display:none; flex:1; overflow:hidden; flex-direction:column; gap:0.75rem; min-height:0;">
+        <div style="display:flex; align-items:center; gap:1rem; flex-shrink:0; flex-wrap:wrap;">
+          <div id="comparar-header-v1" style="flex:1; background:rgba(248,81,73,0.1); border:1px solid rgba(248,81,73,0.3); border-radius:8px; padding:0.5rem 0.85rem; font-size:0.8rem; font-weight:600;"></div>
+          <div style="font-size:1.2rem; color:var(--text-muted);">↔</div>
+          <div id="comparar-header-v2" style="flex:1; background:rgba(46,164,79,0.1); border:1px solid rgba(46,164,79,0.3); border-radius:8px; padding:0.5rem 0.85rem; font-size:0.8rem; font-weight:600;"></div>
+        </div>
+        <div style="display:flex; gap:0.5rem; flex-shrink:0; align-items:center; flex-wrap:wrap;">
+          <span style="font-size:0.75rem; color:var(--text-muted);">Vista:</span>
+          <button class="btn btn-ghost" id="vbtn-sidebyside" onclick="setVistaComparacionAdmin('sidebyside')" style="font-size:0.73rem; padding:0.3rem 0.65rem; border:1px solid var(--accent); display:inline-flex; align-items:center; gap:0.25rem;"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="18" x="3" y="3" rx="1"/><rect width="8" height="18" x="13" y="3" rx="1"/></svg> Lado a Lado</button>
+          <button class="btn btn-ghost" id="vbtn-diff" onclick="setVistaComparacionAdmin('diff')" style="font-size:0.73rem; padding:0.3rem 0.65rem; display:inline-flex; align-items:center; gap:0.25rem;"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Diff de Texto</button>
+          <button class="btn btn-ghost" id="vbtn-ia" onclick="setVistaComparacionAdmin('ia')" style="font-size:0.73rem; padding:0.3rem 0.65rem; display:inline-flex; align-items:center; gap:0.25rem;"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="10" x="3" y="11" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8.01" y2="16"/><line x1="16" y1="16" x2="16.01" y2="16"/></svg> Comparar con IA</button>
+          <span id="comparar-tipo-badge" style="font-size:0.73rem; color:var(--text-muted); margin-left:auto;"></span>
+        </div>
+        <div id="panel-sidebyside" style="flex:1; display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; overflow:hidden; min-height:500px; height:100%;">
+          <div style="border:1px solid rgba(248,81,73,0.4); border-radius:10px; overflow:hidden; display:flex; flex-direction:column;">
+            <div style="background:rgba(248,81,73,0.08); padding:0.4rem 0.75rem; font-size:0.72rem; font-weight:700; color:#f85149; flex-shrink:0;">VERSIÓN ANTIGUA</div>
+            <div id="visor-v1" style="flex:1; overflow:auto; background:var(--bg-secondary); height:100%;"></div>
           </div>
-          
-          <div class="form-group" style="flex: 1; margin-bottom: 0;">
-            <label class="form-label" style="font-size: 0.72rem;">Archivo / Entregable (ECS) <span style="color:var(--text-muted); font-size:0.68rem;">(Opcional)</span></label>
-            <input type="file" id="version-archivo" name="archivo" class="form-input" style="padding: 0.35rem 0.45rem; font-size: 0.8rem;">
+          <div style="border:1px solid rgba(46,164,79,0.4); border-radius:10px; overflow:hidden; display:flex; flex-direction:column;">
+            <div style="background:rgba(46,164,79,0.08); padding:0.4rem 0.75rem; font-size:0.72rem; font-weight:700; color:#3fb950; flex-shrink:0;">VERSIÓN NUEVA</div>
+            <div id="visor-v2" style="flex:1; overflow:auto; background:var(--bg-secondary); height:100%;"></div>
           </div>
         </div>
-
-        <div class="form-group" style="margin-bottom: 0;">
-          <label class="form-label" style="font-size: 0.72rem;">Contenido del ECS (Texto / Código) <span style="color:var(--text-muted); font-size:0.68rem;">(Opcional si subes archivo)</span></label>
-          <textarea id="version-contenido-texto" name="contenidoTexto" class="form-input" rows="3" style="resize: vertical; padding: 0.45rem; font-size: 0.8rem; font-family: monospace;" placeholder="Pega aquí el contenido de texto o código de esta versión para poder realizar comparativas..."></textarea>
+        <div id="panel-diff" style="display:none; flex:1; overflow:auto; background:var(--bg-tertiary,#1a1a24); border-radius:10px; border:1px solid var(--border-subtle); padding:0.75rem; font-family:monospace; font-size:0.78rem; min-height:500px; height:100%;"><div id="diff-contenido"></div></div>
+        <div id="panel-ia" style="display:none; flex:1; overflow:auto; background:var(--bg-secondary); border-radius:10px; border:1px solid var(--border-subtle); padding:1.25rem; font-size:0.85rem; line-height:1.6; min-height:500px; height:100%; color:var(--text-primary);">
+          <div id="ia-loading" style="display:none; text-align:center; padding:5rem 0;">
+            <div style="border:3px solid rgba(255,255,255,0.1); border-top:3px solid var(--accent); border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin:0 auto 1.25rem;"></div>
+            <p style="color:var(--text-muted); font-weight:600; font-size:0.85rem;">Analizando semánticamente con Gemini Flash...</p>
+          </div>
+          <div id="ia-contenido" style="overflow-y:auto; height:100%;"></div>
         </div>
-
-        <div class="form-group" style="margin-bottom: 0;">
-          <label class="form-label" style="font-size: 0.72rem;">Descripción de Cambios</label>
-          <textarea id="version-descripcion" name="descripcionCambio" class="form-input" rows="2" style="resize: vertical; padding: 0.45rem; font-size: 0.8rem;" placeholder="Detalla los cambios realizados en esta versión..." required></textarea>
-        </div>
-
-        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 0.5rem;">
-          <button type="button" class="btn btn-ghost" onclick="closeModal('modal-versiones')" style="padding: 0.45rem 1rem; font-size: 0.8rem;">Cancelar</button>
-          <button type="submit" class="btn btn-primary" id="btn-subir-version" style="padding: 0.45rem 1rem; font-size: 0.8rem;">Subir y Registrar</button>
-        </div>
-      </form>
+      </div>
     </div>
+
+    <!-- Inputs ocultos para el form de versión (se mantienen para compatibilidad con enviarNuevaVersion) -->
+    <input type="hidden" id="version-id-actividad" name="idActividad">
+    <input type="hidden" id="version-id-proyecto" name="idProyecto" value="<%= proyecto.id_proyecto %>">
+    <input type="hidden" id="version-numero" name="versionNumero">
+    <input type="hidden" id="version-descripcion" name="descripcionCambio">
+    <input type="hidden" id="version-contenido-texto" name="contenidoTexto">
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/5.2.0/diff.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 
 <script>
   const PROYECTO_ID = <%= proyecto.id_proyecto %>;
@@ -1690,16 +1718,57 @@
   let versionActividadActual = null;
   let versionesActuales = [];
 
+  // ─── TABS INTERNOS DEL MODAL DE VERSIONES (ADMIN) ────────────────────────────
+  let vTabAdminActual     = 'historial';
+  let vistaComparacionAdmin = 'sidebyside';
+
+  function switchVTabAdmin(name) {
+    vTabAdminActual = name;
+    ['historial','comparar'].forEach(t => {
+      const el  = document.getElementById('vtab-' + t);
+      const btn = document.getElementById('vtab-btn-' + t);
+      if (!el || !btn) return;
+      const isActive = t === name;
+      el.style.display  = isActive ? (t === 'historial' ? 'block' : 'flex') : 'none';
+      btn.classList.toggle('active', isActive);
+    });
+
+    // El modal cambia de tamaño según la pestaña
+    const box = document.getElementById('modal-versiones-box');
+    if (box) {
+      if (name === 'comparar') {
+        box.style.height   = '96vh';
+        box.style.width    = '98vw';
+        box.style.maxWidth = '1600px';
+      } else {
+        box.style.height   = 'auto';
+        box.style.width    = '680px';
+        box.style.maxWidth = '96vw';
+      }
+    }
+
+    if (name === 'comparar') intentarCompararAdmin();
+  }
+
   async function abrirModalVersiones(idActividad, nombre) {
     versionActividadActual = idActividad;
+    versionesActuales      = [];
+
     document.getElementById('modal-versiones-actividad-nombre').textContent = nombre;
     document.getElementById('version-id-actividad').value = idActividad;
-    document.getElementById('version-numero').value = '';
+    document.getElementById('version-numero').value    = '';
     document.getElementById('version-descripcion').value = '';
-    document.getElementById('version-archivo').value = '';
     document.getElementById('version-contenido-texto').value = '';
-    document.getElementById('diff-visualizador').style.display = 'none';
-    document.getElementById('diff-visualizador').innerHTML = '';
+    document.getElementById('comparar-visor').style.display = 'none';
+    document.getElementById('comparar-seleccion-msg').style.display = 'block';
+
+    switchVTabAdmin('historial');
+    const box = document.getElementById('modal-versiones-box');
+    if (box) { box.style.width = '680px'; box.style.maxWidth = '96vw'; box.style.height = 'auto'; }
+
+    // Resetear análisis IA
+    const iaContenido = document.getElementById('ia-contenido');
+    if (iaContenido) iaContenido.innerHTML = '';
 
     await cargarHistorialVersiones(idActividad);
     openModal('modal-versiones');
@@ -1713,82 +1782,96 @@
     versionesActuales = [];
 
     try {
-      const res = await fetch(`/api/actividades/${idActividad}/versiones`);
+      const res  = await fetch(`/api/actividades/${idActividad}/versiones`);
       const data = await res.json();
 
       if (data.success && data.versiones && data.versiones.length > 0) {
         versionesActuales = data.versiones;
-        const ultVersion = data.versiones[0].version_numero;
-        const partes = ultVersion.split('.');
-        if (partes.length === 2) {
-          const minor = parseInt(partes[1]);
-          if (!isNaN(minor)) {
-            document.getElementById('version-numero').value = `${partes[0]}.${minor + 1}`;
-          }
-        } else {
-          document.getElementById('version-numero').value = '1.0';
-        }
 
         data.versiones.forEach(v => {
+          const mime      = v.contenido_mime || '';
+          const tieneArch = !!(v.archivo_nombre);
+          const tipoIcono = getTipoIconoAdmin(mime, v.archivo_nombre);
+          const tipoLabel = getTipoLabelAdmin(mime, v.archivo_nombre);
+
           const tr = document.createElement('tr');
           tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
-          
-          const tdCheck = document.createElement('td');
-          tdCheck.style.padding = '0.6rem 0.25rem';
-          tdCheck.style.textAlign = 'center';
-          tdCheck.innerHTML = `<input type="checkbox" class="diff-checkbox" value="${v.id_version}" onchange="manejarCambioCheckbox(this)">`;
-
-          const tdVer = document.createElement('td');
-          tdVer.style.padding = '0.6rem 0.25rem';
-          let verHtml = `<span class="badge badge-blue" style="font-size:0.7rem; font-weight:700;">v${v.version_numero}</span>`;
-          if (v.commit_sha && PROYECTO_GITHUB_REPO) {
-            verHtml += `<a href="https://github.com/${PROYECTO_GITHUB_REPO}/commit/${v.commit_sha}" target="_blank" title="Ver commit en GitHub" style="margin-left: 0.35rem; font-size: 0.72rem; color: #38bdf8; text-decoration: none; display: inline-flex; align-items: center; gap: 0.15rem;"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>${v.commit_sha.substring(0,7)}</a>`;
-          }
-          tdVer.innerHTML = verHtml;
-          
-          const tdDesc = document.createElement('td');
-          tdDesc.style.padding = '0.6rem 0.25rem';
-          tdDesc.style.color = 'var(--text-secondary)';
-          tdDesc.textContent = v.descripcion_cambio || 'Sin descripción';
-          
-          const tdAutor = document.createElement('td');
-          tdAutor.style.padding = '0.6rem 0.25rem';
-          tdAutor.textContent = v.autor_nombre ? v.autor_nombre.split(' ')[0] : '—';
-          
-          const tdFecha = document.createElement('td');
-          tdFecha.style.padding = '0.6rem 0.25rem';
-          tdFecha.style.color = 'var(--text-muted)';
-          tdFecha.style.fontSize = '0.75rem';
-          tdFecha.textContent = new Date(v.fecha_version).toLocaleDateString('es-PE', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
-
-          const tdDoc = document.createElement('td');
-          tdDoc.style.padding = '0.6rem 0.25rem';
-          tdDoc.style.textAlign = 'right';
-          if (v.archivo_ruta) {
-            tdDoc.innerHTML = `<a href="${v.archivo_ruta}" download="${v.archivo_nombre || 'archivo'}" class="btn btn-primary btn-sm" style="padding:0.25rem 0.5rem; font-size:0.68rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.2rem; background:var(--accent); color:white; border-radius:4px;"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Descargar</a>`;
-          } else {
-            tdDoc.innerHTML = `<span style="color:var(--text-muted); font-size:0.75rem;">Sin archivo</span>`;
-          }
-
-          tr.appendChild(tdCheck);
-          tr.appendChild(tdVer);
-          tr.appendChild(tdDesc);
-          tr.appendChild(tdAutor);
-          tr.appendChild(tdFecha);
-          tr.appendChild(tdDoc);
+          tr.innerHTML = `
+            <td style="padding:0.6rem 0.4rem; text-align:center;">
+              <input type="checkbox" class="diff-checkbox" value="${v.id_version}" onchange="manejarCambioCheckboxAdmin(this)">
+            </td>
+            <td style="padding:0.6rem 0.4rem;">
+              <span class="badge badge-blue" style="font-size:0.7rem; font-weight:700;">v${v.version_numero}</span>
+              ${v.commit_sha && PROYECTO_GITHUB_REPO
+                ? `<a href="https://github.com/${PROYECTO_GITHUB_REPO}/commit/${v.commit_sha}" target="_blank"
+                     style="margin-left:0.3rem; font-size:0.68rem; color:#38bdf8; text-decoration:none; display:inline-flex; align-items:center; gap:2px; vertical-align:middle;">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/></svg> ${v.commit_sha.substring(0,7)}</a>`
+                : ''}
+            </td>
+            <td style="padding:0.6rem 0.4rem; color:var(--text-secondary);">${v.descripcion_cambio || 'Sin descripción'}</td>
+            <td style="padding:0.6rem 0.4rem; font-size:0.8rem;">${v.autor_nombre ? v.autor_nombre.split(' ')[0] : '—'}</td>
+            <td style="padding:0.6rem 0.4rem; color:var(--text-muted); font-size:0.75rem;">
+              ${new Date(v.fecha_version).toLocaleDateString('es-PE', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}
+            </td>
+            <td style="padding:0.6rem 0.4rem; font-size:0.75rem;">
+              ${tieneArch ? `<span title="${mime}">${tipoIcono} ${tipoLabel}</span>` : '<span style="color:var(--text-muted);">Texto</span>'}
+            </td>
+            <td style="padding:0.6rem 0.4rem; text-align:right;">
+              ${tieneArch
+                ? `<a href="/api/versiones/${v.id_version}/archivo" target="_blank"
+                     class="btn btn-primary" style="padding:0.25rem 0.5rem; font-size:0.68rem; text-decoration:none; display:inline-flex; align-items:center; gap:2px; float:right;">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg> Ver</a>`
+                : '<span style="color:var(--text-muted); font-size:0.73rem;">—</span>'}
+            </td>`;
           tbody.appendChild(tr);
         });
       } else {
-        document.getElementById('version-numero').value = '1.0';
         vacio.style.display = 'block';
       }
     } catch (err) {
       console.error('Error al cargar versiones:', err);
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--red); padding:1rem;">Error al cargar el historial.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--red); padding:1rem;">Error al cargar el historial.</td></tr>';
     }
   }
 
-  function manejarCambioCheckbox(cb) {
+  function getTipoIconoAdmin(mime, nombre, size = 14) {
+    if (!mime && !nombre) return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+    const ext = (nombre || '').split('.').pop().toLowerCase();
+    if (mime.includes('pdf') || ext === 'pdf')
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="var(--red, #ef4444)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M16 13a2 2 0 0 0-2-2H8v10h2v-4h4a2 2 0 0 0 2-2z"/></svg>`;
+    if (mime.includes('word') || ['doc','docx'].includes(ext))
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+    if (mime.includes('spreadsheet') || mime.includes('excel') || ['xls','xlsx'].includes(ext))
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+    if (mime.includes('text') || ['txt','md','csv'].includes(ext))
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+  }
+
+  function getTipoLabelAdmin(mime, nombre) {
+    if (!mime && !nombre) return 'Archivo';
+    const ext = (nombre || '').split('.').pop().toLowerCase();
+    if (mime.includes('pdf') || ext === 'pdf')                         return 'PDF';
+    if (mime.includes('word') || ext === 'docx')                       return 'Word';
+    if (ext === 'doc')                                                  return 'Word (doc)';
+    if (mime.includes('spreadsheet') || ext === 'xlsx')                return 'Excel';
+    if (ext === 'xls')                                                  return 'Excel (xls)';
+    if (mime.includes('presentation') || ['ppt','pptx'].includes(ext)) return 'PowerPoint';
+    if (mime.includes('text') || ['txt','md','csv'].includes(ext))    return 'Texto';
+    return ext.toUpperCase() || 'Archivo';
+  }
+
+  function toggleAllVersionCheckboxes(masterCb) {
+    document.querySelectorAll('.diff-checkbox').forEach(cb => { cb.checked = masterCb.checked; });
+    const checked = document.querySelectorAll('.diff-checkbox:checked');
+    if (checked.length > 2) {
+      masterCb.checked = false;
+      document.querySelectorAll('.diff-checkbox').forEach(cb => cb.checked = false);
+      alert('Solo puedes seleccionar un máximo de 2 versiones para comparar.');
+    }
+  }
+
+  function manejarCambioCheckboxAdmin(cb) {
     const checked = document.querySelectorAll('.diff-checkbox:checked');
     if (checked.length > 2) {
       cb.checked = false;
@@ -1796,123 +1879,233 @@
     }
   }
 
-  function mostrarDiff() {
+  // ─── COMPARACIÓN ADMIN ───────────────────────────────────────────────────────
+  function intentarCompararAdmin() {
     const checkboxes = document.querySelectorAll('.diff-checkbox:checked');
     if (checkboxes.length !== 2) {
-      alert('Por favor, selecciona exactamente 2 versiones para comparar.');
+      document.getElementById('comparar-seleccion-msg').style.display = 'block';
+      document.getElementById('comparar-visor').style.display = 'none';
       return;
     }
-    
     const idV1 = parseInt(checkboxes[0].value);
     const idV2 = parseInt(checkboxes[1].value);
-    
-    const v1 = versionesActuales.find(v => v.id_version === idV1);
-    const v2 = versionesActuales.find(v => v.id_version === idV2);
-    
+    const v1   = versionesActuales.find(v => v.id_version === idV1);
+    const v2   = versionesActuales.find(v => v.id_version === idV2);
     if (!v1 || !v2) return;
-    
+
     const antigua = new Date(v1.fecha_version) < new Date(v2.fecha_version) ? v1 : v2;
-    const nueva = antigua === v1 ? v2 : v1;
-    
-    const text1 = antigua.contenido_texto || '';
-    const text2 = nueva.contenido_texto || '';
-    
-    if (!text1.trim() && !text2.trim()) {
-      alert('Ninguna de las versiones seleccionadas tiene contenido de texto para comparar.');
+    const nueva   = antigua === v1 ? v2 : v1;
+
+    document.getElementById('comparar-header-v1').innerHTML = `<span class="badge badge-red" style="font-size:0.7rem; font-weight:700; margin-right:0.4rem;">v${antigua.version_numero}</span> ${antigua.descripcion_cambio || 'Sin desc.'}`;
+    document.getElementById('comparar-header-v2').innerHTML = `<span class="badge badge-teal" style="font-size:0.7rem; font-weight:700; margin-right:0.4rem;">v${nueva.version_numero}</span> ${nueva.descripcion_cambio || 'Sin desc.'}`;
+
+    document.getElementById('comparar-seleccion-msg').style.display = 'none';
+    document.getElementById('comparar-visor').style.display = 'flex';
+
+    const iaContenido = document.getElementById('ia-contenido');
+    if (iaContenido) iaContenido.innerHTML = '';
+
+    cargarVisorDocumentoAdmin('visor-v1', antigua);
+    cargarVisorDocumentoAdmin('visor-v2', nueva);
+    generarDiffTextoAdmin(antigua, nueva);
+    setVistaComparacionAdmin('sidebyside');
+
+    const mime = antigua.contenido_mime || nueva.contenido_mime || '';
+    const nombre = antigua.archivo_nombre || nueva.archivo_nombre || '';
+    document.getElementById('comparar-tipo-badge').innerHTML =
+      `Tipo detectado: ${getTipoIconoAdmin(mime, nombre)} ${getTipoLabelAdmin(mime, nombre)}`;
+  }
+
+  async function cargarVisorDocumentoAdmin(panelId, version) {
+    const panel = document.getElementById(panelId);
+    panel.innerHTML = '<div style="padding:1rem; color:var(--text-muted); font-size:0.8rem;">Cargando...</div>';
+
+    const mime   = version.contenido_mime || '';
+    const nombre = version.archivo_nombre || '';
+    const ext    = nombre.split('.').pop().toLowerCase();
+
+    // PDF
+    if (mime.includes('pdf') || ext === 'pdf') {
+      panel.innerHTML = `<iframe src="/api/versiones/${version.id_version}/archivo"
+        style="width:100%; height:100%; min-height:600px; border:none; display:block;"
+        title="v${version.version_numero}"></iframe>`;
       return;
     }
-    
+
+    // Word (.docx)
+    if (mime.includes('word') || ext === 'docx') {
+      try {
+        const resp   = await fetch(`/api/versiones/${version.id_version}/archivo`);
+        const buffer = await resp.arrayBuffer();
+        const result = await mammoth.convertToHtml({ arrayBuffer: buffer });
+        panel.innerHTML = `<div style="padding:1rem; font-size:0.82rem; line-height:1.6; color:var(--text-primary);">${result.value}</div>`;
+      } catch (e) {
+        panel.innerHTML = `<div style="padding:1rem; color:var(--red); font-size:0.8rem;">No se pudo renderizar el Word: ${e.message}</div>`;
+      }
+      return;
+    }
+
+    // Excel (.xlsx)
+    if (mime.includes('spreadsheet') || mime.includes('excel') || ['xls','xlsx'].includes(ext)) {
+      try {
+        const resp   = await fetch(`/api/versiones/${version.id_version}/archivo`);
+        const buffer = await resp.arrayBuffer();
+        const wb     = XLSX.read(buffer, { type: 'array' });
+        const ws     = wb.Sheets[wb.SheetNames[0]];
+        const html   = XLSX.utils.sheet_to_html(ws, { editable: false });
+        panel.innerHTML = `<div style="padding:0.5rem; overflow:auto;">
+          <style>#${panelId} table { border-collapse:collapse; font-size:0.75rem; width:100%; }
+          #${panelId} td, #${panelId} th { border:1px solid var(--border); padding:0.25rem 0.5rem; }
+          #${panelId} tr:first-child td { background:var(--bg-tertiary); font-weight:600; }</style>
+          ${html}</div>`;
+      } catch (e) {
+        panel.innerHTML = `<div style="padding:1rem; color:var(--red); font-size:0.8rem;">No se pudo renderizar el Excel: ${e.message}</div>`;
+      }
+      return;
+    }
+
+    // Texto / código (fallback)
+    if (version.contenido_texto) {
+      panel.innerHTML = `<pre style="padding:1rem; font-size:0.78rem; margin:0; white-space:pre-wrap; color:var(--text-secondary); overflow:auto;">${
+        version.contenido_texto.replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      }</pre>`;
+      return;
+    }
+
+    // Archivo sin visor
+    if (version.archivo_nombre) {
+      panel.innerHTML = `<div style="padding:2rem; text-align:center; color:var(--text-muted);">
+        <div style="margin-bottom:0.75rem; display:flex; justify-content:center;">${getTipoIconoAdmin(mime, nombre, 48)}</div>
+        <p style="font-size:0.82rem; margin-bottom:1rem;">Vista previa no disponible para este tipo de archivo.</p>
+        <a href="/api/versiones/${version.id_version}/archivo" download="${nombre}"
+           class="btn btn-primary" style="font-size:0.8rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.35rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Descargar v${version.version_numero}
+        </a></div>`;
+      return;
+    }
+
+    panel.innerHTML = '<div style="padding:1rem; color:var(--text-muted); font-size:0.8rem; text-align:center;">Sin contenido disponible.</div>';
+  }
+
+  function generarDiffTextoAdmin(antigua, nueva) {
+    const text1  = antigua.contenido_texto || '';
+    const text2  = nueva.contenido_texto   || '';
+    const diffEl = document.getElementById('diff-contenido');
+
+    if (!text1.trim() && !text2.trim()) {
+      diffEl.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:2rem; font-size:0.82rem;">Ninguna versión tiene contenido de texto para comparar.<br>El diff de texto solo funciona cuando se pega contenido en el campo de texto al subir la versión.</div>';
+      return;
+    }
+
     const diff = Diff.diffLines(text1, text2);
-    const visualizador = document.getElementById('diff-visualizador');
-    visualizador.innerHTML = '';
-    visualizador.style.display = 'block';
-    
-    const header = document.createElement('div');
-    header.style.borderBottom = '1px solid var(--border-subtle)';
-    header.style.paddingBottom = '0.5rem';
-    header.style.marginBottom = '0.5rem';
-    header.style.fontWeight = 'bold';
-    header.style.fontSize = '0.82rem';
-    header.style.color = 'var(--text-primary)';
-    header.innerHTML = `Comparando v${antigua.version_numero} (antigua) ➔ v${nueva.version_numero} (nueva):`;
-    visualizador.appendChild(header);
-    
-    const pre = document.createElement('pre');
+    const pre  = document.createElement('pre');
     pre.style.margin = '0';
-    pre.style.overflowX = 'auto';
-    
+
+    const header = document.createElement('div');
+    header.style.cssText = 'border-bottom:1px solid var(--border-subtle);padding-bottom:0.5rem;margin-bottom:0.5rem;font-weight:bold;font-size:0.8rem;color:var(--text-primary);';
+    header.innerHTML = `Comparando <span style="color:#f85149;">v${antigua.version_numero}</span> → <span style="color:#3fb950;">v${nueva.version_numero}</span>`;
+    pre.appendChild(header);
+
+    let totalAdd = 0, totalDel = 0;
     diff.forEach(part => {
       let val = part.value;
       if (val.endsWith('\n')) val = val.slice(0, -1);
-      
-      const lines = val.split('\n');
-      lines.forEach(line => {
-        const lineSpan = document.createElement('span');
-        lineSpan.style.display = 'block';
-        lineSpan.style.padding = '0.1rem 0.5rem';
-        
+      val.split('\n').forEach(line => {
+        const span = document.createElement('span');
+        span.style.display = 'block';
+        span.style.padding  = '0.1rem 0.5rem';
         if (part.added) {
-          lineSpan.style.background = 'rgba(46, 164, 79, 0.15)';
-          lineSpan.style.color = '#3fb950';
-          lineSpan.style.borderLeft = '3px solid #2ea44f';
-          lineSpan.textContent = `+ ${line}`;
+          span.style.background = 'rgba(46,164,79,0.15)';
+          span.style.color      = '#3fb950';
+          span.style.borderLeft = '3px solid #2ea44f';
+          span.textContent = `+ ${line}`;
+          totalAdd++;
         } else if (part.removed) {
-          lineSpan.style.background = 'rgba(248, 81, 73, 0.15)';
-          lineSpan.style.color = '#f85149';
-          lineSpan.style.borderLeft = '3px solid #f85149';
-          lineSpan.textContent = `- ${line}`;
+          span.style.background = 'rgba(248,81,73,0.15)';
+          span.style.color      = '#f85149';
+          span.style.borderLeft = '3px solid #f85149';
+          span.textContent = `- ${line}`;
+          totalDel++;
         } else {
-          lineSpan.style.color = 'var(--text-muted)';
-          lineSpan.style.opacity = '0.7';
-          lineSpan.textContent = `  ${line}`;
+          span.style.color   = 'var(--text-muted)';
+          span.style.opacity = '0.65';
+          span.textContent   = `  ${line}`;
         }
-        pre.appendChild(lineSpan);
+        pre.appendChild(span);
       });
     });
-    
-    visualizador.appendChild(pre);
-    visualizador.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    const summary = document.createElement('div');
+    summary.style.cssText = 'margin-top:0.75rem; padding-top:0.5rem; border-top:1px solid var(--border-subtle); font-size:0.75rem; color:var(--text-muted);';
+    summary.innerHTML = `<span style="color:#3fb950;">+${totalAdd} líneas agregadas</span> &nbsp; <span style="color:#f85149;">-${totalDel} líneas eliminadas</span>`;
+    pre.appendChild(summary);
+
+    diffEl.innerHTML = '';
+    diffEl.appendChild(pre);
   }
 
-  async function enviarNuevaVersion(e) {
-    e.preventDefault();
-    const btn = document.getElementById('btn-subir-version');
-    const form = document.getElementById('form-nueva-version');
-    const archivo = document.getElementById('version-archivo').files[0];
-    const texto = document.getElementById('version-contenido-texto').value.trim();
+  function setVistaComparacionAdmin(vista) {
+    vistaComparacionAdmin = vista;
+    const sbs  = document.getElementById('panel-sidebyside');
+    const diff = document.getElementById('panel-diff');
+    const ia   = document.getElementById('panel-ia');
+    const btnS = document.getElementById('vbtn-sidebyside');
+    const btnD = document.getElementById('vbtn-diff');
+    const btnI = document.getElementById('vbtn-ia');
 
-    if (!archivo && !texto) {
-      alert('Debes adjuntar un archivo o rellenar el contenido de texto para registrar la versión.');
+    if (!sbs || !diff || !ia) return;
+
+    sbs.style.display  = vista === 'sidebyside' ? 'grid' : 'none';
+    diff.style.display = vista === 'diff' ? 'block' : 'none';
+    ia.style.display   = vista === 'ia' ? 'block' : 'none';
+
+    if (btnS) btnS.style.border = vista === 'sidebyside' ? '1px solid var(--accent)' : '';
+    if (btnD) btnD.style.border = vista === 'diff' ? '1px solid var(--accent)' : '';
+    if (btnI) btnI.style.border = vista === 'ia' ? '1px solid var(--accent)' : '';
+
+    if (vista === 'ia') ejecutarComparacionIAAdmin();
+  }
+
+  async function ejecutarComparacionIAAdmin() {
+    const contenidoDiv = document.getElementById('ia-contenido');
+    const loadingDiv   = document.getElementById('ia-loading');
+    if (!contenidoDiv || !loadingDiv) return;
+    if (contenidoDiv.innerHTML.trim() !== '') return;
+
+    const checkboxes = document.querySelectorAll('.diff-checkbox:checked');
+    if (checkboxes.length !== 2) {
+      contenidoDiv.innerHTML = '<div style="padding:2rem; text-align:center; color:var(--text-muted);">Selecciona exactamente 2 versiones para analizar con IA.</div>';
       return;
     }
 
-    const formData = new FormData(form);
-    btn.disabled = true;
-    btn.textContent = 'Guardando...';
+    const idV1 = parseInt(checkboxes[0].value);
+    const idV2 = parseInt(checkboxes[1].value);
+
+    loadingDiv.style.display    = 'block';
+    contenidoDiv.style.display  = 'none';
 
     try {
-      const res = await fetch('/api/versiones', {
+      const res = await fetch('/api/versiones/comparar-ia', {
         method: 'POST',
-        body: formData
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idV1, idV2 })
       });
       const data = await res.json();
 
-      if (data.success) {
-        await cargarHistorialVersiones(versionActividadActual);
-        document.getElementById('version-descripcion').value = '';
-        document.getElementById('version-archivo').value = '';
-        document.getElementById('version-contenido-texto').value = '';
-        document.getElementById('diff-visualizador').style.display = 'none';
-        document.getElementById('diff-visualizador').innerHTML = '';
-        alert('Versión de ECS registrada correctamente.');
+      if (data.success && data.analysis) {
+        contenidoDiv.innerHTML = marked.parse(data.analysis);
       } else {
-        alert('Error: ' + (data.error || 'No se pudo subir la versión.'));
+        contenidoDiv.innerHTML = `<div style="padding:2rem; text-align:center; color:var(--red);">
+          <p style="font-weight:600;">No se pudo realizar el análisis con IA</p>
+          <p style="font-size:0.8rem; color:var(--text-muted);">${data.error || 'Error inesperado.'}</p></div>`;
       }
     } catch (err) {
-      alert('Error de conexión.');
+      contenidoDiv.innerHTML = `<div style="padding:2rem; text-align:center; color:var(--red);">
+        <p style="font-weight:600;">Error de conexión</p></div>`;
     } finally {
-      btn.disabled = false;
-      btn.textContent = 'Subir y Registrar';
+      loadingDiv.style.display   = 'none';
+      contenidoDiv.style.display = 'block';
     }
   }
+
 </script>

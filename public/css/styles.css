@@ -185,10 +185,10 @@ code, pre { font-family: var(--font-mono); font-size: 12px; }
 
 .page-container {
   flex: 1;
-  padding: 24px 32px;
-  max-width: 1400px;
+  padding: 20px 24px;
+  max-width: 100%;
   width: 100%;
-  margin: 0 auto;
+  margin: 0;
 }
 
 /* ─── SIDEBAR ──────────────────────────────────────────────────────────────── */

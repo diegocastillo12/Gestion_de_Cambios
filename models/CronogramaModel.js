@@ -421,9 +421,10 @@ class CronogramaModel {
         }
       }
 
-      // 4. Fechas por defecto
-      const fechaInicio = project.fecha_inicio || new Date();
-      const fechaFin = project.fecha_fin || new Date();
+      // 4. Fechas por defecto (usar el día de hoy para que no inunde todo el calendario del proyecto)
+      const hoy = new Date();
+      const fechaInicio = hoy;
+      const fechaFin = hoy;
 
       idResponsable = ticket.id_desarrollador || null;
 

@@ -239,6 +239,10 @@ function poblarEstructura(etapas) {
 
   window._todosEcms = [];
 
+  // Limpiar opciones anteriores para evitar duplicados
+  selEtapa.innerHTML = '<option value="">— Seleccionar Etapa —</option>';
+  selEcm.innerHTML   = '<option value="">— Seleccionar ECM —</option>';
+
   etapas.forEach(et => {
     const opt = document.createElement('option');
     opt.value = et.id_etapa;
@@ -308,6 +312,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   const req = document.getElementById('requisito_afectado');
   if (req) req.addEventListener('input', actualizarPreviewVinculo);
+
+  // Inicializar estructura de ECMs en el cliente si ya viene pre-cargado el proyecto desde el servidor
+  <% if (typeof id_proyecto !== 'undefined' && id_proyecto && estructuraProyecto && estructuraProyecto.length > 0) { %>
+    poblarEstructura(estructuraCache['<%= id_proyecto %>']);
+  <% } %>
 });
 
 async function crearTicket(e) {

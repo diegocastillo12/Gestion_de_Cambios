@@ -528,7 +528,7 @@ exports.compararVersionesConIA = asyncH(async (req, res) => {
     const resNueva   = await procesarVersion(nueva);
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }, { apiVersion: "v1" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }, { apiVersion: "v1beta" });
 
     let prompt = `Eres un experto en Gestión de Configuración (SCM) y QA.
 Tu objetivo es analizar y comparar de forma semántica la Versión Antigua y la Versión Nueva de los entregables del ECS.
@@ -564,7 +564,32 @@ INFORMACIÓN GENERAL:
       parts.push(resNueva.data);
     }
 
-    const result = await model.generateContent(parts);
+    // Reintentar hasta 3 veces en caso de 503 (sobrecarga temporal de la API)
+    let result;
+    for (let intento = 1; intento <= 3; intento++) {
+      try {
+        result = await model.generateContent(parts);
+        break; // éxito
+      } catch (e) {
+        const is503 = e.message && (e.message.includes('503') || e.message.includes('high demand') || e.message.includes('Service Unavailable'));
+        const is429 = e.message && (e.message.includes('429') || e.message.includes('quota') || e.message.includes('Too Many Requests'));
+
+        if (is429) {
+          return res.status(429).json({
+            success: false,
+            error: 'Se ha superado la cuota gratuita de la API de Gemini por hoy. Intenta de nuevo mañana o revisa tu plan en https://ai.google.dev'
+          });
+        }
+
+        if (is503 && intento < 3) {
+          console.warn(`  ⚠️ Gemini 503 (intento ${intento}/3) — esperando 4s...`);
+          await new Promise(r => setTimeout(r, 4000));
+          continue;
+        }
+        throw e;
+      }
+    }
+
     const response = await result.response;
     const analysisMarkdown = response.text();
 
